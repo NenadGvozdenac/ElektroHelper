@@ -1,7 +1,7 @@
 package middleware
 
 import (
-	"elektrohelper/backend/utils"
+	"elektrohelper/backend/internal/app/utils"
 	"net/http"
 	"strings"
 

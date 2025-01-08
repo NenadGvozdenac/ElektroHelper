@@ -1,3 +1,9 @@
+DROP TABLE IF EXISTS notifications;
+DROP TABLE IF EXISTS electricity_readings;
+DROP TABLE IF EXISTS electricity_meters;
+DROP TABLE IF EXISTS locations;
+DROP TABLE IF EXISTS users;
+
 CREATE TABLE IF NOT EXISTS users (
     id SERIAL PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
@@ -35,3 +41,12 @@ CREATE TABLE IF NOT EXISTS electricity_readings (
     upper_reading VARCHAR(255) NOT NULL,
     CONSTRAINT fk_electricity_meter FOREIGN KEY (electricity_meter_id) REFERENCES electricity_meters(id)
 );
+
+CREATE TABLE IF NOT EXISTS notifications (
+    id SERIAL PRIMARY KEY,
+    user_id INT NOT NULL,
+    notification_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    subject VARCHAR(255) NOT NULL,
+    message TEXT NOT NULL,
+    CONSTRAINT fk_user FOREIGN KEY (user_id) REFERENCES users(id)
+)

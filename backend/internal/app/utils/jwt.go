@@ -64,3 +64,13 @@ func ExtractUserNameFromContext(c *gin.Context) string {
 	userName := c.MustGet("userName").(string)
 	return userName
 }
+
+// ExtractDataFromContext extracts user data from the context
+// and returns the user ID, email, role, and name
+func ExtractDataFromContext(c *gin.Context) (uint, string, string, string) {
+	userId := ExtractUserIdFromContext(c)
+	userEmail := ExtractUserEmailFromContext(c)
+	userRole := ExtractUserRoleFromContext(c)
+	userName := ExtractUserNameFromContext(c)
+	return userId, userEmail, userRole, userName
+}

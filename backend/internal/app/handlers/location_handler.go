@@ -1,24 +1,24 @@
 package handlers
 
 import (
-	"elektrohelper/backend/config"
-	"elektrohelper/backend/dtos"
-	"elektrohelper/backend/models"
-	"elektrohelper/backend/utils"
+	"elektrohelper/backend/internal/app/dtos"
+	"elektrohelper/backend/internal/app/repositories"
+	"elektrohelper/backend/internal/app/utils"
+	"elektrohelper/backend/internal/domain/models"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 )
 
 func CreateLocation(c *gin.Context) {
-	var locationDTO dtos.LocationDTO
+	var locationDTO dtos.CreateLocationDTO
 
 	if err := c.ShouldBindJSON(&locationDTO); err != nil {
 		utils.CreateGinResponse(c, "Invalid request body", http.StatusBadRequest, nil)
 		return
 	}
 
-	userId := utils.ExtractUserIdFromContext(c)
+	userId, userEmail, _, userName := utils.ExtractDataFromContext(c)
 
 	location := models.Location{
 		Street:     locationDTO.Street,
@@ -29,9 +29,6 @@ func CreateLocation(c *gin.Context) {
 		UserID:     userId,
 	}
 
-	userEmail := utils.ExtractUserEmailFromContext(c)
-	userName := utils.ExtractUserNameFromContext(c)
-
 	newLocationAddedMessage := "New location has been added: " + locationDTO.Street + " " + locationDTO.Number + ", " + locationDTO.City + ", " + locationDTO.Country + ", " + locationDTO.PostalCode
 
 	if err := SendNotificationMail(userId, userEmail, userName, newLocationAddedMessage); err != nil {
@@ -39,7 +36,7 @@ func CreateLocation(c *gin.Context) {
 		return
 	}
 
-	if err := config.DB.Create(&location).Error; err != nil {
+	if err := repositories.NewLocationRepository().Create(&location); err != nil {
 		utils.CreateGinResponse(c, "Failed to create location", http.StatusInternalServerError, nil)
 		return
 	}
@@ -48,13 +45,16 @@ func CreateLocation(c *gin.Context) {
 }
 
 func GetAllLocationsByUser(c *gin.Context) {
-	var locations []dtos.LocationResponseDTO
-
 	// Extract userId from the context
 	userId := utils.ExtractUserIdFromContext(c)
 
 	// Get all locations from the database
-	config.DB.Table("locations").Select("locations.id, locations.street, locations.number, locations.city, locations.country, locations.postal_code").Where("locations.user_id = ?", userId).Scan(&locations)
+	locations, err := repositories.NewLocationRepository().GetByUserId(userId)
+
+	if err != nil {
+		utils.CreateGinResponse(c, "Failed to retrieve locations", http.StatusInternalServerError, nil)
+		return
+	}
 
 	utils.CreateGinResponse(c, "Locations retrieved successfully", http.StatusOK, locations)
 }

@@ -3,8 +3,8 @@ package handlers
 import (
 	"bytes"
 	"elektrohelper/backend/config"
-	"elektrohelper/backend/models"
-	"elektrohelper/backend/utils"
+	"elektrohelper/backend/internal/app/utils"
+	"elektrohelper/backend/internal/domain/models"
 	"fmt"
 	"sync"
 	"text/template"

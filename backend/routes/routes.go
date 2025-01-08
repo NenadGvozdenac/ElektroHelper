@@ -1,8 +1,8 @@
 package routes
 
 import (
-	"elektrohelper/backend/handlers"
-	"elektrohelper/backend/middleware"
+	"elektrohelper/backend/internal/app/handlers"
+	"elektrohelper/backend/internal/app/middleware"
 
 	"github.com/gin-gonic/gin"
 )
@@ -28,6 +28,12 @@ func setupProtectedRoutes(api *gin.RouterGroup) {
 	protected.Use(middleware.AuthMiddleware())
 
 	protected.GET("/users", handlers.GetAllUsers)
+
 	protected.POST("/locations", handlers.CreateLocation)
 	protected.GET("/locations", handlers.GetAllLocationsByUser)
+
+	protected.POST("/electricity_meters", handlers.CreateElectricityMeter)
+	protected.DELETE("/electricity_meters/:id", handlers.DeleteElectricityMeter)
+	protected.GET("/electricity_meters", handlers.GetAllElectricityMeters)
+	protected.GET("/electricity_meters/user", handlers.GetElectricityMetersByUserId)
 }

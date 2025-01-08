@@ -2,9 +2,9 @@ package handlers
 
 import (
 	"elektrohelper/backend/config"
-	"elektrohelper/backend/dtos"
-	"elektrohelper/backend/models"
-	"elektrohelper/backend/utils"
+	"elektrohelper/backend/internal/app/dtos"
+	"elektrohelper/backend/internal/app/utils"
+	"elektrohelper/backend/internal/domain/models"
 	"net/http"
 
 	"github.com/gin-gonic/gin"

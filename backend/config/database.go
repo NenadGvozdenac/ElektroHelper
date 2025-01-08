@@ -1,10 +1,9 @@
 package config
 
 import (
+	"elektrohelper/backend/internal/app/utils"
 	"fmt"
 	"log"
-
-	"elektrohelper/backend/utils"
 
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
