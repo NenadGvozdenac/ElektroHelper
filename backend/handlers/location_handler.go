@@ -18,14 +18,8 @@ func CreateLocation(c *gin.Context) {
 		return
 	}
 
-	// Output the locationDTO
-	utils.PrettyPrint(locationDTO)
-
 	// Extract userId from the context
-	userId := c.MustGet("userID").(uint)
-
-	// Output the userId
-	utils.PrettyPrint(userId)
+	userId := utils.ExtractUserIdFromContext(c)
 
 	location := models.Location{
 		Street:     locationDTO.Street,
@@ -48,10 +42,10 @@ func GetAllLocationsByUser(c *gin.Context) {
 	var locations []dtos.LocationResponseDTO
 
 	// Extract userId from the context
-	userId := c.MustGet("userID").(uint)
+	userId := utils.ExtractUserIdFromContext(c)
 
 	// Get all locations from the database
-	config.DB.Table("locations").Select("locations.id, locations.street, locations.number, locations.city, locations.country, locations.postal_code, users.id, users.name, users.surname, users.email, users.phone, users.role, users.creation_date").Joins("JOIN users ON locations.user_id = users.id").Where("locations.user_id = ?", userId).Scan(&locations)
+	config.DB.Table("locations").Select("locations.id, locations.street, locations.number, locations.city, locations.country, locations.postal_code").Where("locations.user_id = ?", userId).Scan(&locations)
 
 	utils.CreateGinResponse(c, "Locations retrieved successfully", http.StatusOK, locations)
 }

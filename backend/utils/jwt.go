@@ -4,6 +4,7 @@ import (
 	"errors"
 	"time"
 
+	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
 )
 
@@ -39,4 +40,9 @@ func ValidateToken(tokenString string) (jwt.MapClaims, error) {
 	}
 
 	return claims, nil
+}
+
+func ExtractUserIdFromContext(c *gin.Context) uint {
+	userId := c.MustGet("userID").(uint)
+	return userId
 }

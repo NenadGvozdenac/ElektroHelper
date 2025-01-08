@@ -9,11 +9,10 @@ type LocationDTO struct {
 }
 
 type LocationResponseDTO struct {
-	ID         uint            `json:"id"`
-	Street     string          `json:"street"`
-	Number     string          `json:"number"`
-	City       string          `json:"city"`
-	Country    string          `json:"country"`
-	PostalCode string          `json:"postal_code"`
-	User       UserResponseDTO `json:"user"`
+	ID         uint   `json:"id"`
+	Street     string `json:"street"`
+	Number     string `json:"number"`
+	City       string `json:"city"`
+	Country    string `json:"country"`
+	PostalCode string `json:"postal_code"`
 }
