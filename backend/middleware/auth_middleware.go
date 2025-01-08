@@ -32,8 +32,33 @@ func AuthMiddleware() gin.HandlerFunc {
 			return
 		}
 
+		userEmail, ok := claims["userEmail"].(string)
+		if !ok {
+			utils.CreateGinResponse(c, "Invalid user email format in token", http.StatusUnauthorized, nil)
+			c.Abort()
+			return
+		}
+
+		userRole, ok := claims["userRole"].(string)
+		if !ok {
+			utils.CreateGinResponse(c, "Invalid user role format in token", http.StatusUnauthorized, nil)
+			c.Abort()
+			return
+		}
+
+		userName, ok := claims["userName"].(string)
+		if !ok {
+			utils.CreateGinResponse(c, "Invalid user name format in token", http.StatusUnauthorized, nil)
+			c.Abort()
+			return
+		}
+
 		userID := uint(userIDFloat)
 		c.Set("userID", userID)
+		c.Set("userEmail", userEmail)
+		c.Set("userRole", userRole)
+		c.Set("userName", userName)
+
 		c.Next()
 	}
 }

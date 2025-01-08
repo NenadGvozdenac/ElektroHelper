@@ -48,7 +48,12 @@ func Register(c *gin.Context) {
 		return
 	}
 
-	token, err := utils.GenerateToken(newUser.ID)
+	if err := SendRegistrationMail(newUser.ID, newUser.Email, newUser.Name); err != nil {
+		utils.CreateGinResponse(c, "Failed to send registration mail", http.StatusInternalServerError, nil)
+		return
+	}
+
+	token, err := utils.GenerateToken(newUser.ID, newUser.Email, newUser.Role, newUser.Name)
 	if err != nil {
 		utils.CreateGinResponse(c, "Failed to generate token", http.StatusInternalServerError, nil)
 		return
@@ -84,7 +89,7 @@ func Login(c *gin.Context) {
 	}
 
 	// Generate JWT
-	token, err := utils.GenerateToken(user.ID)
+	token, err := utils.GenerateToken(user.ID, user.Email, user.Role, user.Name)
 	if err != nil {
 		utils.CreateGinResponse(c, "Failed to generate token", http.StatusInternalServerError, nil)
 		return

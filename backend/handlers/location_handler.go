@@ -18,7 +18,6 @@ func CreateLocation(c *gin.Context) {
 		return
 	}
 
-	// Extract userId from the context
 	userId := utils.ExtractUserIdFromContext(c)
 
 	location := models.Location{
@@ -28,6 +27,16 @@ func CreateLocation(c *gin.Context) {
 		Country:    locationDTO.Country,
 		PostalCode: locationDTO.PostalCode,
 		UserID:     userId,
+	}
+
+	userEmail := utils.ExtractUserEmailFromContext(c)
+	userName := utils.ExtractUserNameFromContext(c)
+
+	newLocationAddedMessage := "New location has been added: " + locationDTO.Street + " " + locationDTO.Number + ", " + locationDTO.City + ", " + locationDTO.Country + ", " + locationDTO.PostalCode
+
+	if err := SendNotificationMail(userId, userEmail, userName, newLocationAddedMessage); err != nil {
+		utils.CreateGinResponse(c, "Failed to send notification mail", http.StatusInternalServerError, nil)
+		return
 	}
 
 	if err := config.DB.Create(&location).Error; err != nil {

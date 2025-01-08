@@ -11,10 +11,13 @@ import (
 var jwtSecret = []byte("my_secret_key")
 
 // GenerateToken generates a JWT for a given user ID
-func GenerateToken(userID uint) (string, error) {
+func GenerateToken(userID uint, userEmail string, userRole string, userName string) (string, error) {
 	claims := jwt.MapClaims{
-		"userID": userID,
-		"exp":    time.Now().Add(time.Hour * 24).Unix(),
+		"userID":    userID,
+		"userEmail": userEmail,
+		"userRole":  userRole,
+		"userName":  userName,
+		"exp":       time.Now().Add(time.Hour * 24).Unix(),
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
@@ -45,4 +48,19 @@ func ValidateToken(tokenString string) (jwt.MapClaims, error) {
 func ExtractUserIdFromContext(c *gin.Context) uint {
 	userId := c.MustGet("userID").(uint)
 	return userId
+}
+
+func ExtractUserEmailFromContext(c *gin.Context) string {
+	userEmail := c.MustGet("userEmail").(string)
+	return userEmail
+}
+
+func ExtractUserRoleFromContext(c *gin.Context) string {
+	userRole := c.MustGet("userRole").(string)
+	return userRole
+}
+
+func ExtractUserNameFromContext(c *gin.Context) string {
+	userName := c.MustGet("userName").(string)
+	return userName
 }
