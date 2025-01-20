@@ -1,7 +1,6 @@
-# Use the official Golang image to create a build artifact.
+# Build stage
 FROM golang:1.23.4 AS builder
 
-# Set the Current Working Directory inside the container
 WORKDIR /app
 
 # Copy go mod and sum files
@@ -10,26 +9,34 @@ COPY go.mod go.sum ./
 # Download all dependencies
 RUN go mod download
 
-# Copy the source from the current directory to the Working Directory inside the container
+# Copy the source code
 COPY . .
 
 # Build the Go app as a static binary
 RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o main ./main.go
 
-# Start a new stage from scratch
+# Test stage (for running tests)
+FROM golang:1.23.4 AS tester
+
+WORKDIR /app
+
+# Copy the source and dependencies
+COPY --from=builder /app .
+
+# Run the tests
+CMD ["go", "test", "-short", "elektrohelper/backend/internal/app/handlers/test"]
+
+# Final production stage
 FROM alpine:latest  
 
-# Set the Current Working Directory inside the container
 WORKDIR /root/
 
-# Copy the Pre-built binary file from the previous stage
+# Copy the Pre-built binary file from the builder stage
 COPY --from=builder /app/main .
 
 # Copy the static folder into the container
 COPY --from=builder /app/static ./static
 
-# Expose port 8080 to the outside world
 EXPOSE 8080
 
-# Command to run the executable
 CMD ["./main"]

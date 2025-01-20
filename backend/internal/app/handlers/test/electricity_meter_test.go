@@ -1,0 +1,270 @@
+package test
+
+import (
+	"elektrohelper/backend/config"
+	"elektrohelper/backend/internal/app/dtos"
+	"elektrohelper/backend/internal/app/utils"
+	"elektrohelper/backend/internal/domain/models"
+	"encoding/json"
+	"fmt"
+	"net/http"
+	"testing"
+)
+
+func TestCreateElectricityMeter_Success(t *testing.T) {
+	cleanup := prepareTest()
+	defer cleanup()
+
+	// Arrange
+	user := models.User{
+		Name:         "John",
+		Surname:      "Doe",
+		Email:        "email@gmail.com",
+		Phone:        "123456789",
+		Password:     "hashedpassword",
+		CreationDate: "2025-01-19 12:34:56",
+		Role:         "user",
+	}
+
+	// Create user
+	config.DB.Create(&user)
+
+	// Mock gin context
+	mockGinContext(user.ID, user.Email, user.Role, user.Name)
+
+	location := models.Location{
+		ID:         1,
+		Street:     "Test street",
+		Number:     "1",
+		City:       "Test city",
+		Country:    "Test country",
+		PostalCode: "12345",
+		UserID:     user.ID,
+	}
+
+	// Create location
+	config.DB.Create(&location)
+
+	input := dtos.CreateElectricityMeterDTO{
+		LocationID: location.ID,
+	}
+	body, _ := json.Marshal(input)
+
+	// Act
+	w := makeRequest(router, http.MethodPost, "/api/electricity_meters?sendMail=false", body)
+
+	// Assert
+	assertResponse(t, w, http.StatusCreated, "Electricity meter created successfully")
+}
+
+func TestCreateElectricityMeter_InvalidLocation(t *testing.T) {
+	cleanup := prepareTest()
+	defer cleanup()
+
+	// Arrange
+	user := models.User{
+		Name:         "John",
+		Surname:      "Doe",
+		Email:        "email@gmail.com",
+		Phone:        "123456789",
+		Password:     "hashedpassword",
+		CreationDate: "2025-01-19 12:34:56",
+		Role:         "user",
+	}
+
+	// Create user
+	config.DB.Create(&user)
+
+	// Mock gin context
+	mockGinContext(user.ID, user.Email, user.Role, user.Name)
+
+	// Invalid location ID (non-existing)
+	input := dtos.CreateElectricityMeterDTO{
+		LocationID: 999,
+	}
+	body, _ := json.Marshal(input)
+
+	// Act
+	w := makeRequest(router, http.MethodPost, "/api/electricity_meters?sendMail=false", body)
+
+	// Assert
+	assertResponse(t, w, http.StatusBadRequest, "location does not exist")
+}
+
+func TestDeleteElectricityMeter_Success(t *testing.T) {
+	cleanup := prepareTest()
+	defer cleanup()
+
+	// Arrange
+	user := models.User{
+		Name:         "John",
+		Surname:      "Doe",
+		Email:        "email@gmail.com",
+		Phone:        "123456789",
+		Password:     "hashedpassword",
+		CreationDate: "2025-01-19 12:34:56",
+		Role:         "user",
+	}
+
+	// Create user
+	config.DB.Create(&user)
+
+	// Mock gin context
+	mockGinContext(user.ID, user.Email, user.Role, user.Name)
+
+	location := models.Location{
+		ID:         1,
+		Street:     "Test street",
+		Number:     "1",
+		City:       "Test city",
+		Country:    "Test country",
+		PostalCode: "12345",
+		UserID:     user.ID,
+	}
+
+	// Create location
+	config.DB.Create(&location)
+
+	electricityMeter := models.ElectricityMeter{
+		LocationID:         location.ID,
+		DateOfRegistration: utils.GetCurrentTimeFormatted(),
+	}
+
+	// Create electricity meter
+	config.DB.Create(&electricityMeter)
+
+	// Act
+	w := makeRequest(router, http.MethodDelete, fmt.Sprintf("/api/electricity_meters/%d", electricityMeter.ID), nil)
+
+	// Assert
+	assertResponse(t, w, http.StatusOK, "Electricity meter deleted successfully")
+}
+
+func TestDeleteElectricityMeter_FailedToRetrieve(t *testing.T) {
+	cleanup := prepareTest()
+	defer cleanup()
+
+	// Arrange
+	user := models.User{
+		Name:         "John",
+		Surname:      "Doe",
+		Email:        "email@gmail.com",
+		Phone:        "123456789",
+		Password:     "hashedpassword",
+		CreationDate: "2025-01-19 12:34:56",
+		Role:         "user",
+	}
+
+	// Create user
+	config.DB.Create(&user)
+
+	// Mock gin context
+	mockGinContext(user.ID, user.Email, user.Role, user.Name)
+
+	// Invalid electricity meter ID (non-existing or wrong location)
+	// Act
+	w := makeRequest(router, http.MethodDelete, "/api/electricity_meters/999", nil)
+
+	// Assert
+	assertResponse(t, w, http.StatusInternalServerError, "Failed to retrieve electricity meter")
+}
+
+func TestGetAllElectricityMeters_Success(t *testing.T) {
+	cleanup := prepareTest()
+	defer cleanup()
+
+	// Arrange
+	user := models.User{
+		Name:         "John",
+		Surname:      "Doe",
+		Email:        "email@gmail.com",
+		Phone:        "123456789",
+		Password:     "hashedpassword",
+		CreationDate: "2025-01-19 12:34:56",
+		Role:         "user",
+	}
+
+	// Create user
+	config.DB.Create(&user)
+
+	// Mock gin context
+	mockGinContext(user.ID, user.Email, user.Role, user.Name)
+
+	location := models.Location{
+		ID:         1,
+		Street:     "Test street",
+		Number:     "1",
+		City:       "Test city",
+		Country:    "Test country",
+		PostalCode: "12345",
+		UserID:     user.ID,
+	}
+
+	// Create location
+	config.DB.Create(&location)
+
+	electricityMeter := models.ElectricityMeter{
+		LocationID:         location.ID,
+		DateOfRegistration: utils.GetCurrentTimeFormatted(),
+	}
+
+	// Create electricity meter
+	config.DB.Create(&electricityMeter)
+
+	// Get all electricity meters
+	// Act
+	w := makeRequest(router, http.MethodGet, "/api/electricity_meters", nil)
+
+	// Assert
+	assertResponse(t, w, http.StatusOK, "Electricity meters retrieved successfully")
+}
+
+func TestGetElectricityMetersByUserId_Success(t *testing.T) {
+	cleanup := prepareTest()
+	defer cleanup()
+
+	// Arrange
+	user := models.User{
+		Name:         "John",
+		Surname:      "Doe",
+		Email:        "email@gmail.com",
+		Phone:        "123456789",
+		Password:     "hashedpassword",
+		CreationDate: "2025-01-19 12:34:56",
+		Role:         "user",
+	}
+
+	// Create user
+	config.DB.Create(&user)
+
+	// Mock gin context
+	mockGinContext(user.ID, user.Email, user.Role, user.Name)
+
+	location := models.Location{
+		ID:         1,
+		Street:     "Test street",
+		Number:     "1",
+		City:       "Test city",
+		Country:    "Test country",
+		PostalCode: "12345",
+		UserID:     user.ID,
+	}
+
+	// Create location
+	config.DB.Create(&location)
+
+	electricityMeter := models.ElectricityMeter{
+		LocationID:         location.ID,
+		DateOfRegistration: utils.GetCurrentTimeFormatted(),
+	}
+
+	// Create electricity meter
+	config.DB.Create(&electricityMeter)
+
+	// Get electricity meters by user ID
+	// Act
+	w := makeRequest(router, http.MethodGet, "/api/electricity_meters/user", nil)
+
+	// Assert
+	assertResponse(t, w, http.StatusOK, "Electricity meters retrieved successfully")
+}

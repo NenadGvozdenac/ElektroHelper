@@ -43,10 +43,13 @@ func CreateElectricityMeter(c *gin.Context) {
 		return
 	}
 
-	// Send notification email
-	if err := SendNotificationMail(userId, userEmail, userName, "New electricity meter has been added"); err != nil {
-		utils.CreateGinResponse(c, "Failed to send notification mail", http.StatusInternalServerError, nil)
-		return
+	sendMail := c.DefaultQuery("sendMail", "true") == "true"
+
+	if sendMail {
+		if err := SendNotificationMail(userId, userEmail, userName, "New electricity meter has been added"); err != nil {
+			utils.CreateGinResponse(c, "Failed to send notification mail", http.StatusInternalServerError, nil)
+			return
+		}
 	}
 
 	utils.CreateGinResponse(c, "Electricity meter created successfully", http.StatusCreated, electricityMeter)

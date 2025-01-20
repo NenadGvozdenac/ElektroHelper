@@ -48,9 +48,13 @@ func Register(c *gin.Context) {
 		return
 	}
 
-	if err := SendRegistrationMail(newUser.ID, newUser.Email, newUser.Name); err != nil {
-		utils.CreateGinResponse(c, "Failed to send registration mail", http.StatusInternalServerError, nil)
-		return
+	sendMail := c.DefaultQuery("sendMail", "true") == "true"
+
+	if sendMail {
+		if err := SendRegistrationMail(newUser.ID, newUser.Email, newUser.Name); err != nil {
+			utils.CreateGinResponse(c, "Failed to send registration mail", http.StatusInternalServerError, nil)
+			return
+		}
 	}
 
 	token, err := utils.GenerateToken(newUser.ID, newUser.Email, newUser.Role, newUser.Name)

@@ -4,6 +4,7 @@ import (
 	"elektrohelper/backend/config"
 	"elektrohelper/backend/internal/domain/interfaces"
 	"elektrohelper/backend/internal/domain/models"
+	"log"
 )
 
 // UserRepository is the implementation of UserRepositoryInterface
@@ -44,6 +45,7 @@ func (repo *UserRepository) GetByID(id uint) (*models.User, error) {
 func (repo *UserRepository) GetAll() (*[]models.User, error) {
 	var users []models.User
 	if err := config.DB.Find(&users).Error; err != nil {
+		log.Printf("Error retrieving users: %v", err)
 		return nil, err
 	}
 	return &users, nil

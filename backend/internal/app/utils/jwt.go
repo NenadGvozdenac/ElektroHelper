@@ -11,7 +11,7 @@ import (
 var jwtSecret = []byte("my_secret_key")
 
 // GenerateToken generates a JWT for a given user ID
-func GenerateToken(userID uint, userEmail string, userRole string, userName string) (string, error) {
+var GenerateToken = func(userID uint, userEmail string, userRole string, userName string) (string, error) {
 	claims := jwt.MapClaims{
 		"userID":    userID,
 		"userEmail": userEmail,
@@ -45,29 +45,29 @@ func ValidateToken(tokenString string) (jwt.MapClaims, error) {
 	return claims, nil
 }
 
-func ExtractUserIdFromContext(c *gin.Context) uint {
+var ExtractUserIdFromContext = func(c *gin.Context) uint {
 	userId := c.MustGet("userID").(uint)
 	return userId
 }
 
-func ExtractUserEmailFromContext(c *gin.Context) string {
+var ExtractUserEmailFromContext = func(c *gin.Context) string {
 	userEmail := c.MustGet("userEmail").(string)
 	return userEmail
 }
 
-func ExtractUserRoleFromContext(c *gin.Context) string {
+var ExtractUserRoleFromContext = func(c *gin.Context) string {
 	userRole := c.MustGet("userRole").(string)
 	return userRole
 }
 
-func ExtractUserNameFromContext(c *gin.Context) string {
+var ExtractUserNameFromContext = func(c *gin.Context) string {
 	userName := c.MustGet("userName").(string)
 	return userName
 }
 
 // ExtractDataFromContext extracts user data from the context
 // and returns the user ID, email, role, and name
-func ExtractDataFromContext(c *gin.Context) (uint, string, string, string) {
+var ExtractDataFromContext = func(c *gin.Context) (uint, string, string, string) {
 	userId := ExtractUserIdFromContext(c)
 	userEmail := ExtractUserEmailFromContext(c)
 	userRole := ExtractUserRoleFromContext(c)
