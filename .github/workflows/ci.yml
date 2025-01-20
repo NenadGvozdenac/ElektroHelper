@@ -24,13 +24,20 @@ jobs:
           - postgres_data:/var/lib/postgresql/data
           - ./database/starter_test.sql:/docker-entrypoint-initdb.d/init.sql
     steps:
+      - name: Clean up previous workspace (if any)
+        run: |
+          sudo rm -rf /home/runner/work/ElektroHelper/ElektroHelper
+
       - name: Checkout Code
         uses: actions/checkout@v2
 
       - name: Ensure correct file permissions
         run: |
-          chmod -R 755 ./database
-          chmod 644 ./database/starter_test.sql
+          sudo chmod -R 755 ./database
+          sudo chmod 644 ./database/starter_test.sql
+          
+      - name: Grant ownership to the runner user
+        run: sudo chown -R $USER:$USER ./database
 
       - name: Build app image
         run: docker-compose -f docker-compose.yml build app
