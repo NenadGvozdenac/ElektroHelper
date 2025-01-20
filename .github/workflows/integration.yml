@@ -25,9 +25,20 @@ jobs:
           curl -L "https://github.com/docker/compose/releases/download/v2.19.1/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
           chmod +x /usr/local/bin/docker-compose
 
-      - name: Build and run Docker containers
+      - name: Build and start the app and db services
         run: |
-            docker-compose up --build -d
+          docker-compose -f docker-compose.yaml up --build -d app db
+        continue-on-error: false
+
+      - name: Run tests script
+        run: |
+          docker-compose exec -T tester /bin/sh -c "/scripts/test.sh"
+        continue-on-error: false
+
+      - name: Run app script
+        run: |
+          docker-compose exec -T app /bin/sh -c "/scripts/run.sh"
+        continue-on-error: false
 
       - name: Clean up Docker containers
         run: |
