@@ -30,19 +30,9 @@ jobs:
           docker-compose -f docker-compose.yaml up --build -d app db
         continue-on-error: false
 
-      - name: Run tests (using tester service)
-        run: |
-          docker-compose -f docker-compose.yaml up --build -d tester
-        continue-on-error: false
-
       - name: Run tests script
         run: |
           docker-compose exec -T tester /bin/sh -c "/scripts/test.sh"
-        continue-on-error: false
-
-      - name: Run app (after tests)
-        run: |
-          docker-compose -f docker-compose.yaml up --build -d app db
         continue-on-error: false
 
       - name: Run app script
