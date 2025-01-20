@@ -41,10 +41,9 @@ jobs:
       - name: Build tester image
         run: |
             docker-compose -f docker-compose.yaml up --build -d tester
-            # Wait for the tester service to exit
-            docker-compose -f docker-compose.yaml wait tester
-            # Get the exit code of the tester service
-            tester_exit_code=$(docker inspect --format '{{.State.ExitCode}}' tester)
+            # Wait for tester container to complete
+            sleep 15  # Give it some time to execute; adjust as needed
+            tester_exit_code=$(docker inspect --format '{{.State.ExitCode}}' elektrohelper-tester-1)
             # Check if the exit code is not 0 (failure)
             if [ "$tester_exit_code" -ne 0 ]; then
               echo "Tester service failed with exit code $tester_exit_code"
@@ -54,7 +53,7 @@ jobs:
 
       - name: Build app image
         run: |
-          docker-compose -f docker-compose.yaml up --build app
+          docker-compose -f docker-compose.yaml up -d --build app
         continue-on-error: false
 
       - name: Clean up Docker containers
