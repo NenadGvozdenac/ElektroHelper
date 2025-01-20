@@ -48,6 +48,8 @@ jobs:
             if [ "$tester_exit_code" -ne 0 ]; then
               echo "Tester service failed with exit code $tester_exit_code"
               exit 1  # This will stop the pipeline
+            else
+              echo "Tester service passed successfully"
             fi
         continue-on-error: false
 
