@@ -46,12 +46,12 @@ jobs:
 
       - name: Build and start the app and db services
         run: |
-          docker-compose -f docker-compose.yml up --build -d app db
+          docker-compose -f docker-compose.yaml up --build -d app db
         continue-on-error: false
 
       - name: Run tests (using tester service)
         run: |
-          docker-compose -f docker-compose.yml up --build -d tester
+          docker-compose -f docker-compose.yaml up --build -d tester
         continue-on-error: false
 
       - name: Run tests script
@@ -61,7 +61,7 @@ jobs:
 
       - name: Run app (after tests)
         run: |
-          docker-compose -f docker-compose.yml up --build -d app db
+          docker-compose -f docker-compose.yaml up --build -d app db
         continue-on-error: false
 
       - name: Run app script
