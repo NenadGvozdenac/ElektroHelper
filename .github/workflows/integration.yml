@@ -27,12 +27,12 @@ jobs:
 
       - name: Build tester image
         run: |
-          docker-compose -f docker-compose.yaml up --build -d tester
+          docker-compose -f docker-compose.yaml up --build tester
         continue-on-error: false
 
       - name: Build app image
         run: |
-          docker-compose -f docker-compose.yaml up --build -d app
+          docker-compose -f docker-compose.yaml up --build app
         continue-on-error: false
 
       - name: Clean up Docker containers
