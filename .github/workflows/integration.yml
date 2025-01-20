@@ -13,25 +13,6 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
-    services:
-      db:
-        image: postgres:latest
-        env:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: elektrohelper
-        ports:
-          - 5432:5432
-
-      db_test:
-        image: postgres:latest
-        env:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: elektrohelper
-        ports:
-          - 5433:5432
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
