@@ -22,7 +22,7 @@ jobs:
           POSTGRES_DB: db_test
         volumes:
           - postgres_data:/var/lib/postgresql/data
-          - ./database/starter_test.sql:/docker-entrypoint-initdb.d/init.sql
+          - ./database/testing_starter.sql:/docker-entrypoint-initdb.d/init.sql
     steps:
       - name: Checkout Code
         uses: actions/checkout@v2
