@@ -13,6 +13,19 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
+    env:
+        POSTGRES_HOST: db
+        POSTGRES_PORT: 5432
+        POSTGRES_USER: postgres
+        POSTGRES_PASSWORD: postgres
+        POSTGRES_DB: elektrohelper
+
+        POSTGRES_HOST_TEST: db_test
+        POSTGRES_PORT_TEST: 5432
+        POSTGRES_USER_TEST: postgres
+        POSTGRES_PASSWORD_TEST: postgres
+        POSTGRES_DB_TEST: elektrohelper
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
@@ -27,7 +40,16 @@ jobs:
 
       - name: Build tester image
         run: |
-          docker-compose -f docker-compose.yaml up --build tester
+            docker-compose -f docker-compose.yaml up --build -d tester
+            # Wait for the tester service to exit
+            docker-compose -f docker-compose.yaml wait tester
+            # Get the exit code of the tester service
+            tester_exit_code=$(docker inspect --format '{{.State.ExitCode}}' tester)
+            # Check if the exit code is not 0 (failure)
+            if [ "$tester_exit_code" -ne 0 ]; then
+              echo "Tester service failed with exit code $tester_exit_code"
+              exit 1  # This will stop the pipeline
+            fi
         continue-on-error: false
 
       - name: Build app image
