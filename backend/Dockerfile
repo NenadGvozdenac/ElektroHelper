@@ -24,7 +24,7 @@ WORKDIR /app
 COPY --from=builder /app .
 
 # Run the tests
-CMD ["go", "test", "-short", "elektrohelper/backend/internal/app/handlers/test"]
+CMD ["go", "test", "-short", "elektrohelper/backend/tests/integration"]
 
 # Final production stage
 FROM alpine:latest  

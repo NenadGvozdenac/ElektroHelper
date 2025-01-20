@@ -3,6 +3,7 @@ package test
 import (
 	"elektrohelper/backend/config"
 	"elektrohelper/backend/internal/domain/models"
+	test_setup "elektrohelper/backend/tests"
 	"encoding/json"
 	"net/http"
 	"testing"
@@ -11,7 +12,7 @@ import (
 )
 
 func TestGetAllUsers_Success(t *testing.T) {
-	cleanup := prepareTest()
+	cleanup := test_setup.PrepareTest()
 	defer cleanup()
 
 	// Arrange
@@ -41,7 +42,7 @@ func TestGetAllUsers_Success(t *testing.T) {
 	}
 
 	// Act
-	w := makeRequest(router, http.MethodGet, "/api/users", nil)
+	w := test_setup.MakeRequest(http.MethodGet, "/api/users", nil)
 
 	// Assert
 	var response map[string]interface{}

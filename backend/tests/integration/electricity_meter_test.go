@@ -5,6 +5,7 @@ import (
 	"elektrohelper/backend/internal/app/dtos"
 	"elektrohelper/backend/internal/app/utils"
 	"elektrohelper/backend/internal/domain/models"
+	test_setup "elektrohelper/backend/tests"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -12,7 +13,7 @@ import (
 )
 
 func TestCreateElectricityMeter_Success(t *testing.T) {
-	cleanup := prepareTest()
+	cleanup := test_setup.PrepareTest()
 	defer cleanup()
 
 	// Arrange
@@ -30,7 +31,7 @@ func TestCreateElectricityMeter_Success(t *testing.T) {
 	config.DB.Create(&user)
 
 	// Mock gin context
-	mockGinContext(user.ID, user.Email, user.Role, user.Name)
+	test_setup.MockGinContext(user.ID, user.Email, user.Role, user.Name)
 
 	location := models.Location{
 		ID:         1,
@@ -51,14 +52,14 @@ func TestCreateElectricityMeter_Success(t *testing.T) {
 	body, _ := json.Marshal(input)
 
 	// Act
-	w := makeRequest(router, http.MethodPost, "/api/electricity_meters?sendMail=false", body)
+	w := test_setup.MakeRequest(http.MethodPost, "/api/electricity_meters?sendMail=false", body)
 
 	// Assert
-	assertResponse(t, w, http.StatusCreated, "Electricity meter created successfully")
+	test_setup.AssertResponse(t, w, http.StatusCreated, "Electricity meter created successfully")
 }
 
 func TestCreateElectricityMeter_InvalidLocation(t *testing.T) {
-	cleanup := prepareTest()
+	cleanup := test_setup.PrepareTest()
 	defer cleanup()
 
 	// Arrange
@@ -76,7 +77,7 @@ func TestCreateElectricityMeter_InvalidLocation(t *testing.T) {
 	config.DB.Create(&user)
 
 	// Mock gin context
-	mockGinContext(user.ID, user.Email, user.Role, user.Name)
+	test_setup.MockGinContext(user.ID, user.Email, user.Role, user.Name)
 
 	// Invalid location ID (non-existing)
 	input := dtos.CreateElectricityMeterDTO{
@@ -85,14 +86,14 @@ func TestCreateElectricityMeter_InvalidLocation(t *testing.T) {
 	body, _ := json.Marshal(input)
 
 	// Act
-	w := makeRequest(router, http.MethodPost, "/api/electricity_meters?sendMail=false", body)
+	w := test_setup.MakeRequest(http.MethodPost, "/api/electricity_meters?sendMail=false", body)
 
 	// Assert
-	assertResponse(t, w, http.StatusBadRequest, "location does not exist")
+	test_setup.AssertResponse(t, w, http.StatusBadRequest, "location does not exist")
 }
 
 func TestDeleteElectricityMeter_Success(t *testing.T) {
-	cleanup := prepareTest()
+	cleanup := test_setup.PrepareTest()
 	defer cleanup()
 
 	// Arrange
@@ -110,7 +111,7 @@ func TestDeleteElectricityMeter_Success(t *testing.T) {
 	config.DB.Create(&user)
 
 	// Mock gin context
-	mockGinContext(user.ID, user.Email, user.Role, user.Name)
+	test_setup.MockGinContext(user.ID, user.Email, user.Role, user.Name)
 
 	location := models.Location{
 		ID:         1,
@@ -134,14 +135,14 @@ func TestDeleteElectricityMeter_Success(t *testing.T) {
 	config.DB.Create(&electricityMeter)
 
 	// Act
-	w := makeRequest(router, http.MethodDelete, fmt.Sprintf("/api/electricity_meters/%d", electricityMeter.ID), nil)
+	w := test_setup.MakeRequest(http.MethodDelete, fmt.Sprintf("/api/electricity_meters/%d", electricityMeter.ID), nil)
 
 	// Assert
-	assertResponse(t, w, http.StatusOK, "Electricity meter deleted successfully")
+	test_setup.AssertResponse(t, w, http.StatusOK, "Electricity meter deleted successfully")
 }
 
 func TestDeleteElectricityMeter_FailedToRetrieve(t *testing.T) {
-	cleanup := prepareTest()
+	cleanup := test_setup.PrepareTest()
 	defer cleanup()
 
 	// Arrange
@@ -159,18 +160,18 @@ func TestDeleteElectricityMeter_FailedToRetrieve(t *testing.T) {
 	config.DB.Create(&user)
 
 	// Mock gin context
-	mockGinContext(user.ID, user.Email, user.Role, user.Name)
+	test_setup.MockGinContext(user.ID, user.Email, user.Role, user.Name)
 
 	// Invalid electricity meter ID (non-existing or wrong location)
 	// Act
-	w := makeRequest(router, http.MethodDelete, "/api/electricity_meters/999", nil)
+	w := test_setup.MakeRequest(http.MethodDelete, "/api/electricity_meters/999", nil)
 
 	// Assert
-	assertResponse(t, w, http.StatusInternalServerError, "Failed to retrieve electricity meter")
+	test_setup.AssertResponse(t, w, http.StatusInternalServerError, "Failed to retrieve electricity meter")
 }
 
 func TestGetAllElectricityMeters_Success(t *testing.T) {
-	cleanup := prepareTest()
+	cleanup := test_setup.PrepareTest()
 	defer cleanup()
 
 	// Arrange
@@ -188,7 +189,7 @@ func TestGetAllElectricityMeters_Success(t *testing.T) {
 	config.DB.Create(&user)
 
 	// Mock gin context
-	mockGinContext(user.ID, user.Email, user.Role, user.Name)
+	test_setup.MockGinContext(user.ID, user.Email, user.Role, user.Name)
 
 	location := models.Location{
 		ID:         1,
@@ -213,14 +214,14 @@ func TestGetAllElectricityMeters_Success(t *testing.T) {
 
 	// Get all electricity meters
 	// Act
-	w := makeRequest(router, http.MethodGet, "/api/electricity_meters", nil)
+	w := test_setup.MakeRequest(http.MethodGet, "/api/electricity_meters", nil)
 
 	// Assert
-	assertResponse(t, w, http.StatusOK, "Electricity meters retrieved successfully")
+	test_setup.AssertResponse(t, w, http.StatusOK, "Electricity meters retrieved successfully")
 }
 
 func TestGetElectricityMetersByUserId_Success(t *testing.T) {
-	cleanup := prepareTest()
+	cleanup := test_setup.PrepareTest()
 	defer cleanup()
 
 	// Arrange
@@ -238,7 +239,7 @@ func TestGetElectricityMetersByUserId_Success(t *testing.T) {
 	config.DB.Create(&user)
 
 	// Mock gin context
-	mockGinContext(user.ID, user.Email, user.Role, user.Name)
+	test_setup.MockGinContext(user.ID, user.Email, user.Role, user.Name)
 
 	location := models.Location{
 		ID:         1,
@@ -263,8 +264,8 @@ func TestGetElectricityMetersByUserId_Success(t *testing.T) {
 
 	// Get electricity meters by user ID
 	// Act
-	w := makeRequest(router, http.MethodGet, "/api/electricity_meters/user", nil)
+	w := test_setup.MakeRequest(http.MethodGet, "/api/electricity_meters/user", nil)
 
 	// Assert
-	assertResponse(t, w, http.StatusOK, "Electricity meters retrieved successfully")
+	test_setup.AssertResponse(t, w, http.StatusOK, "Electricity meters retrieved successfully")
 }

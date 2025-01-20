@@ -5,6 +5,7 @@ import (
 	"elektrohelper/backend/internal/app/dtos"
 	"elektrohelper/backend/internal/app/handlers"
 	"elektrohelper/backend/internal/domain/models"
+	test_setup "elektrohelper/backend/tests"
 	"encoding/json"
 	"net/http"
 	"testing"
@@ -15,7 +16,7 @@ import (
 )
 
 func TestRegister_Success(t *testing.T) {
-	cleanup := prepareTest()
+	cleanup := test_setup.PrepareTest()
 	defer cleanup()
 
 	// Arrange
@@ -30,15 +31,15 @@ func TestRegister_Success(t *testing.T) {
 	body, _ := json.Marshal(input)
 
 	// Act
-	w := makeRequest(router, http.MethodPost, "/api/register?sendMail=false", body)
+	w := test_setup.MakeRequest(http.MethodPost, "/api/register?sendMail=false", body)
 
 	// Assert
-	assertResponse(t, w, http.StatusCreated, "User registered successfully")
+	test_setup.AssertResponse(t, w, http.StatusCreated, "User registered successfully")
 	assert.NotNil(t, w.Body.String())
 }
 
 func TestRegister_EmailAlreadyInUse(t *testing.T) {
-	cleanup := prepareTest()
+	cleanup := test_setup.PrepareTest()
 	defer cleanup()
 
 	// Arrange
@@ -64,14 +65,14 @@ func TestRegister_EmailAlreadyInUse(t *testing.T) {
 	body, _ := json.Marshal(input)
 
 	// Act
-	w := makeRequest(router, http.MethodPost, "/api/register?sendMail=false", body)
+	w := test_setup.MakeRequest(http.MethodPost, "/api/register?sendMail=false", body)
 
 	// Assert
-	assertResponse(t, w, http.StatusBadRequest, "Email already in use")
+	test_setup.AssertResponse(t, w, http.StatusBadRequest, "Email already in use")
 }
 
 func TestLogin_InvalidCredentials(t *testing.T) {
-	cleanup := prepareTest()
+	cleanup := test_setup.PrepareTest()
 	defer cleanup()
 
 	// Arrange
@@ -93,14 +94,14 @@ func TestLogin_InvalidCredentials(t *testing.T) {
 	body, _ := json.Marshal(input)
 
 	// Act
-	w := makeRequest(router, http.MethodPost, "/api/login", body)
+	w := test_setup.MakeRequest(http.MethodPost, "/api/login", body)
 
 	// Assert
-	assertResponse(t, w, http.StatusUnauthorized, "Invalid email or password")
+	test_setup.AssertResponse(t, w, http.StatusUnauthorized, "Invalid email or password")
 }
 
 func TestLogin_NonExistentEmail(t *testing.T) {
-	cleanup := prepareTest()
+	cleanup := test_setup.PrepareTest()
 	defer cleanup()
 
 	// Arrange
@@ -113,14 +114,14 @@ func TestLogin_NonExistentEmail(t *testing.T) {
 	// Act
 	router := gin.Default()
 	router.POST("/api/login", handlers.Login)
-	w := makeRequest(router, http.MethodPost, "/api/login", body)
+	w := test_setup.MakeRequest(http.MethodPost, "/api/login", body)
 
 	// Assert
-	assertResponse(t, w, http.StatusUnauthorized, "Invalid email or password")
+	test_setup.AssertResponse(t, w, http.StatusUnauthorized, "Invalid email or password")
 }
 
 func TestLogin_Success(t *testing.T) {
-	cleanup := prepareTest()
+	cleanup := test_setup.PrepareTest()
 	defer cleanup()
 
 	// Arrange
@@ -143,9 +144,9 @@ func TestLogin_Success(t *testing.T) {
 	}
 	body, _ := json.Marshal(input)
 
-	w := makeRequest(router, http.MethodPost, "/api/login", body)
+	w := test_setup.MakeRequest(http.MethodPost, "/api/login", body)
 
 	// Assert
-	assertResponse(t, w, http.StatusOK, "User logged in successfully")
+	test_setup.AssertResponse(t, w, http.StatusOK, "User logged in successfully")
 	assert.NotNil(t, w.Body.String())
 }
