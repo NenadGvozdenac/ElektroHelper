@@ -30,6 +30,7 @@ jobs:
       - name: Ensure correct file permissions
         run: |
           chmod -R 755 ./database
+          chmod 644 ./database/starter_test.sql
 
       - name: Build app image
         run: docker-compose -f docker-compose.yml build app
