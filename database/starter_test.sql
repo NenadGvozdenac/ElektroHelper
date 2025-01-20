@@ -4,6 +4,7 @@ DROP TABLE IF EXISTS electricity_meters;
 DROP TABLE IF EXISTS locations;
 DROP TABLE IF EXISTS users;
 
+
 CREATE TABLE IF NOT EXISTS users (
     id SERIAL PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
