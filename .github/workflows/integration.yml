@@ -1,0 +1,66 @@
+name: Docker Compose CI
+
+on:
+  push:
+    branches:
+      - main
+      - feature/*
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    services:
+      db:
+        image: postgres:latest
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: elektrohelper
+        ports:
+          - 5432:5432
+
+      db_test:
+        image: postgres:latest
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: elektrohelper
+        ports:
+          - 5433:5432
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Build and start the app and db services
+        run: |
+          docker-compose -f docker-compose.yml up --build -d app db
+        continue-on-error: false
+
+      - name: Run tests (using tester service)
+        run: |
+          docker-compose -f docker-compose.yml up --build -d tester
+        continue-on-error: false
+
+      - name: Run tests script
+        run: |
+          docker-compose exec -T tester /bin/sh -c "/scripts/test.sh"
+        continue-on-error: false
+
+      - name: Run app (after tests)
+        run: |
+          docker-compose -f docker-compose.yml up --build -d app db
+        continue-on-error: false
+
+      - name: Run app script
+        run: |
+          docker-compose exec -T app /bin/sh -c "/scripts/run.sh"
+        continue-on-error: false
+
+      - name: Clean up Docker containers
+        run: |
+          docker-compose down
