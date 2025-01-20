@@ -10,21 +10,10 @@ on:
       - main
 
 jobs:
-  build:
+  setup:
     runs-on: ubuntu-latest
-
-    env:
-        POSTGRES_HOST: db
-        POSTGRES_PORT: 5432
-        POSTGRES_USER: postgres
-        POSTGRES_PASSWORD: postgres
-        POSTGRES_DB: elektrohelper
-
-        POSTGRES_HOST_TEST: db_test
-        POSTGRES_PORT_TEST: 5432
-        POSTGRES_USER_TEST: postgres
-        POSTGRES_PASSWORD_TEST: postgres
-        POSTGRES_DB_TEST: elektrohelper
+    outputs:
+      services_started: ${{ steps.start_services.outputs.services_started }}
 
     steps:
       - name: Checkout repository
@@ -38,25 +27,51 @@ jobs:
           curl -L "https://github.com/docker/compose/releases/download/v2.19.1/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
           chmod +x /usr/local/bin/docker-compose
 
-      - name: Build tester image
+      - name: Start Docker services
+        id: start_services
         run: |
-            docker-compose -f docker-compose.yaml up --build -d tester
-            # Wait for tester container to complete
-            sleep 15  # Give it some time to execute; adjust as needed
-            tester_exit_code=$(docker inspect --format '{{.State.ExitCode}}' elektrohelper-tester-1)
-            # Check if the exit code is not 0 (failure)
-            if [ "$tester_exit_code" -ne 0 ]; then
-              echo "Tester service failed with exit code $tester_exit_code"
-              exit 1  # This will stop the pipeline
-            else
-              echo "Tester service passed successfully"
-            fi
-        continue-on-error: false
+          docker-compose -f docker-compose.yaml up -d db db_test
+          echo "::set-output name=services_started::true"
+
+  test:
+    runs-on: ubuntu-latest
+    needs: setup
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Run tester container
+        run: |
+          docker-compose -f docker-compose.yaml up --build -d tester
+          sleep 15
+          tester_exit_code=$(docker inspect --format '{{.State.ExitCode}}' elektrohelper-tester-1)
+          if [ "$tester_exit_code" -ne 0 ]; then
+            echo "Tester service failed with exit code $tester_exit_code"
+            exit 1
+          else
+            echo "Tester service passed successfully"
+          fi
+
+  build:
+    runs-on: ubuntu-latest
+    needs: test
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
 
       - name: Build app image
         run: |
           docker-compose -f docker-compose.yaml up -d --build app
-        continue-on-error: false
+
+  cleanup:
+    runs-on: ubuntu-latest
+    needs: [test, build]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
 
       - name: Clean up Docker containers
         run: |
