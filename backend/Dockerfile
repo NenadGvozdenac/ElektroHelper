@@ -5,37 +5,34 @@ WORKDIR /app
 
 # Copy go mod and sum files
 COPY go.mod go.sum ./
-
-# Download all dependencies
 RUN go mod download
 
-# Copy the source code
+# Copy the source code and static files
 COPY . .
 
 # Build the Go app as a static binary
 RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o main ./main.go
 
-# Test stage (for running tests)
-FROM golang:1.23.4 AS tester
+# Production stage
+FROM alpine:latest  
+
+# Create app directory with proper permissions
+RUN mkdir -p /app/static && \
+    adduser -D appuser && \
+    chown -R appuser:appuser /app && \
+    chmod -R 755 /app
 
 WORKDIR /app
 
-# Copy the source and dependencies
-COPY --from=builder /app .
+# Add necessary SSL certificates
+RUN apk --no-cache add ca-certificates
 
-# Run the tests
-CMD ["go", "test", "-short", "elektrohelper/backend/tests/integration"]
+# Copy the binary and static directory with explicit permissions
+COPY --from=builder --chown=appuser:appuser /app/main .
+COPY --from=builder --chown=appuser:appuser /app/static ./static
 
-# Final production stage
-FROM alpine:latest  
-
-WORKDIR /root/
-
-# Copy the Pre-built binary file from the builder stage
-COPY --from=builder /app/main .
-
-# Copy the static folder into the container
-COPY --from=builder /app/static ./static
+# Switch to non-root user
+USER appuser
 
 EXPOSE 8080
 

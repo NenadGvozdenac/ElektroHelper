@@ -7,8 +7,7 @@ func GetCurrentTime() time.Time {
 }
 
 // GetCurrentTimeFormatted returns the current time as a formatted string
-// in the "DD-MM-YYYY HH:MM:SS" format.
 var GetCurrentTimeFormatted = func() string {
-	const layout = "02-01-2006 15:04:05" // DD-MM-YYYY HH:MM:SS
+	const layout = "2006-01-02 15:04:05"
 	return time.Now().Format(layout)
 }
