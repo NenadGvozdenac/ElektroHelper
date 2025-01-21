@@ -7,6 +7,7 @@ import (
 	"elektrohelper/backend/internal/app/utils"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -16,6 +17,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
 )
 
 var router *gin.Engine
@@ -28,7 +30,9 @@ func setupTestDB() (*gorm.DB, func()) {
 	dbname := os.Getenv("POSTGRES_DB")
 	dsn := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable", host, port, user, password, dbname)
 
-	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
+	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{
+		Logger: logger.Discard,
+	})
 	if err != nil {
 		panic("failed to connect to test database")
 	}
@@ -52,8 +56,9 @@ func mockUtils() {
 // Important: add routes to the router as you are testing them
 func mockGinInstance() {
 	if router == nil {
-		router = gin.Default()
 		gin.SetMode(gin.TestMode)
+		gin.DefaultWriter = io.Discard
+		router = gin.Default()
 
 		// Register endpoints
 		router.POST("/api/register", handlers.Register)
@@ -63,6 +68,8 @@ func mockGinInstance() {
 		router.DELETE("/api/electricity_meters/:id", handlers.DeleteElectricityMeter)
 		router.GET("/api/electricity_meters", handlers.GetAllElectricityMeters)
 		router.GET("/api/electricity_meters/user", handlers.GetElectricityMetersByUserId)
+		router.POST("/api/electricity_readings", handlers.CreateElectricityReading)
+		router.GET("/api/electricity_readings", handlers.GetAllElectricityReadingsByUserId)
 	}
 }
 

@@ -4,8 +4,11 @@ import (
 	"bytes"
 	"elektrohelper/backend/config"
 	"elektrohelper/backend/internal/app/utils"
+	"elektrohelper/backend/internal/app/utils/logger"
 	"elektrohelper/backend/internal/domain/models"
 	"fmt"
+	"os"
+	"strconv"
 	"sync"
 	"text/template"
 
@@ -14,14 +17,14 @@ import (
 
 var templateFolder = "static/"
 
-// sendEmail sends an email with the given template, subject, and recipient details.
+// sendEmail sends an email concurrently.
 func sendEmail(to string, subject string, templatePath string, data interface{}, wg *sync.WaitGroup, errChan chan<- error) {
 	defer wg.Done()
 
 	// Load the HTML template
 	tmpl, err := template.ParseFiles(templatePath)
 	if err != nil {
-		fmt.Println("Failed to load template:", err)
+		logger.Error("Failed to parse template:", err.Error())
 		errChan <- err
 		return
 	}
@@ -29,26 +32,39 @@ func sendEmail(to string, subject string, templatePath string, data interface{},
 	// Populate the template with data
 	var body bytes.Buffer
 	if err := tmpl.Execute(&body, data); err != nil {
-		fmt.Println("Failed to populate template:", err)
+		logger.Error("Failed to execute template:", err.Error())
+		errChan <- err
+		return
+	}
+
+	mailHost := os.Getenv("MAIL_HOST")
+	mailEmail := os.Getenv("MAIL_EMAIL")
+	mailPort, err := strconv.Atoi(os.Getenv("MAIL_PORT"))
+
+	if err != nil {
+		logger.Error("Failed to convert MAIL_PORT to integer:", err.Error())
 		errChan <- err
 		return
 	}
 
 	// Email setup
 	mailer := gomail.NewMessage()
-	mailer.SetHeader("From", "elektrohelper.no-reply@gmail.com")
+	mailer.SetHeader("From", mailEmail)
 	mailer.SetHeader("To", to)
 	mailer.SetHeader("Subject", subject)
 	mailer.SetBody("text/html", body.String())
 
-	// SMTP configuration
-	dialer := gomail.NewDialer("smtp.gmail.com", 587, "noreply.onlybuns@gmail.com", "honv bmtg xumo kbxj")
+	// SMTP configuration for MailHog
+	dialer := gomail.NewDialer(mailHost, mailPort, "", "")
 
 	// Send the email
 	if err := dialer.DialAndSend(mailer); err != nil {
+		logger.Error("Failed to send email:", err.Error())
 		errChan <- err
 		return
 	}
+
+	logger.Info("Email sent successfully to", to)
 }
 
 // sendRegistrationMail sends a registration email concurrently.

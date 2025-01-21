@@ -10,7 +10,7 @@ COPY go.mod go.sum ./
 RUN go mod download
 
 # Copy the source code
-COPY . .
+COPY . ./
 
 # Build the Go app as a static binary
 RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o main ./main.go
@@ -25,7 +25,7 @@ COPY go.mod go.sum ./
 RUN go mod download
 
 # Copy the source code
-COPY . .
+COPY . ./
 
 # Set environment variable to indicate test environment
 ENV GO_ENV=test
@@ -42,14 +42,13 @@ WORKDIR /root/
 RUN apk --no-cache add ca-certificates
 
 # Copy the Pre-built binary file from the builder stage
-COPY --from=builder /app/main .
+COPY --from=builder /app/main ./
 
 # Copy the static folder into the container
 COPY --from=builder /app/static ./static
 
-# Create a non-root user
-RUN adduser -D appuser
-USER appuser
+# Set environment variable to indicate production environment
+ENV GO_ENV=release
 
 EXPOSE 8080
 

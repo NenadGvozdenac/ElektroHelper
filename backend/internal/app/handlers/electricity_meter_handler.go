@@ -60,7 +60,7 @@ func DeleteElectricityMeter(c *gin.Context) {
 
 	electricityMeter, err := repositories.NewElectricityMeterRepository().GetByID(electricityMeterId)
 	if err != nil {
-		utils.CreateGinResponse(c, "Failed to retrieve electricity meter", http.StatusInternalServerError, nil)
+		utils.CreateGinResponse(c, "Failed to retrieve electricity meter", http.StatusNotFound, nil)
 		return
 	}
 

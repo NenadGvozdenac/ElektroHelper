@@ -36,4 +36,7 @@ func setupProtectedRoutes(api *gin.RouterGroup) {
 	protected.DELETE("/electricity_meters/:id", handlers.DeleteElectricityMeter)
 	protected.GET("/electricity_meters", handlers.GetAllElectricityMeters)
 	protected.GET("/electricity_meters/user", handlers.GetElectricityMetersByUserId)
+
+	protected.POST("/electricity_readings", handlers.CreateElectricityReading)
+	protected.GET("/electricity_readings", handlers.GetAllElectricityReadingsByUserId)
 }

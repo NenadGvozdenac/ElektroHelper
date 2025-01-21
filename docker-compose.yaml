@@ -8,14 +8,16 @@ services:
       - "8080:8080"
     depends_on:
       - db
+      - mail
     environment:
       POSTGRES_HOST: ${POSTGRES_HOST}
       POSTGRES_PORT: ${POSTGRES_PORT}
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: ${POSTGRES_DB}
-    volumes:
-      - ./scripts:/scripts
+      MAIL_HOST: ${MAIL_HOST}
+      MAIL_PORT: ${MAIL_PORT}
+      MAIL_EMAIL: ${MAIL_EMAIL}
  
   db:
     image: postgres:latest
@@ -54,8 +56,12 @@ services:
       POSTGRES_USER: ${POSTGRES_USER_TEST}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD_TEST}
       POSTGRES_DB: ${POSTGRES_DB_TEST}
-    volumes:
-      - ./scripts:/scripts
+
+  mail:
+    image: mailhog/mailhog
+    ports:
+      - "${MAIL_PORT}:${MAIL_PORT}" # SMTP
+      - "8025:8025" # Web UI
 
 volumes:
   postgres_data:

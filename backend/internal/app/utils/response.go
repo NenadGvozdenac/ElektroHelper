@@ -1,6 +1,10 @@
 package utils
 
-import "github.com/gin-gonic/gin"
+import (
+	"elektrohelper/backend/internal/app/utils/logger"
+
+	"github.com/gin-gonic/gin"
+)
 
 type Response struct {
 	Message string      `json:"message"`
@@ -19,4 +23,5 @@ func CreateResponse(message string, code int, data interface{}) Response {
 func CreateGinResponse(c *gin.Context, message string, code int, data interface{}) {
 	response := CreateResponse(message, code, data)
 	c.JSON(code, response)
+	logger.LogMessage(message, code)
 }
