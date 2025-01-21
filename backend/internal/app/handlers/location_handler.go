@@ -45,10 +45,8 @@ func CreateLocation(c *gin.Context) {
 }
 
 func GetAllLocationsByUser(c *gin.Context) {
-	// Extract userId from the context
 	userId := utils.ExtractUserIdFromContext(c)
 
-	// Get all locations from the database
 	locations, err := repositories.NewLocationRepository().GetByUserId(userId)
 
 	if err != nil {

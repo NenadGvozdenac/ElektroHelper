@@ -2,27 +2,35 @@ package main
 
 import (
 	"elektrohelper/backend/config"
+	"elektrohelper/backend/internal/app/utils/logger"
 	"elektrohelper/backend/routes"
-	"log"
+	"io"
 	"sync"
 
 	"github.com/gin-gonic/gin"
 )
 
 func startDatabase() error {
+	logger.Info("Connecting to database...")
+
 	err := config.ConnectDatabase()
+
 	if err != nil {
+		logger.Fatal("Failed to connect to database")
 		return err
 	}
 
+	logger.Info("Connected to database")
 	return nil
 }
 
 func startServer() error {
-	router := gin.Default()
+	gin.SetMode(gin.ReleaseMode)
+	gin.DefaultWriter = io.Discard
+	router := gin.New()
 	routes.SetupRoutes(router)
 
-	log.Println("Server is running on port 8080")
+	logger.Info("Starting server on port 8080")
 	err := router.Run(":8080")
 	if err != nil {
 		return err
@@ -45,11 +53,11 @@ func addToGoroutineGroup(f func() error, wg *sync.WaitGroup, errChan chan error)
 func endApplication(errChan chan error) {
 	for err := range errChan {
 		if err != nil {
-			log.Fatalf("Error: %v", err)
+			logger.Fatal(err.Error())
 		}
 	}
 
-	log.Println("Application shut down gracefully")
+	logger.Info("Application shut down")
 }
 
 func main() {

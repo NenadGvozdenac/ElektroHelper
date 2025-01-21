@@ -167,7 +167,7 @@ func TestDeleteElectricityMeter_FailedToRetrieve(t *testing.T) {
 	w := test_setup.MakeRequest(http.MethodDelete, "/api/electricity_meters/999", nil)
 
 	// Assert
-	test_setup.AssertResponse(t, w, http.StatusInternalServerError, "Failed to retrieve electricity meter")
+	test_setup.AssertResponse(t, w, http.StatusNotFound, "Failed to retrieve electricity meter")
 }
 
 func TestGetAllElectricityMeters_Success(t *testing.T) {

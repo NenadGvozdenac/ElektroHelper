@@ -26,6 +26,10 @@ jobs:
         POSTGRES_PASSWORD_TEST: postgres
         POSTGRES_DB_TEST: elektrohelper
 
+        MAIL_HOST: mail
+        MAIL_PORT: 1025
+        MAIL_EMAIL: no-reply@elektrohelper.rs
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
