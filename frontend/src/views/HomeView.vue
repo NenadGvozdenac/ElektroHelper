@@ -2,9 +2,13 @@
   <div class="min-h-screen bg-gray-50">
     <Navbar />
 
+    <WelcomeSection :userData="userData" />
+
+    <ForumsAndPayments :userData="userData" v-if="isLoggedIn" />
+
     <!-- Hero Section -->
-    <section class="pt-24 pb-16 px-4 sm:pt-32 sm:pb-24">
-      <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center">
+    <section :class="['pt-24', 'pb-16', 'px-4', userData ? 'sm:pt-4' : 'sm:pt-24']">
+      <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center px-8">
         <div class="md:w-1/2 mb-8 md:mb-0">
           <h1 class="text-4xl md:text-5xl font-bold text-gray-900 mb-6 opacity-0 animate-fadeInUp">
             Manage Your Electricity Payments with Ease
@@ -15,7 +19,7 @@
           <div class="flex space-x-4 opacity-0 animate-fadeInUp stagger-2">
             <button
               class="bg-emerald-600 text-white px-8 py-3 rounded-lg hover:bg-emerald-700 transition-all hover:scale-105">
-              Start Free Trial
+              Get Started
             </button>
             <button
               class="border-2 border-emerald-600 text-emerald-600 px-8 py-3 rounded-lg hover:bg-emerald-50 transition-all hover:scale-105">
@@ -162,7 +166,19 @@
 </template>
 
 <script setup lang="ts">
+import type { UserData } from '@/app/models/user';
+import { getUserData, isUserLoggedIn } from '@/app/services/backend/auth_service';
 import Navbar from '@/components/Navbar.vue';
+import WelcomeSection from '@/components/landing_page/WelcomeBack.vue';
+import ForumsAndPayments from '@/components/landing_page/ForumsAndPayments.vue';
+
+const isLoggedIn: boolean = isUserLoggedIn();
+
+const userData: UserData | null = isLoggedIn ? getUserData() : null;
+
+console.log('User is logged in: ', isLoggedIn);
+console.log('Currently logged in user: ', userData);
+
 </script>
 
 <style scoped>

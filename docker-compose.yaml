@@ -74,6 +74,7 @@ services:
       - /app/node_modules # Prevent overwriting node_modules
     environment:
       - SERVER_URL=${SERVER_URL}
+      - API_URL=${API_URL}
     depends_on:
       - app
 volumes:

@@ -1,19 +1,11 @@
-<script setup lang="ts">
-import { ref } from 'vue'
-
-const isMenuOpen = ref(false)
-
-const toggleMenu = () => {
-  isMenuOpen.value = !isMenuOpen.value
-}
-</script>
-
 <template>
   <nav class="bg-white shadow-lg fixed w-full top-0 z-50">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="flex justify-between h-16">
         <div class="flex items-center">
-          <span class="text-2xl font-bold text-emerald-600">ElektroHelper</span>
+          <a href="/">
+            <span class="text-2xl font-bold text-emerald-600">ElektroHelper</span>
+          </a>
         </div>
         
         <!-- Desktop menu -->
@@ -22,8 +14,11 @@ const toggleMenu = () => {
           <a href="#benefits" class="text-gray-600 hover:text-emerald-600 transition-colors">Benefits</a>
           <a href="/forums" class="text-gray-600 hover:text-emerald-600 transition-colors">Forums</a>
           <a href="#contact" class="text-gray-600 hover:text-emerald-600 transition-colors">Contact</a>
-          <button class="bg-emerald-600 text-white px-4 py-2 rounded-lg hover:bg-emerald-700 transition-colors">
-            Get Started
+          <button 
+            class="bg-emerald-600 text-white px-4 py-2 rounded-lg hover:bg-emerald-700 transition-colors"
+            @click="userLoggedIn ? goToDashboard() : goToLogin()"
+          >
+            {{ userLoggedIn ? 'Dashboard' : 'Get Started' }}
           </button>
         </div>
 
@@ -46,10 +41,33 @@ const toggleMenu = () => {
         <a href="#benefits" class="block px-3 py-2 text-gray-600 hover:text-emerald-600 transition-colors">Benefits</a>
         <a href="/forums" class="block px-3 py-2 text-gray-600 hover:text-emerald-600 transition-colors">Forums</a>
         <a href="#contact" class="block px-3 py-2 text-gray-600 hover:text-emerald-600 transition-colors">Contact</a>
-        <button class="w-full mt-2 bg-emerald-600 text-white px-4 py-2 rounded-lg hover:bg-emerald-700 transition-colors">
-          Get Started
+        <button 
+          class="w-full mt-2 bg-emerald-600 text-white px-4 py-2 rounded-lg hover:bg-emerald-700 transition-colors"
+          @click="userLoggedIn ? goToDashboard() : goToLogin()"
+        >
+          {{ userLoggedIn ? 'Dashboard' : 'Get Started' }}
         </button>
       </div>
     </div>
   </nav>
 </template>
+
+<script setup lang="ts">
+import { isUserLoggedIn } from '@/app/services/backend/auth_service'
+import { ref } from 'vue'
+
+const isMenuOpen = ref(false)
+const userLoggedIn: boolean = isUserLoggedIn()
+
+const toggleMenu = () => {
+  isMenuOpen.value = !isMenuOpen.value
+}
+
+const goToLogin = () => {
+  window.location.href = '/login'
+}
+
+const goToDashboard = () => {
+  window.location.href = '/dashboard'
+}
+</script>

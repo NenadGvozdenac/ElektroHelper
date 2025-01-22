@@ -6,10 +6,16 @@ export interface User {
     phone: string;
 }
 
+export interface UserData {
+    userId: number;
+    userName: string;
+    userEmail: string;
+    userRole: string;
+}
+
 export interface UserLogin {
     email: string;
     password: string;
-    rememberme: boolean;
 }
 
 export interface UserRegister {
@@ -18,5 +24,5 @@ export interface UserRegister {
     email: string;
     phone: string;
     password: string;
-    confirmPassword: string;
+    confirm_password: string;
 }
