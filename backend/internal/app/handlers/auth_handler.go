@@ -3,9 +3,11 @@ package handlers
 import (
 	"elektrohelper/backend/config"
 	"elektrohelper/backend/internal/app/dtos"
+	"elektrohelper/backend/internal/app/repositories"
 	"elektrohelper/backend/internal/app/utils"
 	"elektrohelper/backend/internal/domain/models"
 	"net/http"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"golang.org/x/crypto/bcrypt"
@@ -57,14 +59,34 @@ func Register(c *gin.Context) {
 		}
 	}
 
+	// Generate access and refresh tokens
 	token, err := utils.GenerateToken(newUser.ID, newUser.Email, newUser.Role, newUser.Name)
 	if err != nil {
 		utils.CreateGinResponse(c, "Failed to generate token", http.StatusInternalServerError, nil)
 		return
 	}
 
+	refreshToken, err := utils.GenerateRefreshToken(newUser.ID)
+	if err != nil {
+		utils.CreateGinResponse(c, "Failed to generate refresh token", http.StatusInternalServerError, nil)
+		return
+	}
+
+	// Extract device, IP, and User-Agent info
+	ipAddress := c.ClientIP()
+	userAgent := c.GetHeader("User-Agent")
+	device := utils.ParseDeviceFromUserAgent(userAgent)
+
+	// Save the refresh token
+	expiresAt := time.Now().Add(30 * 24 * time.Hour)
+	if err := saveRefreshToken(newUser.ID, refreshToken, device, ipAddress, userAgent, expiresAt); err != nil {
+		utils.CreateGinResponse(c, "Failed to save refresh token", http.StatusInternalServerError, nil)
+		return
+	}
+
 	tokenDTO := dtos.TokenDTO{
-		Token: token,
+		Token:        token,
+		RefreshToken: refreshToken,
 	}
 
 	utils.CreateGinResponse(c, "User registered successfully", http.StatusCreated, tokenDTO)
@@ -92,16 +114,116 @@ func Login(c *gin.Context) {
 		return
 	}
 
-	// Generate JWT
+	// Generate access and refresh tokens
 	token, err := utils.GenerateToken(user.ID, user.Email, user.Role, user.Name)
 	if err != nil {
 		utils.CreateGinResponse(c, "Failed to generate token", http.StatusInternalServerError, nil)
 		return
 	}
 
+	refreshToken, err := utils.GenerateRefreshToken(user.ID)
+	if err != nil {
+		utils.CreateGinResponse(c, "Failed to generate refresh token", http.StatusInternalServerError, nil)
+		return
+	}
+
+	// Extract device, IP, and User-Agent info
+	ipAddress := c.ClientIP()
+	userAgent := c.GetHeader("User-Agent")
+	device := utils.ParseDeviceFromUserAgent(userAgent)
+
+	// Save the refresh token
+	expiresAt := time.Now().Add(30 * 24 * time.Hour)
+
+	if err := saveRefreshToken(user.ID, refreshToken, device, ipAddress, userAgent, expiresAt); err != nil {
+		utils.CreateGinResponse(c, "Failed to save refresh token", http.StatusInternalServerError, nil)
+		return
+	}
+
 	tokenDTO := dtos.TokenDTO{
-		Token: token,
+		Token:        token,
+		RefreshToken: refreshToken,
 	}
 
 	utils.CreateGinResponse(c, "User logged in successfully", http.StatusOK, tokenDTO)
+}
+
+func RefreshAccessToken(c *gin.Context) {
+	var requestBody struct {
+		RefreshToken string `json:"refresh_token"`
+	}
+
+	if err := c.ShouldBindJSON(&requestBody); err != nil {
+		utils.CreateGinResponse(c, "Invalid input", http.StatusBadRequest, nil)
+		return
+	}
+
+	// Validate the refresh token
+	claims, err := utils.ValidateRefreshToken(requestBody.RefreshToken)
+	if err != nil {
+		utils.CreateGinResponse(c, "Invalid or expired refresh token", http.StatusUnauthorized, nil)
+		return
+	}
+
+	// Extract user ID from claims
+	userID, ok := claims["userID"].(float64) // JWT stores numeric values as float64
+	if !ok {
+		utils.CreateGinResponse(c, "Invalid refresh token claims", http.StatusUnauthorized, nil)
+		return
+	}
+
+	// TODO: Check if the token is still valid in the database
+	if _, err := repositories.NewTokenRepository().GetByToken(requestBody.RefreshToken); err != nil {
+		if err := invalidateRefreshToken(requestBody.RefreshToken); err != nil {
+			utils.CreateGinResponse(c, "Failed to invalidate refresh token", http.StatusInternalServerError, nil)
+		} else {
+			utils.CreateGinResponse(c, "Invalid refresh token", http.StatusUnauthorized, nil)
+		}
+		return
+	}
+
+	// Generate a new access token
+	var user models.User
+	if err := config.DB.Where("id = ?", uint(userID)).First(&user).Error; err != nil {
+		utils.CreateGinResponse(c, "User not found", http.StatusUnauthorized, nil)
+		return
+	}
+
+	newAccessToken, err := utils.GenerateToken(user.ID, user.Email, user.Role, user.Name)
+	if err != nil {
+		utils.CreateGinResponse(c, "Failed to generate new access token", http.StatusInternalServerError, nil)
+		return
+	}
+
+	tokenDTO := dtos.TokenDTO{
+		Token:        newAccessToken,
+		RefreshToken: requestBody.RefreshToken,
+	}
+
+	utils.CreateGinResponse(c, "Access token refreshed successfully", http.StatusOK, tokenDTO)
+}
+
+func saveRefreshToken(userID uint, refreshToken, device, ipAddress, userAgent string, expiresAt time.Time) error {
+	newToken := models.Token{
+		UserID:       userID,
+		RefreshToken: refreshToken,
+		ExpiresAt:    expiresAt,
+		IssuedAt:     time.Now(),
+		Device:       device,
+		IPAddress:    ipAddress,
+		UserAgent:    userAgent,
+	}
+
+	if err := repositories.NewTokenRepository().Create(&newToken); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func invalidateRefreshToken(refreshToken string) error {
+	if err := repositories.NewTokenRepository().RevokeToken(refreshToken); err != nil {
+		return err
+	}
+	return nil
 }

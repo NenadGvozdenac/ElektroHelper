@@ -1,3 +1,4 @@
+DROP TABLE IF EXISTS tokens;
 DROP TABLE IF EXISTS notifications;
 DROP TABLE IF EXISTS electricity_readings;
 DROP TABLE IF EXISTS electricity_meters;
@@ -22,7 +23,7 @@ CREATE TABLE IF NOT EXISTS locations (
     city VARCHAR(255) NOT NULL,
     country VARCHAR(255) NOT NULL,
     postal_code VARCHAR(10) NOT NULL,
-    user_id SERIAL NOT NULL,
+    user_id INT NOT NULL,
     CONSTRAINT fk_user FOREIGN KEY (user_id) REFERENCES users(id)
 );
 
@@ -49,4 +50,19 @@ CREATE TABLE IF NOT EXISTS notifications (
     subject VARCHAR(255) NOT NULL,
     message TEXT NOT NULL,
     CONSTRAINT fk_user FOREIGN KEY (user_id) REFERENCES users(id)
-)
+);
+
+CREATE TABLE IF NOT EXISTS tokens (
+    id SERIAL PRIMARY KEY,
+    user_id INT NOT NULL,
+    refresh_token TEXT NOT NULL UNIQUE,
+    expires_at TIMESTAMP NOT NULL,
+    issued_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    revoked BOOLEAN DEFAULT FALSE,
+    device VARCHAR(255),
+    ip_address VARCHAR(255),
+    user_agent TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_user FOREIGN KEY (user_id) REFERENCES users(id)
+);

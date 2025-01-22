@@ -21,6 +21,7 @@ func SetupRoutes(router *gin.Engine) {
 func setupPublicRoutes(api *gin.RouterGroup) {
 	api.POST("/register", handlers.Register)
 	api.POST("/login", handlers.Login)
+	api.POST("/refresh_token", handlers.RefreshAccessToken)
 }
 
 func setupProtectedRoutes(api *gin.RouterGroup) {

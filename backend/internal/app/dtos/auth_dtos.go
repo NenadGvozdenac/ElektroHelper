@@ -18,5 +18,6 @@ type LoginDTO struct {
 
 // DTO to return a JWT to the client
 type TokenDTO struct {
-	Token string `json:"token"`
+	Token        string `json:"token"`
+	RefreshToken string `json:"refresh_token"`
 }

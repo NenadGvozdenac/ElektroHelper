@@ -68,10 +68,12 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
     ports:
-      - "5173:5173"
+      - "${API_PORT}:${API_PORT}"
     volumes:
       - ./frontend:/app
       - /app/node_modules # Prevent overwriting node_modules
+    environment:
+      - API_URL=http://localhost:${API_PORT}
     depends_on:
       - app
 volumes:
