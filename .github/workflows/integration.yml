@@ -30,7 +30,8 @@ jobs:
         MAIL_PORT: 1025
         MAIL_EMAIL: no-reply@elektrohelper.rs
 
-        API_URL: http://localhost:5173
+        SERVER_PORT: 5173
+        SERVER_URL: http://localhost:5173
 
     steps:
       - name: Checkout repository
