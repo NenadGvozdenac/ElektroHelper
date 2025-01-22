@@ -63,6 +63,17 @@ services:
       - "${MAIL_PORT}:${MAIL_PORT}" # SMTP
       - "8025:8025" # Web UI
 
+  frontend-app:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules # Prevent overwriting node_modules
+    depends_on:
+      - app
 volumes:
   postgres_data:
   postgres_test_data:

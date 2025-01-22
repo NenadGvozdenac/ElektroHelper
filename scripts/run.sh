@@ -16,7 +16,7 @@ until docker exec -it $(docker ps -q -f "name=db") pg_isready -U your_user; do
 done
 
 # Start the app service
-docker-compose up --build app
+docker-compose up --build frontend-app app
 
 # Stop and remove containers and volumes when finished
 # docker-compose down -v

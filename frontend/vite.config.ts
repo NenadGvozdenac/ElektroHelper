@@ -15,4 +15,11 @@ export default defineConfig({
       '@': fileURLToPath(new URL('./src', import.meta.url))
     },
   },
+  server: {
+    host: true, // Allows external access to the server
+    port: 5173, // Sets the port
+    watch: {
+      usePolling: true, // Enables polling for file changes
+    },
+  },
 })
