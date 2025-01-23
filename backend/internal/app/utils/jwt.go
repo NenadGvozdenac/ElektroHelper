@@ -9,7 +9,7 @@ import (
 )
 
 var jwtSecret = []byte("my_secret_key")
-var jwtDuration = time.Minute * 15
+var jwtDuration = time.Minute * 1
 var jwtRefreshDuration = time.Hour * 24 * 7
 
 // GenerateToken generates a JWT for a given user ID

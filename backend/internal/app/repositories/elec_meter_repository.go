@@ -56,7 +56,7 @@ func (e *ElectricityMeterRepository) GetByUserId(userId uint) (*[]models.Electri
 		return nil, err
 	}
 
-	var electricityMeters []models.ElectricityMeter
+	var electricityMeters []models.ElectricityMeter = []models.ElectricityMeter{}
 	for _, location := range locationsOfUser {
 		meters, err := e.GetByLocationId(location.ID)
 		if err != nil {

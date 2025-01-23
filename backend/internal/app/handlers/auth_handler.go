@@ -148,6 +148,26 @@ func Login(c *gin.Context) {
 	utils.CreateGinResponse(c, "User logged in successfully", http.StatusOK, tokenDTO)
 }
 
+func Logout(c *gin.Context) {
+	type RequestBody struct {
+		refresh_token string `json:"refresh_token"`
+	}
+
+	var input RequestBody
+
+	if err := c.ShouldBindJSON(&input); err != nil {
+		utils.CreateGinResponse(c, "Invalid input", http.StatusBadRequest, nil)
+		return
+	}
+
+	if err := invalidateRefreshToken(input.refresh_token); err != nil {
+		utils.CreateGinResponse(c, "Failed to invalidate refresh token", http.StatusInternalServerError, nil)
+		return
+	}
+
+	utils.CreateGinResponse(c, "User logged out successfully", http.StatusOK, nil)
+}
+
 func RefreshAccessToken(c *gin.Context) {
 	var requestBody struct {
 		RefreshToken string `json:"refresh_token"`

@@ -59,7 +59,7 @@ func (e *ElectricityReadingRepository) GetByUserId(userId uint) (*[]models.Elect
 		return nil, err
 	}
 
-	var electricityMeters []models.ElectricityMeter
+	var electricityMeters []models.ElectricityMeter = []models.ElectricityMeter{}
 	for _, location := range locationsOfUser {
 		meters, err := NewElectricityMeterRepository().GetByLocationId(location.ID)
 		if err != nil {
@@ -68,7 +68,7 @@ func (e *ElectricityReadingRepository) GetByUserId(userId uint) (*[]models.Elect
 		electricityMeters = append(electricityMeters, *meters...)
 	}
 
-	var electricityReadings []models.ElectricityReading
+	var electricityReadings []models.ElectricityReading = []models.ElectricityReading{}
 	for _, meter := range electricityMeters {
 		readings, err := e.GetByMeterId(meter.ID)
 		if err != nil {

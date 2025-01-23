@@ -4,7 +4,7 @@
 
     <WelcomeSection :userData="userData" />
 
-    <ForumsAndPayments :userData="userData" v-if="isLoggedIn" />
+    <ForumsAndPayments v-if="userData" :userData="userData"/>
 
     <!-- Hero Section -->
     <section :class="['pt-24', 'pb-16', 'px-4', userData ? 'sm:pt-4' : 'sm:pt-24']">
@@ -166,19 +166,22 @@
 </template>
 
 <script setup lang="ts">
-import type { UserData } from '@/app/models/user';
-import { getUserData, isUserLoggedIn } from '@/app/services/backend/auth_service';
+import { getUserData } from '@/app/services/backend/auth_service';
 import Navbar from '@/components/Navbar.vue';
 import WelcomeSection from '@/components/landing_page/WelcomeBack.vue';
 import ForumsAndPayments from '@/components/landing_page/ForumsAndPayments.vue';
+import { ref, onMounted } from 'vue';
+import type { UserData } from '@/app/models/user';
 
-const isLoggedIn: boolean = isUserLoggedIn();
+const userData = ref<UserData | null>(null);
 
-const userData: UserData | null = isLoggedIn ? getUserData() : null;
+const getUser = async () => {
+  userData.value = await getUserData();
+};
 
-console.log('User is logged in: ', isLoggedIn);
-console.log('Currently logged in user: ', userData);
-
+onMounted(() => {
+  getUser();
+});
 </script>
 
 <style scoped>

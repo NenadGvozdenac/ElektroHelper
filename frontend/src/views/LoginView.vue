@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import axios from 'axios'
 import type { UserLogin, UserRegister } from '@/app/models/user'
 import { AuthService } from '@/app/services/backend/auth_service'
 

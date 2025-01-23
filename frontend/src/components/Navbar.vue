@@ -54,10 +54,14 @@
 
 <script setup lang="ts">
 import { isUserLoggedIn } from '@/app/services/backend/auth_service'
-import { ref } from 'vue'
+import { onMounted, ref } from 'vue'
 
 const isMenuOpen = ref(false)
-const userLoggedIn: boolean = isUserLoggedIn()
+let userLoggedIn = ref<boolean>(false)
+
+onMounted(async () => {
+  userLoggedIn.value = await isUserLoggedIn()
+}) 
 
 const toggleMenu = () => {
   isMenuOpen.value = !isMenuOpen.value

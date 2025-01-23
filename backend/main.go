@@ -4,7 +4,6 @@ import (
 	"elektrohelper/backend/config"
 	"elektrohelper/backend/internal/app/utils/logger"
 	"elektrohelper/backend/routes"
-	"io"
 	"sync"
 
 	"github.com/gin-contrib/cors"
@@ -27,8 +26,7 @@ func startDatabase() error {
 
 func startServer() error {
 	gin.SetMode(gin.ReleaseMode)
-	gin.DefaultWriter = io.Discard
-	router := gin.New()
+	router := gin.Default()
 
 	// Configure CORS middleware
 	router.Use(cors.New(cors.Config{
