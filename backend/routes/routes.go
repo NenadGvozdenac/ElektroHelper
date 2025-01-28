@@ -40,5 +40,6 @@ func setupProtectedRoutes(api *gin.RouterGroup) {
 	protected.GET("/electricity_meters/user", handlers.GetElectricityMetersByUserId)
 
 	protected.POST("/electricity_readings", handlers.CreateElectricityReading)
+	protected.POST("/electricity_readings/date", handlers.CreateElectricityReadingWithDate)
 	protected.GET("/electricity_readings", handlers.GetAllElectricityReadingsByUserId)
 }

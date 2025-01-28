@@ -51,6 +51,47 @@ func CreateElectricityReading(c *gin.Context) {
 	utils.CreateGinResponse(c, "Electricity reading added successfully", http.StatusCreated, electricityReading)
 }
 
+func CreateElectricityReadingWithDate(c *gin.Context) {
+	var electricityReadingDTO dtos.CreateElectricityReadingWithDateDTO
+
+	if err := c.ShouldBindJSON(&electricityReadingDTO); err != nil {
+		utils.CreateGinResponse(c, "Invalid request body", http.StatusBadRequest, nil)
+		return
+	}
+
+	userId, userEmail, _, userName := utils.ExtractDataFromContext(c)
+
+	// Validate electricity meter
+	if err := validateElectricityMeterOwnership(electricityReadingDTO.ElectricityMeterID, userId); err != nil {
+		utils.CreateGinResponse(c, err.Error(), http.StatusBadRequest, nil)
+		return
+	}
+
+	// Create new electricity reading
+	electricityReading := models.ElectricityReading{
+		ElectricityMeterID: electricityReadingDTO.ElectricityMeterID,
+		LowerReading:       electricityReadingDTO.LowerReading,
+		UpperReading:       electricityReadingDTO.UpperReading,
+		ReadingDate:        electricityReadingDTO.ReadingDate,
+	}
+
+	if err := repositories.NewElectricityReadingRepository().Create(&electricityReading); err != nil {
+		utils.CreateGinResponse(c, "Failed to create electricity reading", http.StatusInternalServerError, nil)
+		return
+	}
+
+	sendMail := c.DefaultQuery("sendMail", "true") == "true"
+
+	if sendMail {
+		if err := SendNotificationMail(userId, userEmail, userName, "New electricity reading has been added"); err != nil {
+			utils.CreateGinResponse(c, "Failed to send notification mail", http.StatusInternalServerError, nil)
+			return
+		}
+	}
+
+	utils.CreateGinResponse(c, "Electricity reading added successfully", http.StatusCreated, electricityReading)
+}
+
 func GetAllElectricityReadingsByUserId(c *gin.Context) {
 	userId, _, _, _ := utils.ExtractDataFromContext(c)
 

@@ -1,8 +1,8 @@
 import axios, { type AxiosInstance } from "axios";
 import { API_URL } from "./const_service";
-import type { ElectricityMeter } from "@/app/models/electricity_meter";
-import type { ElectricityReading } from "@/app/models/electricity_reading";
-import type { Location } from "@/app/models/location";
+import type { CreateElectricityMeter, ElectricityMeter } from "@/app/models/electricity_meter";
+import type { CreateElectricityReading, CreateElectricityReadingWithDate, ElectricityReading } from "@/app/models/electricity_reading";
+import type { CreateLocation, Location } from "@/app/models/location";
 
 function authenticatedRequest(jwt: string): AxiosInstance {
     return axios.create({
@@ -42,4 +42,38 @@ export class DashboardService {
             throw error;
         }
     }
+
+    static async addLocationForUser(jwt: string, location: CreateLocation): Promise<Location> {
+        try {
+            debugger
+            const response = await authenticatedRequest(jwt).post(`${API_URL}/locations`, location);
+            return response.data.data as Location;
+        } catch (error) {
+            console.error(error);
+            throw error;
+        }
+    }
+
+    static async addMeterForUser(jwt: string, meter: CreateElectricityMeter): Promise<ElectricityMeter> {
+        try {
+            debugger
+            const response = await authenticatedRequest(jwt).post(`${API_URL}/electricity_meters`, meter);
+            return response.data.data as ElectricityMeter;
+        } catch (error) {
+            console.error(error);
+            throw error;
+        }
+    }
+
+    static async addReadingForUser(jwt: string, reading: CreateElectricityReadingWithDate): Promise<ElectricityReading> {
+        try {
+            debugger
+            const response = await authenticatedRequest(jwt).post(`${API_URL}/electricity_readings/date`, reading);
+            return response.data.data as ElectricityReading;
+        } catch (error) {
+            console.error(error);
+            throw error;
+        }
+    }
+
 }
