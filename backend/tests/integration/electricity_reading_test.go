@@ -22,7 +22,7 @@ func TestCreateElectricityReading_Success(t *testing.T) {
 		Email:        "email@gmail.com",
 		Phone:        "123456789",
 		Password:     "hashedpassword",
-		CreationDate: "2025-01-19 12:34:56",
+		CreationDate: "2006-01-02T15:04:05Z07:00",
 		Role:         "user",
 	}
 
@@ -61,7 +61,7 @@ func TestCreateElectricityReading_Success(t *testing.T) {
 	body, _ := json.Marshal(input)
 
 	// Act
-	w := test_setup.MakeRequest(http.MethodPost, "/api/electricity_readings?sendMail=false", body)
+	w := test_setup.MakeRequest(http.MethodPost, "/api/electricity_readings?sendMail=false&sendMailToEPS=false", body)
 
 	// Assert
 	test_setup.AssertResponse(t, w, http.StatusCreated, "Electricity reading added successfully")
@@ -78,7 +78,7 @@ func TestCreateElectricityReading_InvalidMeterOwnership(t *testing.T) {
 		Email:        "email@gmail.com",
 		Phone:        "123456789",
 		Password:     "hashedpassword",
-		CreationDate: "2025-01-19 12:34:56",
+		CreationDate: "2006-01-02T15:04:05Z07:00",
 		Role:         "user",
 	}
 
@@ -114,7 +114,7 @@ func TestCreateElectricityReading_InvalidRequestBody(t *testing.T) {
 		Email:        "email@gmail.com",
 		Phone:        "123456789",
 		Password:     "hashedpassword",
-		CreationDate: "2025-01-19 12:34:56",
+		CreationDate: "2006-01-02T15:04:05Z07:00",
 		Role:         "user",
 	}
 
@@ -145,7 +145,7 @@ func TestGetAllElectricityReadingsByUserId_Success(t *testing.T) {
 		Email:        "email@gmail.com",
 		Phone:        "123456789",
 		Password:     "hashedpassword",
-		CreationDate: "2025-01-19 12:34:56",
+		CreationDate: "2006-01-02T15:04:05Z07:00",
 		Role:         "user",
 	}
 

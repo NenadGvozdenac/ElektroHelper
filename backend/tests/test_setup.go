@@ -49,7 +49,7 @@ func mockUtils() {
 		return "mocked-token", nil
 	}
 	utils.GetCurrentTimeFormatted = func() string {
-		return "2025-01-19 12:34:56"
+		return "2006-01-02T15:04:05Z"
 	}
 }
 

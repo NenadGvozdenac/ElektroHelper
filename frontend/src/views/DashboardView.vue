@@ -31,12 +31,14 @@
           <PlusIcon class="w-6 h-6 mr-2" />
           <span v-if="isNavbarFullyExpanded">Add Location</span>
         </button>
+
         <button @click="addNew('meter')"
           class="w-full bg-emerald-600 hover:bg-emerald-700 text-white p-2 rounded flex items-center transition-all opacity-0 duration-500 ease-in-out"
           :class="{ 'opacity-100': isNavbarFullyExpanded && isExpanded }">
           <PlusIcon class="w-6 h-6 mr-2" />
           <span v-if="isNavbarFullyExpanded">Add Meter</span>
         </button>
+
         <button @click="addNew('reading')"
           class="w-full bg-emerald-600 hover:bg-emerald-700 text-white p-2 rounded flex items-center transition-all opacity-0 duration-500 ease-in-out"
           :class="{ 'opacity-100': isNavbarFullyExpanded && isExpanded }">
@@ -164,6 +166,7 @@
   </div>
 
   <AddLocation v-model="isAddLocationDialogOpen" @submit="handleAddLocation" />
+  <AddMeter v-model="isAddMeterDialogOpen" :locations="locations" :meters="meters" @submit="handleAddMeter" />
   <AddReading v-model="isAddReadingDialogOpen" :meters="meters" :locations="locations" @submit="handleAddReading" />
 </template>
 
@@ -189,26 +192,26 @@ import type { CreateElectricityReadingWithDate, ElectricityReading } from "@/app
 
 import AddLocation from "@/components/dashboard/AddLocation.vue";
 import AddReading from "@/components/dashboard/AddReading.vue";
+import AddMeter from "@/components/dashboard/AddMeter.vue";
+
 import DashboardCard from "@/components/dashboard/Card.vue";
 
 const isAddLocationDialogOpen = ref(false);
 const isAddReadingDialogOpen = ref(false);
+const isAddMeterDialogOpen = ref(false);
 
 onMounted(async () => {
   const jwt: string | null = await getAccessToken();
 
   if (!jwt) {
     console.error("No JWT found in local storage");
+    goToHome();
     return;
   }
 
   locations.value = await DashboardService.getLocationsForUser(jwt);
   meters.value = await DashboardService.getMetersForUser(jwt);
   readings.value = await DashboardService.getReadingsForUser(jwt);
-
-  console.log("Locations:", locations.value);
-  console.log("Meters:", meters.value);
-  console.log("Readings:", readings.value);
 });
 
 const locations = ref<Location[]>([]);
@@ -271,6 +274,10 @@ function addNew(type: "location" | "meter" | "reading") {
 
   if (type === "reading") {
     isAddReadingDialogOpen.value = true;
+  }
+
+  if (type === "meter") {
+    isAddMeterDialogOpen.value = true;
   }
 }
 
@@ -405,11 +412,12 @@ const handleAddLocation = async (locationData: CreateLocationWithMeter) => {
 
     let createdLocation = await DashboardService.addLocationForUser(jwt, locationToCreate);
 
-    if (locationData.hasElectricityMeter) {
+    if (locationData.hasElectricityMeter && locationData.meter_code) {
       // Create a new meter for the location
 
       const createElectricityMeter: CreateElectricityMeter = {
         location_id: createdLocation.ID,
+        meter_code: locationData.meter_code,
       }
 
       await DashboardService.addMeterForUser(jwt, createElectricityMeter);
@@ -439,6 +447,23 @@ const handleAddReading = async (readingData: CreateElectricityReadingWithDate) =
     readings.value = await DashboardService.getReadingsForUser(jwt);
   } catch (error) {
     console.error('Error creating reading:', error);
+  }
+};
+
+const handleAddMeter = async (meterData: CreateElectricityMeter) => {
+  try {
+    const jwt = await getAccessToken();
+    if (!jwt) {
+      console.error('No JWT found');
+      return;
+    }
+
+    await DashboardService.addMeterForUser(jwt, meterData);
+
+    // Refresh meters list
+    meters.value = await DashboardService.getMetersForUser(jwt);
+  } catch (error) {
+    console.error('Error creating meter:', error);
   }
 };
 

@@ -101,6 +101,33 @@ func sendNotificationMail(user_id uint, to string, name string, message string, 
 	go addNotificationToDatabase(user_id, message, "Notification", wg, errChan)
 }
 
+func sendInformationMail(user_id uint, userEmail string, to string, firstName string, lastName string, lowerReading string, meterCode string, upperReading string, readingDate string, wg *sync.WaitGroup, errChan chan<- error) {
+	data := struct {
+		FirstName     string
+		LastName      string
+		UserEmail     string
+		MeterCode     string
+		LowerReading  string
+		UpperReading  string
+		DateOfReading string
+	}{
+		FirstName:     firstName,
+		LastName:      lastName,
+		UserEmail:     userEmail,
+		MeterCode:     meterCode,
+		LowerReading:  lowerReading,
+		UpperReading:  upperReading,
+		DateOfReading: readingDate,
+	}
+
+	wg.Add(1)
+	go sendEmail(to, "Očitavanje brojila / Meter reading", templateFolder+"information_mail.html", data, wg, errChan)
+
+	// Add the notification to the database
+	wg.Add(1)
+	go addNotificationToDatabase(user_id, "Meter reading information sent to "+to, "Information", wg, errChan)
+}
+
 // addNotificationToDatabase adds a notification to the database.
 func addNotificationToDatabase(user_id uint, message string, subject string, wg *sync.WaitGroup, errChan chan<- error) {
 	defer wg.Done()
@@ -158,6 +185,29 @@ func SendNotificationMail(user_id uint, to string, name string, message string) 
 	for err := range errChan {
 		if err != nil {
 			return fmt.Errorf("failed to send notification email: %v", err)
+		}
+	}
+
+	return nil
+}
+
+func SendInformationMail(user_id uint, userEmail string, to string, firstName string, lastName string, meterCode string, lowerReading string, upperReading string, readingDate string) error {
+	var wg sync.WaitGroup
+	errChan := make(chan error, 1) // Buffer size set to 1 for now; increase it if needed.
+
+	// Call the goroutine to send the email
+	sendInformationMail(user_id, userEmail, to, firstName, lastName, lowerReading, meterCode, upperReading, readingDate, &wg, errChan)
+
+	// Wait for the email sending to complete
+	wg.Wait()
+
+	// Close the error channel after waiting for all goroutines
+	close(errChan)
+
+	// Process any errors from the channel
+	for err := range errChan {
+		if err != nil {
+			return fmt.Errorf("failed to send information email: %v", err)
 		}
 	}
 

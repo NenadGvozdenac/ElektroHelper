@@ -1,5 +1,6 @@
 package dtos
 
 type CreateElectricityMeterDTO struct {
-	LocationID uint `json:"location_id"`
+	MeterCode  string `json:"meter_code" binding:"required"`
+	LocationID uint   `json:"location_id" binding:"required"`
 }

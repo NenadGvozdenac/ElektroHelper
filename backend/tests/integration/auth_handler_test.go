@@ -50,7 +50,7 @@ func TestRegister_EmailAlreadyInUse(t *testing.T) {
 		Phone:        "987654321",
 		Password:     "hashedpassword",
 		Role:         "user",
-		CreationDate: "2025-01-19 12:34:56",
+		CreationDate: "2006-01-02T15:04:05Z07:00",
 	}
 	config.DB.Create(&existingUser)
 
@@ -83,7 +83,7 @@ func TestLogin_InvalidCredentials(t *testing.T) {
 		Phone:        "123456789",
 		Password:     "$2a$10$yH9ATy8iAWtQgHFu5kTjGeCEmiv1Yy.Pti.s4.lG55mhprfwz5U6y", // "securepassword"
 		Role:         "user",
-		CreationDate: "2025-01-19 12:34:56",
+		CreationDate: "2006-01-02T15:04:05Z07:00",
 	}
 	config.DB.Create(&user)
 
@@ -134,7 +134,7 @@ func TestLogin_Success(t *testing.T) {
 		Phone:        "123456789",
 		Password:     string(hashedPassword),
 		Role:         "user",
-		CreationDate: "2025-01-19 12:34:56",
+		CreationDate: "2006-01-02T15:04:05Z07:00",
 	}
 	config.DB.Create(&user)
 

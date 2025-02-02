@@ -30,6 +30,7 @@ CREATE TABLE IF NOT EXISTS locations (
 CREATE TABLE IF NOT EXISTS electricity_meters (
     id SERIAL PRIMARY KEY,
     location_id INT NOT NULL,
+    meter_code VARCHAR(255) NOT NULL,
     date_of_registration TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT fk_location FOREIGN KEY (location_id) REFERENCES locations(id)
 );

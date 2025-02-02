@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="sr-RS">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ElektroHelper Obaveštenje / Notification</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #f6f8fa 0%, #e9ecef 100%);
+            line-height: 1.6;
+        }
+
+        .email-container {
+            max-width: 600px;
+            margin: 40px auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(120deg, #3498db, #2980b9);
+            color: white;
+            text-align: center;
+            padding: 25px 20px;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 24px;
+            font-weight: 600;
+            letter-spacing: -0.5px;
+        }
+
+        .content {
+            padding: 30px;
+            color: #2c3e50;
+        }
+
+        .section {
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #ecf0f1;
+        }
+
+        .user-info {
+            background: #f0f4f8;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .reading-details {
+            background: #f8f9fa;
+            border-left: 4px solid #3498db;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 0 8px 8px 0;
+        }
+
+        .reading-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .reading-label {
+            font-weight: 600;
+            color: #34495e;
+        }
+
+        .reading-value {
+            color: #2c3e50;
+        }
+
+        .language-toggle {
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .toggle-button {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .toggle-button:hover {
+            background: #2980b9;
+            transform: translateY(-2px);
+        }
+
+        .english-section {
+            display: none;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .english-section.visible {
+            display: block;
+            opacity: 1;
+        }
+
+        .footer {
+            text-align: center;
+            padding: 20px;
+            color: #95a5a6;
+            font-size: 13px;
+            border-top: 1px solid #ecf0f1;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="email-container">
+        <div class="header">
+            <h1>Očitavanje Brojila</h1>
+        </div>
+        <div class="content">
+            <!-- Serbian Section -->
+            <div class="section">
+                <h2>Informacije o Korisniku</h2>
+                <div class="user-info">
+                    <div class="reading-row">
+                        <span class="reading-label">Ime:</span>
+                        <span class="reading-value">{{.FirstName}}</span>
+                    </div>
+                    <div class="reading-row">
+                        <span class="reading-label">Prezime:</span>
+                        <span class="reading-value">{{.LastName}}</span>
+                    </div>
+                    <div class="reading-row">
+                        <span class="reading-label">Email:</span>
+                        <span class="reading-value">{{.UserEmail}}</span>
+                    </div>
+                </div>
+
+                <h2>Očitavanje Brojila - Detalji</h2>
+                <div class="reading-details">
+                    <div class="reading-row">
+                        <span class="reading-label">Šifra Brojila:</span>
+                        <span class="reading-value">{{.MeterCode}}</span>
+                    </div>
+                    <div class="reading-row">
+                        <span class="reading-label">Niža Tarifa:</span>
+                        <span class="reading-value">{{.LowerReading}}</span>
+                    </div>
+                    <div class="reading-row">
+                        <span class="reading-label">Viša Tarifa:</span>
+                        <span class="reading-value">{{.UpperReading}}</span>
+                    </div>
+                    <div class="reading-row">
+                        <span class="reading-label">Datum Očitavanja:</span>
+                        <span class="reading-value">{{.DateOfReading}}</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="language-toggle">
+                <button class="toggle-button" onclick="toggleEnglish()" id="toggleButton">
+                    Show English Version / Prikaži na engleskom
+                </button>
+            </div>
+
+            <!-- English Section -->
+            <div class="english-section" id="englishSection">
+                <div class="section">
+                    <h2>User Information</h2>
+                    <div class="user-info">
+                        <div class="reading-row">
+                            <span class="reading-label">First Name:</span>
+                            <span class="reading-value">{{.FirstName}}</span>
+                        </div>
+                        <div class="reading-row">
+                            <span class="reading-label">Last Name:</span>
+                            <span class="reading-value">{{.LastName}}</span>
+                        </div>
+                        <div class="reading-row">
+                            <span class="reading-label">Email:</span>
+                            <span class="reading-value">{{.UserEmail}}</span>
+                        </div>
+                    </div>
+
+                    <h2>Meter Reading Details</h2>
+                    <div class="reading-details">
+                        <div class="reading-row">
+                            <span class="reading-label">Meter Code:</span>
+                            <span class="reading-value">{{.MeterCode}}</span>
+                        </div>
+                        <div class="reading-row">
+                            <span class="reading-label">Lower Reading:</span>
+                            <span class="reading-value">{{.LowerReading}}</span>
+                        </div>
+                        <div class="reading-row">
+                            <span class="reading-label">Upper Reading:</span>
+                            <span class="reading-value">{{.UpperReading}}</span>
+                        </div>
+                        <div class="reading-row">
+                            <span class="reading-label">Date of Reading:</span>
+                            <span class="reading-value">{{.DateOfReading}}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="footer">
+            <p>© 2025 ElektroHelper. Sva prava zadržana.</p>
+            <p>prijava.stanja@gmail.com</p>
+            <p style="font-size: 12px; margin-top: 10px;">
+                Ovo je automatska poruka. Molimo vas da ne odgovarate na ovaj email.
+            </p>
+        </div>
+    </div>
+
+    <script>
+        function toggleEnglish() {
+            const englishSection = document.getElementById('englishSection');
+            const toggleButton = document.getElementById('toggleButton');
+            const isVisible = englishSection.classList.contains('visible');
+
+            if (isVisible) {
+                englishSection.classList.remove('visible');
+                toggleButton.textContent = 'Show English Version / Prikaži na engleskom';
+            } else {
+                englishSection.classList.add('visible');
+                toggleButton.textContent = 'Hide English Version / Sakrij engleski';
+            }
+        }
+    </script>
+</body>
+
+</html>

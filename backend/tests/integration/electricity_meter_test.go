@@ -23,7 +23,7 @@ func TestCreateElectricityMeter_Success(t *testing.T) {
 		Email:        "email@gmail.com",
 		Phone:        "123456789",
 		Password:     "hashedpassword",
-		CreationDate: "2025-01-19 12:34:56",
+		CreationDate: "2006-01-02T15:04:05",
 		Role:         "user",
 	}
 
@@ -48,11 +48,12 @@ func TestCreateElectricityMeter_Success(t *testing.T) {
 
 	input := dtos.CreateElectricityMeterDTO{
 		LocationID: location.ID,
+		MeterCode:  "123456789",
 	}
 	body, _ := json.Marshal(input)
 
 	// Act
-	w := test_setup.MakeRequest(http.MethodPost, "/api/electricity_meters?sendMail=false", body)
+	w := test_setup.MakeRequest(http.MethodPost, "/api/electricity_meters?sendMail=false&sendMailToEPS=false", body)
 
 	// Assert
 	test_setup.AssertResponse(t, w, http.StatusCreated, "Electricity meter created successfully")
@@ -69,7 +70,7 @@ func TestCreateElectricityMeter_InvalidLocation(t *testing.T) {
 		Email:        "email@gmail.com",
 		Phone:        "123456789",
 		Password:     "hashedpassword",
-		CreationDate: "2025-01-19 12:34:56",
+		CreationDate: "2006-01-02T15:04:05",
 		Role:         "user",
 	}
 
@@ -82,14 +83,63 @@ func TestCreateElectricityMeter_InvalidLocation(t *testing.T) {
 	// Invalid location ID (non-existing)
 	input := dtos.CreateElectricityMeterDTO{
 		LocationID: 999,
+		MeterCode:  "123456789",
 	}
 	body, _ := json.Marshal(input)
 
 	// Act
-	w := test_setup.MakeRequest(http.MethodPost, "/api/electricity_meters?sendMail=false", body)
+	w := test_setup.MakeRequest(http.MethodPost, "/api/electricity_meters?sendMail=false&sendMailToEPS=false", body)
 
 	// Assert
 	test_setup.AssertResponse(t, w, http.StatusBadRequest, "location does not exist")
+}
+
+func TestCreateElectricityMeter_NoMeterCode(t *testing.T) {
+	cleanup := test_setup.PrepareTest()
+	defer cleanup()
+
+	// Arrange
+	user := models.User{
+		Name:         "John",
+		Surname:      "Doe",
+		Email:        "email@gmail.com",
+		Phone:        "123456789",
+		Password:     "hashedpassword",
+		CreationDate: "2006-01-02T15:04:05",
+		Role:         "user",
+	}
+
+	// Create user
+	config.DB.Create(&user)
+
+	// Mock gin context
+	test_setup.MockGinContext(user.ID, user.Email, user.Role, user.Name)
+
+	location := models.Location{
+		ID:         1,
+		Street:     "Test street",
+		Number:     "1",
+		City:       "Test city",
+		Country:    "Test country",
+		PostalCode: "12345",
+		UserID:     user.ID,
+	}
+
+	// Create location
+	config.DB.Create(&location)
+
+	// Missing meter code
+	input := dtos.CreateElectricityMeterDTO{
+		LocationID: location.ID,
+	}
+
+	body, _ := json.Marshal(input)
+
+	// Act
+	w := test_setup.MakeRequest(http.MethodPost, "/api/electricity_meters?sendMail=false&sendMailToEPS=false", body)
+
+	// Assert
+	test_setup.AssertResponse(t, w, http.StatusBadRequest, "Invalid request body")
 }
 
 func TestDeleteElectricityMeter_Success(t *testing.T) {
@@ -103,7 +153,7 @@ func TestDeleteElectricityMeter_Success(t *testing.T) {
 		Email:        "email@gmail.com",
 		Phone:        "123456789",
 		Password:     "hashedpassword",
-		CreationDate: "2025-01-19 12:34:56",
+		CreationDate: "2006-01-02T15:04:05",
 		Role:         "user",
 	}
 
@@ -129,6 +179,7 @@ func TestDeleteElectricityMeter_Success(t *testing.T) {
 	electricityMeter := models.ElectricityMeter{
 		LocationID:         location.ID,
 		DateOfRegistration: utils.GetCurrentTimeFormatted(),
+		MeterCode:          "123456789",
 	}
 
 	// Create electricity meter
@@ -152,7 +203,7 @@ func TestDeleteElectricityMeter_FailedToRetrieve(t *testing.T) {
 		Email:        "email@gmail.com",
 		Phone:        "123456789",
 		Password:     "hashedpassword",
-		CreationDate: "2025-01-19 12:34:56",
+		CreationDate: "2006-01-02T15:04:05",
 		Role:         "user",
 	}
 
@@ -181,7 +232,7 @@ func TestGetAllElectricityMeters_Success(t *testing.T) {
 		Email:        "email@gmail.com",
 		Phone:        "123456789",
 		Password:     "hashedpassword",
-		CreationDate: "2025-01-19 12:34:56",
+		CreationDate: "2006-01-02T15:04:05",
 		Role:         "user",
 	}
 
@@ -207,6 +258,7 @@ func TestGetAllElectricityMeters_Success(t *testing.T) {
 	electricityMeter := models.ElectricityMeter{
 		LocationID:         location.ID,
 		DateOfRegistration: utils.GetCurrentTimeFormatted(),
+		MeterCode:          "123456789",
 	}
 
 	// Create electricity meter
@@ -231,7 +283,7 @@ func TestGetElectricityMetersByUserId_Success(t *testing.T) {
 		Email:        "email@gmail.com",
 		Phone:        "123456789",
 		Password:     "hashedpassword",
-		CreationDate: "2025-01-19 12:34:56",
+		CreationDate: "2006-01-02T15:04:05",
 		Role:         "user",
 	}
 
@@ -257,6 +309,7 @@ func TestGetElectricityMetersByUserId_Success(t *testing.T) {
 	electricityMeter := models.ElectricityMeter{
 		LocationID:         location.ID,
 		DateOfRegistration: utils.GetCurrentTimeFormatted(),
+		MeterCode:          "123456789",
 	}
 
 	// Create electricity meter

@@ -159,7 +159,7 @@
             Contact Sales
           </button>
         </div>
-        <p class="text-emerald-100 mt-8">© 2021 ElektroHelper. All rights reserved.</p>
+        <p class="text-emerald-100 mt-8">© 2025 ElektroHelper. All rights reserved.</p>
       </div>
     </section>
   </div>

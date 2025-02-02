@@ -48,6 +48,31 @@ func CreateElectricityReading(c *gin.Context) {
 		}
 	}
 
+	electricityMeter, err := repositories.NewElectricityMeterRepository().GetByID(electricityReadingDTO.ElectricityMeterID)
+
+	if err != nil {
+		utils.CreateGinResponse(c, "Failed to fetch electricity meter", http.StatusInternalServerError, nil)
+		return
+	}
+
+	user, err := repositories.NewUserRepository().GetByID(userId)
+
+	if err != nil {
+		utils.CreateGinResponse(c, "Failed to fetch user", http.StatusInternalServerError, nil)
+		return
+	}
+
+	sendMailToEPS := c.DefaultQuery("sendMailToEPS", "true") == "true"
+
+	readingDateInNormalFormat := utils.ConvertDatabaseDateFormatToReadableFormat(electricityReading.ReadingDate)
+
+	if sendMailToEPS {
+		if err := SendInformationMail(userId, userEmail, "prijava.stanja@eps.rs", userName, user.Surname, electricityMeter.MeterCode, electricityReading.LowerReading, electricityReading.UpperReading, readingDateInNormalFormat); err != nil {
+			utils.CreateGinResponse(c, "Failed to send information mail to EPS", http.StatusInternalServerError, nil)
+			return
+		}
+	}
+
 	utils.CreateGinResponse(c, "Electricity reading added successfully", http.StatusCreated, electricityReading)
 }
 
@@ -85,6 +110,31 @@ func CreateElectricityReadingWithDate(c *gin.Context) {
 	if sendMail {
 		if err := SendNotificationMail(userId, userEmail, userName, "New electricity reading has been added"); err != nil {
 			utils.CreateGinResponse(c, "Failed to send notification mail", http.StatusInternalServerError, nil)
+			return
+		}
+	}
+
+	electricityMeter, err := repositories.NewElectricityMeterRepository().GetByID(electricityReadingDTO.ElectricityMeterID)
+
+	if err != nil {
+		utils.CreateGinResponse(c, "Failed to fetch electricity meter", http.StatusInternalServerError, nil)
+		return
+	}
+
+	user, err := repositories.NewUserRepository().GetByID(userId)
+
+	if err != nil {
+		utils.CreateGinResponse(c, "Failed to fetch user", http.StatusInternalServerError, nil)
+		return
+	}
+
+	sendMailToEPS := c.DefaultQuery("sendMailToEPS", "true") == "true"
+
+	readingDateInNormalFormat := utils.ConvertDatabaseDateFormatToReadableFormat(electricityReading.ReadingDate)
+
+	if sendMailToEPS {
+		if err := SendInformationMail(userId, userEmail, "prijava.stanja@eps.rs", userName, user.Surname, electricityMeter.MeterCode, electricityReading.LowerReading, electricityReading.UpperReading, readingDateInNormalFormat); err != nil {
+			utils.CreateGinResponse(c, "Failed to send information mail to EPS", http.StatusInternalServerError, nil)
 			return
 		}
 	}

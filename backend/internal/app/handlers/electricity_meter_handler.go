@@ -36,6 +36,7 @@ func CreateElectricityMeter(c *gin.Context) {
 	electricityMeter := models.ElectricityMeter{
 		LocationID:         electricityMeterDTO.LocationID,
 		DateOfRegistration: utils.GetCurrentTimeFormatted(),
+		MeterCode:          electricityMeterDTO.MeterCode,
 	}
 
 	if err := repositories.NewElectricityMeterRepository().Create(&electricityMeter); err != nil {

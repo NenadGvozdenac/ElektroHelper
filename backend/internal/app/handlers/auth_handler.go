@@ -150,7 +150,7 @@ func Login(c *gin.Context) {
 
 func Logout(c *gin.Context) {
 	type RequestBody struct {
-		refresh_token string `json:"refresh_token"`
+		RefreshToken string `json:"refresh_token"`
 	}
 
 	var input RequestBody
@@ -160,7 +160,7 @@ func Logout(c *gin.Context) {
 		return
 	}
 
-	if err := invalidateRefreshToken(input.refresh_token); err != nil {
+	if err := invalidateRefreshToken(input.RefreshToken); err != nil {
 		utils.CreateGinResponse(c, "Failed to invalidate refresh token", http.StatusInternalServerError, nil)
 		return
 	}

@@ -30,6 +30,7 @@ CREATE TABLE IF NOT EXISTS locations (
 CREATE TABLE IF NOT EXISTS electricity_meters (
     id SERIAL PRIMARY KEY,
     location_id INT NOT NULL,
+    meter_code VARCHAR(255) NOT NULL,
     date_of_registration TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT fk_location FOREIGN KEY (location_id) REFERENCES locations(id)
 );
@@ -62,7 +63,5 @@ CREATE TABLE IF NOT EXISTS tokens (
     device VARCHAR(255),
     ip_address VARCHAR(255),
     user_agent TEXT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT fk_user FOREIGN KEY (user_id) REFERENCES users(id)
 );

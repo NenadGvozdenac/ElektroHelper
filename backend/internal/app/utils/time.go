@@ -8,6 +8,6 @@ func GetCurrentTime() time.Time {
 
 // GetCurrentTimeFormatted returns the current time as a formatted string
 var GetCurrentTimeFormatted = func() string {
-	const layout = "2006-01-02 15:04:05"
+	const layout = "2006-01-02T15:04:05Z07:00"
 	return time.Now().Format(layout)
 }

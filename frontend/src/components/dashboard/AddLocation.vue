@@ -69,6 +69,14 @@
             </label>
           </div>
 
+          <!-- Meter Code - Only shown when hasElectricityMeter is true -->
+          <div v-if="formData.hasElectricityMeter" class="space-y-2">
+            <label class="text-sm font-medium text-emerald-800">Meter Code</label>
+            <input v-model="formData.meter_code" type="text" required
+              class="w-full p-3 rounded-lg border border-emerald-200 focus:ring-2 focus:ring-emerald-400 focus:border-emerald-400 transition-all"
+              placeholder="Enter meter code" />
+          </div>
+
           <!-- Buttons -->
           <div class="flex space-x-3 pt-4">
             <button type="button" @click="$emit('update:modelValue', false)"
@@ -89,7 +97,6 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import { XIcon } from "lucide-vue-next";
-import type { CreateLocation } from "@/app/models/location";
 import type { CreateLocationWithMeter } from "@/app/models/electricity_meter";
 
 const props = defineProps<{
@@ -108,6 +115,7 @@ const formData = ref<CreateLocationWithMeter>({
   country: "",
   postal_code: "",
   hasElectricityMeter: false,
+  meter_code: "",
 });
 
 const countries = [
@@ -125,7 +133,13 @@ const countries = [
 ];
 
 const handleSubmit = () => {
-  emit("submit", { ...formData.value });
+  // Only include meter_code if hasElectricityMeter is true
+  const submitData: CreateLocationWithMeter = {
+    ...formData.value,
+    meter_code: formData.value.hasElectricityMeter ? formData.value.meter_code : undefined
+  };
+
+  emit("submit", submitData);
   formData.value = {
     street: "",
     number: "",
@@ -133,6 +147,7 @@ const handleSubmit = () => {
     country: "",
     postal_code: "",
     hasElectricityMeter: false,
+    meter_code: "",
   };
   emit("update:modelValue", false);
 };
