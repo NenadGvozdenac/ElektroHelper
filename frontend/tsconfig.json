@@ -1,5 +1,8 @@
 {
   "files": [],
+  "compilerOptions": {
+    "types": ["@headlessui/vue"]
+  },
   "references": [
     {
       "path": "./tsconfig.node.json"

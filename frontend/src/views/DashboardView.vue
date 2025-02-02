@@ -168,6 +168,7 @@
   <AddLocation v-model="isAddLocationDialogOpen" @submit="handleAddLocation" />
   <AddMeter v-model="isAddMeterDialogOpen" :locations="locations" :meters="meters" @submit="handleAddMeter" />
   <AddReading v-model="isAddReadingDialogOpen" :meters="meters" :locations="locations" @submit="handleAddReading" />
+  <SuccessModal v-model="isSuccessModalOpen" :title="successModalTitle" :message="successModalMessage" />
 </template>
 
 <script setup lang="ts">
@@ -193,12 +194,17 @@ import type { CreateElectricityReadingWithDate, ElectricityReading } from "@/app
 import AddLocation from "@/components/dashboard/AddLocation.vue";
 import AddReading from "@/components/dashboard/AddReading.vue";
 import AddMeter from "@/components/dashboard/AddMeter.vue";
+import SuccessModal from "@/components/dashboard/SuccessModal.vue";
 
 import DashboardCard from "@/components/dashboard/Card.vue";
 
 const isAddLocationDialogOpen = ref(false);
 const isAddReadingDialogOpen = ref(false);
 const isAddMeterDialogOpen = ref(false);
+
+const isSuccessModalOpen = ref(false);
+const successModalMessage = ref('');
+const successModalTitle = ref('Success!');
 
 onMounted(async () => {
   const jwt: string | null = await getAccessToken();
@@ -400,8 +406,6 @@ const handleAddLocation = async (locationData: CreateLocationWithMeter) => {
       return;
     }
 
-    console.log("Creating location with data:", locationData);
-
     const locationToCreate: CreateLocation = {
       street: locationData.street,
       number: locationData.number,
@@ -426,6 +430,11 @@ const handleAddLocation = async (locationData: CreateLocationWithMeter) => {
       meters.value = await DashboardService.getMetersForUser(jwt);
     }
 
+    // Show success modal
+    successModalTitle.value = 'Location Added!';
+    successModalMessage.value = `Successfully added location at ${locationData.street} ${locationData.number}`;
+    isSuccessModalOpen.value = true;
+
     // Refresh locations list
     locations.value = await DashboardService.getLocationsForUser(jwt);
   } catch (error) {
@@ -443,6 +452,11 @@ const handleAddReading = async (readingData: CreateElectricityReadingWithDate) =
 
     await DashboardService.addReadingForUser(jwt, readingData);
 
+    // Show success modal
+    successModalTitle.value = 'Reading Added!';
+    successModalMessage.value = `Successfully added new reading for meter #${readingData.electricity_meter_id}`;
+    isSuccessModalOpen.value = true;
+
     // Refresh readings list
     readings.value = await DashboardService.getReadingsForUser(jwt);
   } catch (error) {
@@ -459,6 +473,11 @@ const handleAddMeter = async (meterData: CreateElectricityMeter) => {
     }
 
     await DashboardService.addMeterForUser(jwt, meterData);
+
+    // Show success modal
+    successModalTitle.value = 'Meter Added!';
+    successModalMessage.value = `Successfully added new meter with code ${meterData.meter_code}`;
+    isSuccessModalOpen.value = true;
 
     // Refresh meters list
     meters.value = await DashboardService.getMetersForUser(jwt);
