@@ -27,6 +27,7 @@ CREATE TABLE IF NOT EXISTS locations (
     CONSTRAINT fk_user FOREIGN KEY (user_id) REFERENCES users(id)
 );
 
+
 CREATE TABLE IF NOT EXISTS electricity_meters (
     id SERIAL PRIMARY KEY,
     location_id INT NOT NULL,
