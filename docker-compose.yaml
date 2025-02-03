@@ -80,6 +80,32 @@ services:
       - app
       - forums_app
 
+  db_test:
+    image: postgres:latest
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER_TEST}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD_TEST}
+      POSTGRES_DB: ${POSTGRES_DB_TEST}
+    volumes:
+      - postgres_test_data:/var/lib/postgresql/data
+      - ./database/testing_starter.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - "5433:5432"
+
+  tester:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+      target: tester
+    depends_on:
+      - db_test
+    environment:
+      POSTGRES_HOST: ${POSTGRES_HOST_TEST}
+      POSTGRES_PORT: ${POSTGRES_PORT_TEST}
+      POSTGRES_USER: ${POSTGRES_USER_TEST}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD_TEST}
+      POSTGRES_DB: ${POSTGRES_DB_TEST}
+
 volumes:
   postgres_data:
   neo4j_data:
