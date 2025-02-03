@@ -18,7 +18,22 @@ services:
       MAIL_HOST: ${MAIL_HOST}
       MAIL_PORT: ${MAIL_PORT}
       MAIL_EMAIL: ${MAIL_EMAIL}
- 
+
+  forums_app:
+    build:
+      context: ./forums_backend
+      dockerfile: Dockerfile
+    restart: always
+    ports:
+      - "9090:9090"
+    depends_on:
+      - neo4j
+    environment:
+      NEO4J_URI: ${NEO4J_URI}
+      NEO4J_USER: ${NEO4J_USER}
+      NEO4J_PASSWORD: ${NEO4J_PASSWORD}
+      ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT}
+
   db:
     image: postgres:latest
     environment:
@@ -30,32 +45,18 @@ services:
       - ./database/starter.sql:/docker-entrypoint-initdb.d/init.sql
     ports:
       - "5432:5432"
-  
-  db_test:
-    image: postgres:latest
-    environment:
-      POSTGRES_USER: ${POSTGRES_USER_TEST}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD_TEST}
-      POSTGRES_DB: ${POSTGRES_DB_TEST}
-    volumes:
-      - postgres_test_data:/var/lib/postgresql/data
-      - ./database/testing_starter.sql:/docker-entrypoint-initdb.d/init.sql
-    ports:
-      - "5433:5432"
 
-  tester:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
-      target: tester
-    depends_on:
-      - db_test
+  neo4j:
+    image: neo4j:latest
+    restart: always
+    ports:
+      - "7474:7474" # Web UI
+      - "7687:7687" # Bolt protocol
     environment:
-      POSTGRES_HOST: ${POSTGRES_HOST_TEST}
-      POSTGRES_PORT: ${POSTGRES_PORT_TEST}
-      POSTGRES_USER: ${POSTGRES_USER_TEST}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD_TEST}
-      POSTGRES_DB: ${POSTGRES_DB_TEST}
+      NEO4J_AUTH: "${NEO4J_USER}/${NEO4J_PASSWORD}"
+    volumes:
+      - neo4j_data:/data
+      - neo4j_logs:/logs
 
   mail:
     image: mailhog/mailhog
@@ -77,6 +78,9 @@ services:
       - API_URL=${API_URL}
     depends_on:
       - app
+      - forums_app
+
 volumes:
   postgres_data:
-  postgres_test_data:
+  neo4j_data:
+  neo4j_logs:
