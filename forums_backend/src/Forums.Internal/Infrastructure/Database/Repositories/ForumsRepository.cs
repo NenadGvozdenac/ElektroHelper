@@ -1,3 +1,4 @@
+using forums_backend.src.Forums.BuildingBlocks.Infrastructure;
 using forums_backend.src.Forums.BuildingBlocks.Infrastructure.Database;
 using forums_backend.src.Forums.Internal.Core.Domain;
 using forums_backend.src.Forums.Internal.Core.Domain.RepositoryInterfaces;
@@ -22,7 +23,8 @@ public class ForumsRepository : IForumsRepository
             CREATE (forum:Forum {
                 id: $id,
                 name: $name,
-                description: $description
+                description: $description,
+                createdAt: $createdAt
             })
             CREATE (u)-[:CREATED]->(forum)
             RETURN forum
@@ -36,7 +38,8 @@ public class ForumsRepository : IForumsRepository
             { "userId", user.Id },
             { "userEmail", user.Email },
             { "username", user.Username },
-            { "userRole", user.Role }
+            { "userRole", user.Role },
+            { "createdAt", entity.CreatedAt.ToNeo4jDateTime() }
         };
 
         var resultCursor = await _graphDatabaseContext.RunAsync(query, parameters);
@@ -47,7 +50,8 @@ public class ForumsRepository : IForumsRepository
         return new Forum(
             Guid.Parse(forum["id"].As<string>()),
             forum["name"].As<string>(),
-            forum["description"].As<string>()
+            forum["description"].As<string>(),
+            forum["createdAt"].As<string>().FromNeo4jDateTime()
         );
     }
 
@@ -66,7 +70,8 @@ public class ForumsRepository : IForumsRepository
             return new Forum(
                 Guid.Parse(forum["id"].As<string>()),
                 forum["name"].As<string>(),
-                forum["description"].As<string>()
+                forum["description"].As<string>(),
+                forum["createdAt"].As<string>().FromNeo4jDateTime()
             );
         });
     }
@@ -91,7 +96,8 @@ public class ForumsRepository : IForumsRepository
         return new Forum(
             Guid.Parse(forum["id"].As<string>()),
             forum["name"].As<string>(),
-            forum["description"].As<string>()
+            forum["description"].As<string>(),
+            forum["createdAt"].As<string>().FromNeo4jDateTime()
         );
     }
 }

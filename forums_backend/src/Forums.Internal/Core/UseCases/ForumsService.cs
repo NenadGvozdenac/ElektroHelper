@@ -3,7 +3,6 @@ using forums_backend.src.Forums.Internal.API.DTOs.Users;
 using forums_backend.src.Forums.Internal.API.Public;
 using forums_backend.src.Forums.Internal.Core.Domain;
 using forums_backend.src.Forums.Internal.Core.Domain.RepositoryInterfaces;
-using Microsoft.AspNetCore.Authorization;
 
 namespace forums_backend.src.Forums.Internal.Core.UseCases;
 
@@ -23,13 +22,13 @@ public class ForumsService : IForumsService
 
         await _forumsRepository.AddAsync(forum, user);
 
-        return new ForumDTO(forum.Id, forum.Name, forum.Description);
+        return new ForumDTO(forum.Id, forum.Name, forum.Description, forum.CreatedAt);
     }
 
     public async Task<IEnumerable<ForumDTO>> GetForumsAsync()
     {
         var forums = await _forumsRepository.GetAllAsync();
 
-        return forums.Select(forum => new ForumDTO(forum.Id, forum.Name, forum.Description));
+        return forums.Select(forum => new ForumDTO(forum.Id, forum.Name, forum.Description, forum.CreatedAt));
     }
 }

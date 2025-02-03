@@ -1,3 +1,4 @@
+using forums_backend.src.Forums.BuildingBlocks.Infrastructure;
 using forums_backend.src.Forums.Internal.API.DTOs.Forums;
 using forums_backend.src.Forums.Internal.API.DTOs.Posts;
 using forums_backend.src.Forums.Internal.API.Public;
@@ -24,13 +25,19 @@ public class PostsController: ControllerBase {
 
     [HttpPost]
     public async Task<ActionResult<PostDTO>> CreatePostAsync(CreatePostDTO createPostDTO) {
-        var post = await _forumsService.CreatePostAsync(createPostDTO);
+        var post = await _forumsService.CreatePostAsync(createPostDTO, this.GetUser());
         return Ok(post);
     }
 
     [HttpGet("{forumId}")]
     public async Task<ActionResult<List<PostDTO>>> GetPostsByForumIdAsync(Guid forumId) {
         var posts = await _forumsService.GetPostsByForumIdAsync(forumId);
+        return Ok(posts);
+    }
+
+    [HttpGet("my")]
+    public async Task<ActionResult<List<PostDTO>>> GetMyPostsAsync() {
+        var posts = await _forumsService.GetMyPostsAsync(this.GetUser());
         return Ok(posts);
     }
 }

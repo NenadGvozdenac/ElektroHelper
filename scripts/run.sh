@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # # Stop and remove containers and volumes, but leave the images
-# docker-compose down -v
+docker-compose down -v
 
 # # Delete the previous app image
 docker rmi elektrohelper-app
@@ -26,4 +26,4 @@ echo "Neo4j is ready!"
 # Start the application services
 docker-compose up --build frontend-app app forums_app
 
-echo "All services are up and running!"
+echo "All services are turning off!"
