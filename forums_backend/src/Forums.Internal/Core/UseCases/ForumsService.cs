@@ -1,19 +1,29 @@
 using forums_backend.src.Forums.Internal.API.DTOs.Forums;
+using forums_backend.src.Forums.Internal.API.DTOs.Users;
 using forums_backend.src.Forums.Internal.API.Public;
 using forums_backend.src.Forums.Internal.Core.Domain;
 using forums_backend.src.Forums.Internal.Core.Domain.RepositoryInterfaces;
+using Microsoft.AspNetCore.Authorization;
 
 namespace forums_backend.src.Forums.Internal.Core.UseCases;
 
-public class ForumsService(IForumsRepository forumsRepository) : IForumsService
+public class ForumsService : IForumsService
 {
-    private readonly IForumsRepository _forumsRepository = forumsRepository;
+    private readonly IForumsRepository _forumsRepository;
 
-    public Task CreateForumAsync(CreateForumDTO createCategoryDTO)
+    public ForumsService(IForumsRepository forumsRepository)
+    {
+        _forumsRepository = forumsRepository;
+    }
+
+    public async Task<ForumDTO> CreateForumAsync(CreateForumDTO createCategoryDTO, UserDTO userDTO)
     {
         Forum forum = new(createCategoryDTO.Name, createCategoryDTO.Description);
+        User user = new(userDTO.Id, userDTO.Email, userDTO.Role, userDTO.Username);
 
-        return _forumsRepository.AddAsync(forum);
+        await _forumsRepository.AddAsync(forum, user);
+
+        return new ForumDTO(forum.Id, forum.Name, forum.Description);
     }
 
     public async Task<IEnumerable<ForumDTO>> GetForumsAsync()

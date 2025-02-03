@@ -1,32 +1,97 @@
+using forums_backend.src.Forums.BuildingBlocks.Infrastructure.Database;
 using forums_backend.src.Forums.Internal.Core.Domain;
 using forums_backend.src.Forums.Internal.Core.Domain.RepositoryInterfaces;
+using Neo4j.Driver;
 
 namespace forums_backend.src.Forums.Internal.Infrastructure.Database.Repositories;
 
 public class ForumsRepository : IForumsRepository
 {
-    public Task<Forum> AddAsync(Forum entity)
+    private readonly IGraphDatabaseContext _graphDatabaseContext;
+
+    public ForumsRepository(IGraphDatabaseContext graphDatabaseContext)
     {
-        throw new NotImplementedException();
+        _graphDatabaseContext = graphDatabaseContext;
     }
 
-    public Task<Forum> DeleteAsync(Guid id)
+    public async Task<Forum> AddAsync(Forum entity, User user)
     {
-        throw new NotImplementedException();
+        var query = @"
+            MERGE (u:User { id: $userId })
+            ON CREATE SET u.email = $userEmail, u.username = $username, u.role = $userRole
+            CREATE (forum:Forum {
+                id: $id,
+                name: $name,
+                description: $description
+            })
+            CREATE (u)-[:CREATED]->(forum)
+            RETURN forum
+        ";
+
+        var parameters = new Dictionary<string, object>
+        {
+            { "id", entity.Id.ToString() },
+            { "name", entity.Name },
+            { "description", entity.Description },
+            { "userId", user.Id },
+            { "userEmail", user.Email },
+            { "username", user.Username },
+            { "userRole", user.Role }
+        };
+
+        var resultCursor = await _graphDatabaseContext.RunAsync(query, parameters);
+        var result = await resultCursor.SingleAsync();
+
+        var forum = result["forum"].As<INode>();
+
+        return new Forum(
+            Guid.Parse(forum["id"].As<string>()),
+            forum["name"].As<string>(),
+            forum["description"].As<string>()
+        );
     }
 
-    public Task<IEnumerable<Forum>> GetAllAsync()
+    public async Task<IEnumerable<Forum>> GetAllAsync()
     {
-        throw new NotImplementedException();
+        var query = @"
+            MATCH (forum:Forum)
+            RETURN forum";
+
+        var resultCursor = await _graphDatabaseContext.RunAsync(query);
+
+        return await resultCursor.ToListAsync(record =>
+        {
+            var forum = record["forum"].As<INode>();
+
+            return new Forum(
+                Guid.Parse(forum["id"].As<string>()),
+                forum["name"].As<string>(),
+                forum["description"].As<string>()
+            );
+        });
     }
 
-    public Task<Forum> GetByIdAsync(Guid id)
+    public async Task<Forum> GetByIdAsync(Guid id)
     {
-        throw new NotImplementedException();
-    }
+        var query = @"
+            MATCH (forum:Forum { id: $id })
+            RETURN forum";
 
-    public Task<Forum> UpdateAsync(Forum entity)
-    {
-        throw new NotImplementedException();
+        var parameters = new Dictionary<string, object>
+        {
+            { "id", id.ToString() }
+        };
+
+        var resultCursor = await _graphDatabaseContext.RunAsync(query, parameters);
+
+        var result = await resultCursor.SingleAsync();
+
+        var forum = result["forum"].As<INode>();
+
+        return new Forum(
+            Guid.Parse(forum["id"].As<string>()),
+            forum["name"].As<string>(),
+            forum["description"].As<string>()
+        );
     }
 }

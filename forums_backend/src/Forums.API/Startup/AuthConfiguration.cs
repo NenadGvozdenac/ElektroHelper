@@ -13,50 +13,53 @@ public static class AuthConfiguration
         return services;
     }
 
-    private static void ConfigureAuthentication(IServiceCollection services)
+    public static void ConfigureAuthentication(IServiceCollection services)
     {
-        var key = Environment.GetEnvironmentVariable("JWT_KEY") ?? "explorer_secret_key";
-        var issuer = Environment.GetEnvironmentVariable("JWT_ISSUER") ?? "explorer";
-        var audience = Environment.GetEnvironmentVariable("JWT_AUDIENCE") ?? "explorer-front.com";
+        var key = "Pq5s9XJ68zQWJY8h2Nx2Q9sYyQJdJf2zEwRZp9LrXUs=";
+        var issuer = "elektrohelper";
+        var audience = "elektrohelper";
+
+        var roleClaimType = "userRole";
 
         services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             .AddJwtBearer(options =>
             {
                 options.TokenValidationParameters = new TokenValidationParameters
                 {
+                    TryAllIssuerSigningKeys = true,
+                    ValidateIssuerSigningKey = true,
                     ValidateIssuer = true,
                     ValidateAudience = true,
-                    ValidateIssuerSigningKey = true,
                     ValidateLifetime = true,
                     ValidIssuer = issuer,
                     ValidAudience = audience,
-                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key))
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key)),
+                    RoleClaimType = roleClaimType,
+                    ClockSkew = TimeSpan.Zero
                 };
 
                 options.Events = new JwtBearerEvents
                 {
                     OnAuthenticationFailed = context =>
                     {
-                        if (context.Exception.GetType() == typeof(SecurityTokenExpiredException))
-                        {
-                            context.Response.Headers.Append("AuthenticationTokens-Expired", "true");
-                        }
+                        Console.WriteLine("Tried JWT: " + context.Request.Headers["Authorization"]);
+                        Console.WriteLine("OnAuthenticationFailed: " + context.Exception.Message);
+                        Console.WriteLine("Error: " + context.Exception.StackTrace);
 
                         return Task.CompletedTask;
                     }
                 };
             });
+
+        services.AddAuthorization();
     }
 
     private static void ConfigureAuthorizationPolicies(IServiceCollection services)
     {
         services.AddAuthorization(options =>
         {
-            options.AddPolicy("administratorPolicy", policy => policy.RequireRole("administrator"));
-            options.AddPolicy("authorPolicy", policy => policy.RequireRole("author"));
-            options.AddPolicy("touristPolicy", policy => policy.RequireRole("tourist"));
-            options.AddPolicy("touristOrAuthorPolicy", policy => policy.RequireRole("tourist", "author"));
-            options.AddPolicy("allLoggedPolicy", policy => policy.RequireRole("administrator", "tourist", "author"));
+            options.AddPolicy("adminPolicy", policy => policy.RequireRole("admin"));
+            options.AddPolicy("allLoggedPolicy", policy => policy.RequireRole("user", "admin"));
         });
     }
 }

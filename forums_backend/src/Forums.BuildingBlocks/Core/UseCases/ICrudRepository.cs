@@ -1,4 +1,4 @@
-namespace forums_backend.src.BuildingBlocks.Forums.BuildingBlocks.Core.UseCases;
+namespace forums_backend.src.Forums.BuildingBlocks.Core.UseCases;
 
 public interface ICrudRepository<T> where T : class
 {

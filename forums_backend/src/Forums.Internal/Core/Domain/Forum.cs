@@ -5,6 +5,12 @@ public class Forum {
     public string Name { get; private set; } = string.Empty;
     public string Description { get; private set; } = string.Empty;
 
+    public Forum(Guid id, string name, string description) {
+        Id = id;
+        Name = name;
+        Description = description;
+    }
+
     public Forum(string name, string description) {
         Id = Guid.NewGuid();
         Name = name;

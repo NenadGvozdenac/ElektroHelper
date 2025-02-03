@@ -1,12 +1,12 @@
 #!/bin/bash
 
-# Stop and remove containers and volumes, but leave the images
-docker-compose down -v
+# # Stop and remove containers and volumes, but leave the images
+# docker-compose down -v
 
-# Delete the previous app image
+# # Delete the previous app image
 docker rmi elektrohelper-app
 
-# Start the databases first to ensure they are ready
+# # Start the databases first to ensure they are ready
 docker-compose up -d db neo4j
 
 # Wait for the PostgreSQL database to initialize

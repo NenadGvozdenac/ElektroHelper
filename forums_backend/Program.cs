@@ -1,6 +1,9 @@
 using forums_backend.src.Forums.API.Startup;
 using forums_backend.src.Forums.Internal.Infrastructure;
 using Microsoft.AspNetCore.Rewrite;
+using Microsoft.IdentityModel.Logging;
+
+IdentityModelEventSource.ShowPII = true;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -32,7 +35,7 @@ else
 app.UseRouting();
 app.UseCors(corsPolicy);
 app.UseHttpsRedirection();
-app.UseAuthorization();
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
