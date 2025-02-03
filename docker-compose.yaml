@@ -108,5 +108,6 @@ services:
 
 volumes:
   postgres_data:
+  postgres_test_data:
   neo4j_data:
   neo4j_logs:
