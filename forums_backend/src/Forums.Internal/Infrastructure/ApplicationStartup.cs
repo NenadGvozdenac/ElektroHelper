@@ -24,10 +24,12 @@ public static class ApplicationStartup {
     private static void SetupCore(IServiceCollection services) {
         services.AddScoped<IForumsService, ForumsService>();
         services.AddScoped<IPostsService, PostsService>();
+        services.AddScoped<ICommentsService, CommentsService>();
     }
     
     private static void SetupInfrastructure(IServiceCollection services) {
         services.AddScoped<IForumsRepository, ForumsRepository>();
         services.AddScoped<IPostsRepository, PostsRepository>();
+        services.AddScoped<ICommentsRepository, CommentsRepository>();
     }
 }

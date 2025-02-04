@@ -5,7 +5,7 @@ using forums_backend.src.Forums.Internal.API.Public;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace forums_backend.src.Forums.API.Controllers.Forums;
+namespace forums_backend.src.Forums.API.Controllers.Posts;
 
 [ApiController]
 [Route("api/posts")]
