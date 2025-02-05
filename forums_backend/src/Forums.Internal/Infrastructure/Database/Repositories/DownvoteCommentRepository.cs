@@ -122,6 +122,20 @@ public class DownvoteCommentRepository : IDownvoteCommentRepository
         }
     }
 
+    public async Task<bool> RemoveDownvoteFromCommentIfExistsAsync(Guid commentId, string userId)
+    {
+        var userDownvotedComment = await UserDownvotedCommentAsync(commentId, userId);
+
+        if (userDownvotedComment)
+        {
+            var removedUpvote = await RemoveDownvoteFromCommentAsync(commentId, userId);
+
+            return removedUpvote;
+        }
+
+        return true;
+    }
+
     public async Task<bool> UserDownvotedCommentAsync(Guid commentId, string userId)
     {
         var query = @"

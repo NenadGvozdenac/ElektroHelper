@@ -12,11 +12,13 @@ public class DownvoteService : IDownvoteService
 {
     private readonly IDownvotePostRepository _downvotePostRepository;
     private readonly IDownvoteCommentRepository _downvoteCommentRepository;
+    private readonly IUpvoteCommentRepository _upvoteCommentRepository;
 
-    public DownvoteService(IDownvoteCommentRepository downvoteCommentRepository, IDownvotePostRepository downvotePostRepository)
+    public DownvoteService(IDownvoteCommentRepository downvoteCommentRepository, IDownvotePostRepository downvotePostRepository, IUpvoteCommentRepository upvoteCommentRepository)
     {
         _downvoteCommentRepository = downvoteCommentRepository;
         _downvotePostRepository = downvotePostRepository;
+        _upvoteCommentRepository = upvoteCommentRepository;
     }
 
     public async Task<Result<DownvoteCommentDTO>> DownvoteCommentAsync(Guid commentId, UserDTO userDTO)
@@ -30,8 +32,7 @@ public class DownvoteService : IDownvoteService
             return Result<DownvoteCommentDTO>.Failure("User already downvoted this comment").WithCode(400);
         }
 
-        // TODO:    Check if user upvoted the comment before downvoting it
-        //          If user upvoted the comment, remove the upvote before adding the downvote
+        await _upvoteCommentRepository.RemoveUpvoteFromCommentIfExistsAsync(commentId, user.Id);
 
         var downvoteAdded = await _downvoteCommentRepository.AddDownvoteToCommentAsync(commentId, user.Id);
 

@@ -122,6 +122,20 @@ public class UpvoteCommentRepository : IUpvoteCommentRepository
         }
     }
 
+    public async Task<bool> RemoveUpvoteFromCommentIfExistsAsync(Guid commentId, string userId)
+    {
+        var userUpvotedComment = await UserUpvotedCommentAsync(commentId, userId);
+
+        if (userUpvotedComment)
+        {
+            var removedUpvote = await RemoveUpvoteFromCommentAsync(commentId, userId);
+
+            return removedUpvote;
+        }
+
+        return true;
+    }
+
     public async Task<bool> UserUpvotedCommentAsync(Guid commentId, string userId)
     {
         var query = @"
