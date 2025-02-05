@@ -11,7 +11,7 @@ namespace forums_backend.src.Forums.API.Controllers.Posts;
 [ApiController]
 [Route("api/posts")]
 [Authorize]
-public class PostsController: BaseController {
+public class PostsController : BaseController {
     private readonly IPostsService _forumsService;
 
     public PostsController(IPostsService forumsService) {
