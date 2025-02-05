@@ -29,6 +29,9 @@ public class UpvoteService : IUpvoteService
             return Result<UpvoteCommentDTO>.Failure("User already upvoted this comment").WithCode(400);
         }
 
+        // TODO:    Check if user downvoted the comment before upvoting it
+        //          If user downvoted the comment, remove the downvote before adding the upvote
+
         var upvoteAdded = await _upvoteCommentRepository.AddUpvoteToCommentAsync(commentId, user.Id);
 
         if(!upvoteAdded) {

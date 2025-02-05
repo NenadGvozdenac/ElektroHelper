@@ -25,16 +25,19 @@ public static class ApplicationStartup {
         services.AddScoped<IForumsService, ForumsService>();
         services.AddScoped<IPostsService, PostsService>();
         services.AddScoped<ICommentsService, CommentsService>();
-        services.AddScoped<IUpvoteService, UpvoteService>();
         services.AddScoped<IUserService, UserService>();
+        services.AddScoped<IUpvoteService, UpvoteService>();
+        services.AddScoped<IDownvoteService, DownvoteService>();
     }
     
     private static void SetupInfrastructure(IServiceCollection services) {
         services.AddScoped<IForumsRepository, ForumsRepository>();
         services.AddScoped<IPostsRepository, PostsRepository>();
         services.AddScoped<ICommentsRepository, CommentsRepository>();
+        services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<IUpvotePostRepository, UpvotePostRepository>();
         services.AddScoped<IUpvoteCommentRepository, UpvoteCommentRepository>();
-        services.AddScoped<IUserRepository, UserRepository>();
+        services.AddScoped<IDownvotePostRepository, DownvotePostRepository>();
+        services.AddScoped<IDownvoteCommentRepository, DownvoteCommentRepository>();
     }
 }
