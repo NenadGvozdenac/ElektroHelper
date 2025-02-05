@@ -39,16 +39,32 @@ public class CommentsService : ICommentsService
     {
         var postAndComments = await _commentsRepository.GetPostAndItsCommentsAsync(postId);
 
-        if(postAndComments == null)
+        if (postAndComments == null)
         {
             return Result<PostAndCommentsDTO>.Failure("Post not found!").WithCode(404);
         }
 
         var postDto = new PostDTO(postAndComments.Post.Id, postAndComments.Post.Title, postAndComments.Post.Content, postAndComments.Post.CreatedAt);
 
-        var commentsDto = postAndComments.Comments.Select(c => new CommentWithUserDTO(c.Comment.Id, c.Comment.Content, c.Comment.CreatedAt, new UserDTO(c.User.Id, c.User.Email, c.User.Role, c.User.Username)));
+        var comments = postAndComments.Comments.Select(c => new CommentWithUserAndUpvotesDTO(c.Comment.Id, 
+            c.Comment.Content, 
+            c.Comment.CreatedAt, 
+            new UserDTO(c.Creator.Id, 
+                        c.Creator.Email, 
+                        c.Creator.Role, 
+                        c.Creator.Username), 
+                        c.Upvotes.Select(upvote => 
+                            new UserDTO(upvote.User.Id, 
+                                        upvote.User.Email, 
+                                        upvote.User.Role, 
+                                        upvote.User.Username)).ToList(), 
+                        c.Downvotes.Select(downvote => 
+                            new UserDTO(downvote.User.Id, 
+                                        downvote.User.Email, 
+                                        downvote.User.Role, 
+                                        downvote.User.Username)).ToList()));
 
-        return Result<PostAndCommentsDTO>.Success(new PostAndCommentsDTO(postDto, commentsDto));
+        return Result<PostAndCommentsDTO>.Success(new PostAndCommentsDTO(postDto, comments));
     }
 
     public async Task<Result<IEnumerable<CommentDTO>>> GetMyCommentsAsync(UserDTO userDTO)
