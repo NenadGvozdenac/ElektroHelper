@@ -1,3 +1,4 @@
+using forums_backend.src.Forums.BuildingBlocks.Core.Domain;
 using forums_backend.src.Forums.BuildingBlocks.Infrastructure;
 using forums_backend.src.Forums.Internal.API.DTOs.Forums;
 using forums_backend.src.Forums.Internal.API.Public;
@@ -7,10 +8,10 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace forums_backend.src.Forums.API.Controllers.Forums;
 
-[Route("api/forums")]
 [ApiController]
+[Route("api/forums")]
 [Authorize]
-public class ForumsController : ControllerBase {
+public class ForumsController : BaseController {
 
     private readonly IForumsService _forumsService;
     public ForumsController(IForumsService forumsService)
@@ -19,14 +20,14 @@ public class ForumsController : ControllerBase {
     }
 
     [HttpGet]
-    public async Task<ActionResult<List<ForumDTO>>> GetAllForumsAsync() {
+    public async Task<ActionResult<Result<List<ForumDTO>>>> GetAllForumsAsync() {
         var forums = await _forumsService.GetForumsAsync();
-        return Ok(forums);
+        return CreateResponse(forums);
     }
 
     [HttpPost]
-    public async Task<ActionResult<ForumDTO>> CreateForumAsync(CreateForumDTO createForumDTO) {
+    public async Task<ActionResult<Result<ForumDTO>>> CreateForumAsync(CreateForumDTO createForumDTO) {
         var forum = await _forumsService.CreateForumAsync(createForumDTO, this.GetUser());
-        return Ok(forum);
+        return CreateResponse(forum);
     }
 }

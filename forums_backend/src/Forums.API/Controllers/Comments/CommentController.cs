@@ -1,4 +1,5 @@
 
+using forums_backend.src.Forums.BuildingBlocks.Core.Domain;
 using forums_backend.src.Forums.BuildingBlocks.Infrastructure;
 using forums_backend.src.Forums.Internal.API.DTOs.Comments;
 using forums_backend.src.Forums.Internal.API.Public;
@@ -7,10 +8,10 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace forums_backend.src.Forums.API.Controllers.Comments;
 
-[Route("api/comments")]
 [ApiController]
+[Route("api/comments")]
 [Authorize]
-public class CommentsController : ControllerBase {
+public class CommentsController : BaseController {
     private readonly ICommentsService _commentsService;
 
     public CommentsController(ICommentsService commentsService) {
@@ -18,20 +19,20 @@ public class CommentsController : ControllerBase {
     }
 
     [HttpPost]
-    public async Task<ActionResult<CommentDTO>> CreateCommentAsync(CreateCommentDTO createCommentDTO) {
+    public async Task<ActionResult<Result<CommentDTO>>> CreateCommentAsync(CreateCommentDTO createCommentDTO) {
         var comment = await _commentsService.CreateCommentAsync(createCommentDTO, this.GetUser());
-        return Ok(comment);
+        return CreateResponse(comment);
     }
 
     [HttpGet("{postId}")]
-    public async Task<ActionResult<List<CommentDTO>>> GetPostAndItsCommentsAsync(Guid postId) {
+    public async Task<ActionResult<Result<List<CommentDTO>>>> GetPostAndItsCommentsAsync(Guid postId) {
         var comments = await _commentsService.GetPostAndItsCommentsAsync(postId);
-        return Ok(comments);
+        return CreateResponse(comments);
     }
 
     [HttpGet("my")]
-    public async Task<ActionResult<List<CommentDTO>>> GetMyCommentsAsync() {
+    public async Task<ActionResult<Result<List<CommentDTO>>>> GetMyCommentsAsync() {
         var comments = await _commentsService.GetMyCommentsAsync(this.GetUser());
-        return Ok(comments);
+        return CreateResponse(comments);
     }
 }

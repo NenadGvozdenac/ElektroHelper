@@ -15,7 +15,7 @@ public class ForumsRepository : IForumsRepository
         _graphDatabaseContext = graphDatabaseContext;
     }
 
-    public async Task<Forum> AddAsync(Forum entity, User user)
+    public async Task<Forum?> AddAsync(Forum entity, User user)
     {
         var query = @"
             MERGE (u:User { id: $userId })
@@ -42,17 +42,22 @@ public class ForumsRepository : IForumsRepository
             { "createdAt", entity.CreatedAt.ToNeo4jDateTime() }
         };
 
-        var resultCursor = await _graphDatabaseContext.RunAsync(query, parameters);
-        var result = await resultCursor.SingleAsync();
+        try {
+            var resultCursor = await _graphDatabaseContext.RunAsync(query, parameters);
+            var result = await resultCursor.SingleAsync();
 
-        var forum = result["forum"].As<INode>();
+            var forum = result["forum"].As<INode>();
 
-        return new Forum(
-            Guid.Parse(forum["id"].As<string>()),
-            forum["name"].As<string>(),
-            forum["description"].As<string>(),
-            forum["createdAt"].As<string>().FromNeo4jDateTime()
-        );
+            return new Forum(
+                Guid.Parse(forum["id"].As<string>()),
+                forum["name"].As<string>(),
+                forum["description"].As<string>(),
+                forum["createdAt"].As<string>().FromNeo4jDateTime()
+            );
+        } catch {
+            return null;
+        }
+
     }
 
     public async Task<IEnumerable<Forum>> GetAllAsync()
@@ -76,7 +81,7 @@ public class ForumsRepository : IForumsRepository
         });
     }
 
-    public async Task<Forum> GetByIdAsync(Guid id)
+    public async Task<Forum?> GetByIdAsync(Guid id)
     {
         var query = @"
             MATCH (forum:Forum { id: $id })
@@ -87,17 +92,22 @@ public class ForumsRepository : IForumsRepository
             { "id", id.ToString() }
         };
 
-        var resultCursor = await _graphDatabaseContext.RunAsync(query, parameters);
+        try {
+            var resultCursor = await _graphDatabaseContext.RunAsync(query, parameters);
 
-        var result = await resultCursor.SingleAsync();
+            var result = await resultCursor.SingleAsync();
 
-        var forum = result["forum"].As<INode>();
+            var forum = result["forum"].As<INode>();
 
-        return new Forum(
-            Guid.Parse(forum["id"].As<string>()),
-            forum["name"].As<string>(),
-            forum["description"].As<string>(),
-            forum["createdAt"].As<string>().FromNeo4jDateTime()
-        );
+            return new Forum(
+                Guid.Parse(forum["id"].As<string>()),
+                forum["name"].As<string>(),
+                forum["description"].As<string>(),
+                forum["createdAt"].As<string>().FromNeo4jDateTime()
+            );
+        } catch {
+            return null;
+        }
+
     }
 }

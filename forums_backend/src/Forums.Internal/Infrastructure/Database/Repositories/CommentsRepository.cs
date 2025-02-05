@@ -15,7 +15,7 @@ public class CommentsRepository : ICommentsRepository
         _graphDatabaseContext = graphDatabaseContext;
     }
 
-    public async Task<Comment> AddAsync(Comment comment, Guid postId, User user)
+    public async Task<Comment?> AddAsync(Comment comment, Guid postId, User user)
     {
         var query = @"MATCH (p:Post {id: $postId}), (u:User {id: $userId})
             CREATE (c:Comment {id: $id, content: $content, createdAt: $createdAt})
@@ -30,14 +30,18 @@ public class CommentsRepository : ICommentsRepository
             { "userId", user.Id.ToString() }
         };
 
-        var resultCursor = await _graphDatabaseContext.RunAsync(query, parameters);
-        var result = await resultCursor.SingleAsync();
+        try {
+            var resultCursor = await _graphDatabaseContext.RunAsync(query, parameters);
+            var result = await resultCursor.SingleAsync();
 
-        return new Comment(
-            Guid.Parse(result["c.id"].As<string>()),
-            result["c.content"].As<string>(),
-            result["c.createdAt"].As<string>().FromNeo4jDateTime()
-        );
+            return new Comment(
+                Guid.Parse(result["c.id"].As<string>()),
+                result["c.content"].As<string>(),
+                result["c.createdAt"].As<string>().FromNeo4jDateTime()
+            );
+        } catch {
+            return null;
+        }
     }
 
     public async Task<IEnumerable<Comment>> GetAllAsync()
@@ -53,7 +57,7 @@ public class CommentsRepository : ICommentsRepository
         ));
     }
 
-    public async Task<Comment> GetByIdAsync(Guid commentId)
+    public async Task<Comment?> GetByIdAsync(Guid commentId)
     {
         var query = @"MATCH (c:Comment {id: $commentId}) RETURN c.id, c.content, c.createdAt";
 
@@ -61,45 +65,63 @@ public class CommentsRepository : ICommentsRepository
             { "commentId", commentId.ToString() }
         };
 
-        var resultCursor = await _graphDatabaseContext.RunAsync(query, parameters);
-        var result = await resultCursor.SingleAsync();
+        try {
+            var resultCursor = await _graphDatabaseContext.RunAsync(query, parameters);
+            var result = await resultCursor.SingleAsync();
 
-        return new Comment(
-            Guid.Parse(result["c.id"].As<string>()),
-            result["c.content"].As<string>(),
-            result["c.createdAt"].As<string>().FromNeo4jDateTime()
-        );
+            return new Comment(
+                Guid.Parse(result["c.id"].As<string>()),
+                result["c.content"].As<string>(),
+                result["c.createdAt"].As<string>().FromNeo4jDateTime()
+            );
+        } catch {
+            return null;
+        }
     }
 
-    public async Task<PostAndComments> GetPostAndItsCommentsAsync(Guid postId)
+    public async Task<PostAndComments?> GetPostAndItsCommentsAsync(Guid postId)
     {
-        var query = @"
-            MATCH (p:Post {id: $postId})<-[:BELONGS_TO]-(c:Comment)
-            WHERE p.id = $postId
-            RETURN p, collect(c) AS comments";
+        var query = @"MATCH (p:Post {id: $postId})
+                    OPTIONAL MATCH (c:Comment)-[:BELONGS_TO]->(p)
+                    OPTIONAL MATCH (u:User)-[:COMMENTED]->(c)
+                    RETURN p.id, p.title, p.content, p.createdAt, 
+                           c.id AS commentId, c.content AS commentContent, c.createdAt AS commentCreatedAt,
+                           u.id AS userId, u.username AS username, u.role AS userRole, u.email AS userEmail";
 
-        var parameters = new Dictionary<string, object> {
+        var parameters = new Dictionary<string, object>
+        {
             { "postId", postId.ToString() }
         };
 
         var resultCursor = await _graphDatabaseContext.RunAsync(query, parameters);
-        var result = await resultCursor.SingleAsync();
+        var records = await resultCursor.ToListAsync();
 
-        var postNode = result["p"].As<INode>();
-        var commentsNodes = result["comments"].As<IEnumerable<INode>>();
+        if (!records.Any())
+            return null;
 
+        var firstRecord = records.First();
         var post = new Post(
-            Guid.Parse(postNode["id"].As<string>()),
-            postNode["title"].As<string>(),
-            postNode["content"].As<string>(),
-            postNode["createdAt"].As<string>().FromNeo4jDateTime()
+            Guid.Parse(firstRecord["p.id"].As<string>()),
+            firstRecord["p.title"].As<string>(),
+            firstRecord["p.content"].As<string>(),
+            firstRecord["p.createdAt"].As<string>().FromNeo4jDateTime()
         );
 
-        var comments = commentsNodes.Select(commentNode => new Comment(
-            Guid.Parse(commentNode["id"].As<string>()),
-            commentNode["content"].As<string>(),
-            commentNode["createdAt"].As<string>().FromNeo4jDateTime()
-        ));
+        var comments = records
+            .Where(r => r["commentId"] != null)
+            .Select(r => new CommentWithUser(
+                new Comment(
+                    Guid.Parse(r["commentId"].As<string>()),
+                    r["commentContent"].As<string>(),
+                    r["commentCreatedAt"].As<string>().FromNeo4jDateTime()
+                ),
+                new User(
+                    r["userId"].As<string>(),
+                    r["username"].As<string>(),
+                    r["userRole"].As<string>(),
+                    r["userEmail"].As<string>()
+                )
+            )).ToList();
 
         return new PostAndComments(post, comments);
     }

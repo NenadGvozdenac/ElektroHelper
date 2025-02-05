@@ -15,7 +15,7 @@ public class PostsRepository : IPostsRepository
         _graphDatabaseContext = graphDatabaseContext;
     }
 
-    public async Task<Post> AddAsync(Post post, Guid forumId, User user)
+    public async Task<Post?> AddAsync(Post post, Guid forumId, User user)
     {
         var query = @"
             MERGE (u:User {id: $userId})
@@ -41,17 +41,24 @@ public class PostsRepository : IPostsRepository
             { "createdAt", post.CreatedAt.ToNeo4jDateTime() }
         };
 
-        var resultCursor = await _graphDatabaseContext.RunAsync(query, parameters);
-        var result = await resultCursor.SingleAsync();
+        try
+        {
+            var resultCursor = await _graphDatabaseContext.RunAsync(query, parameters);
+            var result = await resultCursor.SingleAsync();
 
-        var postNode = result["p"].As<INode>();
+            var postNode = result["p"].As<INode>();
 
-        return new Post(
-            Guid.Parse(postNode["id"].As<string>()),
-            postNode["title"].As<string>(),
-            postNode["content"].As<string>(),
-            postNode["createdAt"].As<string>().FromNeo4jDateTime()
-        );
+            return new Post(
+                Guid.Parse(postNode["id"].As<string>()),
+                postNode["title"].As<string>(),
+                postNode["content"].As<string>(),
+                postNode["createdAt"].As<string>().FromNeo4jDateTime()
+            );
+        }
+        catch
+        {
+            return null;
+        }
     }
 
     public async Task<IEnumerable<Post>> GetAllAsync()
@@ -73,6 +80,35 @@ public class PostsRepository : IPostsRepository
         });
 
         return posts;
+    }
+
+    public async Task<Post?> GetByIdAsync(Guid postId)
+    {
+        var query = @"
+            MATCH (p:Post)
+            WHERE p.id = $postId
+            RETURN p";
+
+        var parameters = new Dictionary<string, object>
+        {
+            { "postId", postId.ToString() }
+        };
+
+        try {
+            var resultCursor = await _graphDatabaseContext.RunAsync(query, parameters);
+            var result = await resultCursor.SingleAsync();
+
+            var postNode = result["p"].As<INode>();
+
+            return new Post(
+                Guid.Parse(postNode["id"].As<string>()),
+                postNode["title"].As<string>(),
+                postNode["content"].As<string>(),
+                postNode["createdAt"].As<string>().FromNeo4jDateTime()
+            );
+        } catch {
+            return null;
+        }
     }
 
     public async Task<IEnumerable<ForumAndPosts>> GetMyForumsAndPostsAsync(User user)
