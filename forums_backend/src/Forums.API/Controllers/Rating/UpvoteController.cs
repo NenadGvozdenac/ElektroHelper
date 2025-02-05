@@ -20,28 +20,28 @@ public class UpvoteController : BaseController
         _upvoteService = upvoteService;
     }
 
-    [HttpPost]
+    [HttpPost("comment")]
     public async Task<ActionResult<Result<UpvoteCommentDTO>>> UpvoteComment([FromQuery] Guid commentId)
     {
         var result = await _upvoteService.UpvoteCommentAsync(commentId, this.GetUser());
         return CreateResponse(result);
     }
 
-    [HttpPost]
+    [HttpPost("post")]
     public async Task<ActionResult<Result<UpvotePostDTO>>> UpvotePost([FromQuery] Guid postId)
     {
         var result = await _upvoteService.UpvotePostAsync(postId, this.GetUser());
         return CreateResponse(result);
     }
 
-    [HttpDelete]
+    [HttpDelete("comment")]
     public async Task<ActionResult<Result<UpvoteCommentDTO>>> RemoveUpvoteFromComment([FromQuery] Guid commentId)
     {
         var result = await _upvoteService.RemoveUpvoteFromCommentAsync(commentId, this.GetUser());
         return CreateResponse(result);
     }
 
-    [HttpDelete]
+    [HttpDelete("post")]
     public async Task<ActionResult<Result<UpvotePostDTO>>> RemoveUpvoteFromPost([FromQuery] Guid postId)
     {
         var result = await _upvoteService.RemoveUpvoteFromPostAsync(postId, this.GetUser());

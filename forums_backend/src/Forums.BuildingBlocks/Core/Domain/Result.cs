@@ -16,14 +16,17 @@ public class Result<T> : Result
 
     public static Result<T> Success(T value) => new(value, true, string.Empty, 200);
     public new static Result<T> Failure(string error) => new(default, false, error, 500);
-    public new Result<T> WithCode(int code) => new(default, false, string.Empty, code);
+    public new Result<T> WithCode(int code) {
+        Code = Enum.TryParse<ResultCode>(code.ToString(), out var resultCode) ? resultCode : ResultCode.InternalServerError;
+        return this;
+    }
 }
 
 public class Result
 {
     public bool IsSuccess { get; }
     public string Error { get; }
-    public ResultCode Code { get; private set; }
+    public ResultCode Code { get; set; }
 
     protected Result(bool isSuccess, string error, int code)
     {
@@ -41,5 +44,9 @@ public class Result
 
     public static Result Success() => new(true, string.Empty, 200);
     public static Result Failure(string error) => new(false, error, 500);
-    public Result WithCode(int code) => new(false, string.Empty, code);
+
+    public Result WithCode(int code) {
+        Code = Enum.TryParse<ResultCode>(code.ToString(), out var resultCode) ? resultCode : ResultCode.InternalServerError;
+        return this;
+    }
 }

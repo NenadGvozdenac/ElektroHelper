@@ -26,6 +26,7 @@ public static class ApplicationStartup {
         services.AddScoped<IPostsService, PostsService>();
         services.AddScoped<ICommentsService, CommentsService>();
         services.AddScoped<IUpvoteService, UpvoteService>();
+        services.AddScoped<IUserService, UserService>();
     }
     
     private static void SetupInfrastructure(IServiceCollection services) {
@@ -34,5 +35,6 @@ public static class ApplicationStartup {
         services.AddScoped<ICommentsRepository, CommentsRepository>();
         services.AddScoped<IUpvotePostRepository, UpvotePostRepository>();
         services.AddScoped<IUpvoteCommentRepository, UpvoteCommentRepository>();
+        services.AddScoped<IUserRepository, UserRepository>();
     }
 }
