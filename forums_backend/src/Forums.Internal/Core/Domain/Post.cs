@@ -17,15 +17,6 @@ public class Post {
         CreatedAt = createdAt;
     }
 
-    public Post(Guid id, string title, string content, DateTime createdAt, bool isDeleted, bool isLocked) {
-        Id = id;
-        Title = title;
-        Content = content;
-        CreatedAt = createdAt;
-        IsDeleted = isDeleted;
-        IsLocked = isLocked;
-    }
-
     public Post(string title, string content) {
         Id = Guid.NewGuid();
         Title = title;

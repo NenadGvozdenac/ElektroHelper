@@ -65,13 +65,45 @@ public class DownvoteService : IDownvoteService
         return Result<DownvoteCommentDTO>.Success(new DownvoteCommentDTO(commentId, false));
     }
 
-    public Task<Result<DownvotePostDTO>> DownvotePostAsync(Guid postId, UserDTO userDTO)
+    public async Task<Result<DownvotePostDTO>> DownvotePostAsync(Guid postId, UserDTO userDTO)
     {
-        throw new NotImplementedException();
+        User user = new(userDTO.Id, userDTO.Email, userDTO.Role, userDTO.Username);
+
+        var userDownvotedPost = await _downvotePostRepository.UserDownvotedPostAsync(postId, user.Id);
+
+        if(userDownvotedPost)
+        {
+            return Result<DownvotePostDTO>.Failure("User already downvoted this post").WithCode(400);
+        }
+
+        var downvoteAdded = await _downvotePostRepository.AddDownvoteToPostAsync(postId, user.Id);
+
+        if (!downvoteAdded)
+        {
+            return Result<DownvotePostDTO>.Failure("Post not found").WithCode(404);
+        }
+
+        return Result<DownvotePostDTO>.Success(new DownvotePostDTO(postId, true));
     }
 
-    public Task<Result<DownvotePostDTO>> RemoveDownvoteFromPostAsync(Guid postId, UserDTO userDTO)
+    public async Task<Result<DownvotePostDTO>> RemoveDownvoteFromPostAsync(Guid postId, UserDTO userDTO)
     {
-        throw new NotImplementedException();
+        User user = new(userDTO.Id, userDTO.Email, userDTO.Role, userDTO.Username);
+
+        var userDownvotedPost = await _downvotePostRepository.UserDownvotedPostAsync(postId, user.Id);
+
+        if (!userDownvotedPost)
+        {
+            return Result<DownvotePostDTO>.Failure("User did not downvote this post").WithCode(400);
+        }
+
+        var removedDownvote = await _downvotePostRepository.RemoveDownvoteFromPostAsync(postId, user.Id);
+
+        if (!removedDownvote)
+        {
+            return Result<DownvotePostDTO>.Failure("Post not found").WithCode(404);
+        }
+
+        return Result<DownvotePostDTO>.Success(new DownvotePostDTO(postId, false));
     }
 }

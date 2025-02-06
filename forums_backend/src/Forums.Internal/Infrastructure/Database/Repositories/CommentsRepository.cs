@@ -80,33 +80,50 @@ public class CommentsRepository : ICommentsRepository
     public async Task<PostAndCommentsWithUpvotesAndDownvotes?> GetPostAndItsCommentsAsync(Guid postId)
     {
         var query = @"MATCH (p:Post {id: $postId})
-        OPTIONAL MATCH (p)<-[:POSTED]-(originalPoster:User)
-        OPTIONAL MATCH (c:Comment)-[:BELONGS_TO]->(p)
-        OPTIONAL MATCH (u:User)-[:COMMENTED]->(c)
-        OPTIONAL MATCH (c)<-[upvote:UPVOTED]-(upvoter:User)
-        OPTIONAL MATCH (c)<-[downvote:DOWNVOTED]-(downvoter:User)
-        WITH 
-            p, originalPoster, c, u, 
-            COLLECT(DISTINCT {
-                id: upvoter.id, 
-                username: upvoter.username, 
-                role: upvoter.role, 
-                email: upvoter.email, 
-                createdAt: upvote.createdAt
-            }) AS upvotes,
-            COLLECT(DISTINCT {
-                id: downvoter.id, 
-                username: downvoter.username, 
-                role: downvoter.role, 
-                email: downvoter.email, 
-                createdAt: downvote.createdAt
-            }) AS downvotes
-        RETURN 
-            originalPoster.id AS originalPosterId, originalPoster.username AS originalPosterUsername, originalPoster.role AS originalPosterRole, originalPoster.email AS originalPosterEmail, 
-            p.id AS postId, p.title AS postTitle, p.content AS postContent, p.createdAt AS postCreatedAt, 
-            c.id AS commentId, c.content AS commentContent, c.createdAt AS commentCreatedAt, c.isDeleted AS commentIsDeleted, 
-            u.id AS commenterId, u.username AS commenterUsername, u.role AS commenterRole, u.email AS commenterEmail, 
-            upvotes, downvotes";
+            OPTIONAL MATCH (p)<-[:POSTED]-(originalPoster:User)
+            OPTIONAL MATCH (c:Comment)-[:BELONGS_TO]->(p)
+            OPTIONAL MATCH (u:User)-[:COMMENTED]->(c)
+            OPTIONAL MATCH (c)<-[upvote:UPVOTED]-(upvoter:User)
+            OPTIONAL MATCH (c)<-[downvote:DOWNVOTED]-(downvoter:User)
+            OPTIONAL MATCH (p)<-[upvotedPost:UPVOTED_POST]-(postUpvoter:User)
+            OPTIONAL MATCH (p)<-[downvotedPost:DOWNVOTED_POST]-(postDownvoter:User)
+            WITH 
+                p, originalPoster, c, u, 
+                COLLECT(DISTINCT {
+                    id: upvoter.id, 
+                    username: upvoter.username, 
+                    role: upvoter.role, 
+                    email: upvoter.email, 
+                    createdAt: upvote.createdAt
+                }) AS upvotes,
+                COLLECT(DISTINCT {
+                    id: downvoter.id, 
+                    username: downvoter.username, 
+                    role: downvoter.role, 
+                    email: downvoter.email, 
+                    createdAt: downvote.createdAt
+                }) AS downvotes,
+                COLLECT(DISTINCT {
+                    id: postUpvoter.id,
+                    username: postUpvoter.username,
+                    role: postUpvoter.role,
+                    email: postUpvoter.email,
+                    createdAt: upvotedPost.createdAt
+                }) AS postUpvotes,
+                COLLECT(DISTINCT {
+                    id: postDownvoter.id,
+                    username: postDownvoter.username,
+                    role: postDownvoter.role,
+                    email: postDownvoter.email,
+                    createdAt: downvotedPost.createdAt
+                }) AS postDownvotes
+            RETURN 
+                originalPoster.id AS originalPosterId, originalPoster.username AS originalPosterUsername, originalPoster.role AS originalPosterRole, originalPoster.email AS originalPosterEmail, 
+                p.id AS postId, p.title AS postTitle, p.content AS postContent, p.createdAt AS postCreatedAt, 
+                c.id AS commentId, c.content AS commentContent, c.createdAt AS commentCreatedAt, c.isDeleted AS commentIsDeleted, 
+                u.id AS commenterId, u.username AS commenterUsername, u.role AS commenterRole, u.email AS commenterEmail, 
+                upvotes, downvotes, postUpvotes, postDownvotes;
+            ";
 
         var parameters = new Dictionary<string, object>
         {
@@ -173,7 +190,31 @@ public class CommentsRepository : ICommentsRepository
                 )).ToList() ?? new List<UserDownvote>()
             )).ToList();
 
-        return new PostAndCommentsWithUpvotesAndDownvotes(post, originalPoster, comments);
+        var postUpvotes = firstRecord["postUpvotes"].As<List<Dictionary<string, object>>>()
+            .Where(upvote => upvote["id"] != null)
+            .Select(upvote => new UserUpvote(
+                new User(
+                    upvote["id"].As<string>(),
+                    upvote["username"].As<string>(),
+                    upvote["role"].As<string>(),
+                    upvote["email"].As<string>()
+                ),
+                upvote["createdAt"].As<string>().FromNeo4jDateTime()
+            )).ToList() ?? new List<UserUpvote>();
+
+        var postDownvotes = firstRecord["postDownvotes"].As<List<Dictionary<string, object>>>()
+            .Where(downvote => downvote["id"] != null)
+            .Select(downvote => new UserDownvote(
+                new User(
+                    downvote["id"].As<string>(),
+                    downvote["username"].As<string>(),
+                    downvote["role"].As<string>(),
+                    downvote["email"].As<string>()
+                ),
+                downvote["createdAt"].As<string>().FromNeo4jDateTime()
+            )).ToList() ?? new List<UserDownvote>();
+
+        return new PostAndCommentsWithUpvotesAndDownvotes(post, originalPoster, comments, postUpvotes, postDownvotes);
     }
 
     public async Task<IEnumerable<Comment>> GetMyCommentsAsync(User user)

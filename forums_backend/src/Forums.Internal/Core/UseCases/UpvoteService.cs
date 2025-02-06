@@ -61,13 +61,41 @@ public class UpvoteService : IUpvoteService
         return Result<UpvoteCommentDTO>.Success(new UpvoteCommentDTO(commentId, false));
     }
 
-    public Task<Result<UpvotePostDTO>> UpvotePostAsync(Guid postId, UserDTO userDTO)
+    public async Task<Result<UpvotePostDTO>> UpvotePostAsync(Guid postId, UserDTO userDTO)
     {
-        throw new NotImplementedException();
+        var user = new User(userDTO.Id, userDTO.Email, userDTO.Role, userDTO.Username);
+
+        var userUpvotedPost = await _upvotePostRepository.UserUpvotedPostAsync(postId, user.Id);
+
+        if(userUpvotedPost) {
+            return Result<UpvotePostDTO>.Failure("User already upvoted this post").WithCode(400);
+        }
+
+        var upvoteAdded = await _upvotePostRepository.AddUpvoteToPostAsync(postId, user);
+
+        if(!upvoteAdded) {
+            return Result<UpvotePostDTO>.Failure("Post not found").WithCode(404);
+        }
+
+        return Result<UpvotePostDTO>.Success(new UpvotePostDTO(postId, true));
     }
 
-    public Task<Result<UpvotePostDTO>> RemoveUpvoteFromPostAsync(Guid postId, UserDTO userDTO)
+    public async Task<Result<UpvotePostDTO>> RemoveUpvoteFromPostAsync(Guid postId, UserDTO userDTO)
     {
-        throw new NotImplementedException();
+        var user = new User(userDTO.Id, userDTO.Email, userDTO.Role, userDTO.Username);
+
+        var userUpvotedPost = await _upvotePostRepository.UserUpvotedPostAsync(postId, user.Id);
+
+        if(!userUpvotedPost) {
+            return Result<UpvotePostDTO>.Failure("User did not upvote this post").WithCode(400);
+        }
+
+        var removedUpvote = await _upvotePostRepository.RemoveUpvoteFromPostAsync(postId, user);
+
+        if(!removedUpvote) {
+            return Result<UpvotePostDTO>.Failure("Post not found").WithCode(404);
+        }
+
+        return Result<UpvotePostDTO>.Success(new UpvotePostDTO(postId, false));
     }
 }

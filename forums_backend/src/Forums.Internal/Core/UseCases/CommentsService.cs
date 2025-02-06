@@ -49,14 +49,17 @@ public class CommentsService : ICommentsService
             return Result<PostAndCommentsDTO>.Failure("Post not found!").WithCode(404);
         }
 
-        var postDto = _mapper.Map<PostDTO>(postAndComments.Post);
+        PostDTO postDto = _mapper.Map<PostDTO>(postAndComments.Post);
 
-        var comments = postAndComments.Comments.Select(c => _mapper.Map<CommentWithUserAndUpvotesDTO>(c)).ToList();
+        List<CommentWithUserAndUpvotesDTO> comments = postAndComments.Comments.Select(c => _mapper.Map<CommentWithUserAndUpvotesDTO>(c)).ToList();
 
-        var postAndCommentsDto = new PostAndCommentsDTO(postDto, comments);
+        List<UserDTO> upvoters = postAndComments.Upvoters.Select(u => new UserDTO(u.User.Id, u.User.Email, u.User.Role, u.User.Username)).ToList();
+        List<UserDTO> downvoters = postAndComments.Downvoters.Select(u => new UserDTO(u.User.Id, u.User.Email, u.User.Role, u.User.Username)).ToList();
+        UserDTO originalPoster = new UserDTO(postAndComments.Creator.Id, postAndComments.Creator.Email, postAndComments.Creator.Role, postAndComments.Creator.Username);
+
+        PostAndCommentsDTO postAndCommentsDto = new PostAndCommentsDTO(postDto, comments, upvoters, downvoters, originalPoster);
         return Result<PostAndCommentsDTO>.Success(postAndCommentsDto);
     }
-
 
     public async Task<Result<IEnumerable<CommentDTO>>> GetMyCommentsAsync(UserDTO userDTO)
     {

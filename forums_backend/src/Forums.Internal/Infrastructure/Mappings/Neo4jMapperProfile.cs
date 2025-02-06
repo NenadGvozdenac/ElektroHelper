@@ -9,6 +9,15 @@ public class Neo4jMapperProfile : Profile
 {
     public Neo4jMapperProfile()
     {
+        CreateMap<INode, User>()
+            .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src["id"].As<string>()))
+            .ForMember(dest => dest.Email, opt => opt.MapFrom(src => src["email"].As<string>()))
+            .ForMember(dest => dest.Username, opt => opt.MapFrom(src => src["username"].As<string>()))
+            .ForMember(dest => dest.Role, opt => opt.MapFrom(src => src["role"].As<string>()))
+            .ForMember(dest => dest.IsBanned, opt => opt.MapFrom(src => bool.Parse(src["isBanned"].As<string>())))
+            .ForMember(dest => dest.ReasonForBan, opt => opt.MapFrom(src => src["reasonForBan"].As<string>()))
+            .ForMember(dest => dest.IsDeleted, opt => opt.MapFrom(src => bool.Parse(src["isDeleted"].As<string>())));
+
         CreateMap<INode, Post>()
             .ForMember(dest => dest.Id, opt => opt.MapFrom(src => Guid.Parse(src["id"].As<string>())))
             .ForMember(dest => dest.Title, opt => opt.MapFrom(src => src["title"].As<string>()))
