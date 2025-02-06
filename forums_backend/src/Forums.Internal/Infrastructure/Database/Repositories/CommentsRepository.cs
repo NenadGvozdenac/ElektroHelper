@@ -1,4 +1,5 @@
 using System.Collections;
+using AutoMapper;
 using forums_backend.src.Forums.BuildingBlocks.Infrastructure;
 using forums_backend.src.Forums.BuildingBlocks.Infrastructure.Database;
 using forums_backend.src.Forums.Internal.Core.Domain;
@@ -10,18 +11,20 @@ namespace forums_backend.src.Forums.Internal.Infrastructure.Database.Repositorie
 public class CommentsRepository : ICommentsRepository
 {
     private readonly IGraphDatabaseContext _graphDatabaseContext;
+    private readonly IMapper _mapper;
 
-    public CommentsRepository(IGraphDatabaseContext graphDatabaseContext)
+    public CommentsRepository(IGraphDatabaseContext graphDatabaseContext, IMapper mapper)
     {
         _graphDatabaseContext = graphDatabaseContext;
+        _mapper = mapper;
     }
 
     public async Task<Comment?> AddAsync(Comment comment, Guid postId, User user)
     {
         var query = @"MATCH (p:Post {id: $postId}), (u:User {id: $userId})
-            CREATE (c:Comment {id: $id, content: $content, createdAt: $createdAt})
+            CREATE (c:Comment {id: $id, content: $content, createdAt: $createdAt, isDeleted: false})
             CREATE (u)-[:COMMENTED]->(c)-[:BELONGS_TO]->(p)
-            RETURN c.id, c.content, c.createdAt";
+            RETURN c";
 
         var parameters = new Dictionary<string, object> {
             { "id", comment.Id.ToString() },
@@ -36,11 +39,7 @@ public class CommentsRepository : ICommentsRepository
             var resultCursor = await _graphDatabaseContext.RunAsync(query, parameters);
             var result = await resultCursor.SingleAsync();
 
-            return new Comment(
-                Guid.Parse(result["c.id"].As<string>()),
-                result["c.content"].As<string>(),
-                result["c.createdAt"].As<string>().FromNeo4jDateTime()
-            );
+            return _mapper.Map<Comment>(result["c"].As<INode>());
         }
         catch
         {
@@ -50,20 +49,16 @@ public class CommentsRepository : ICommentsRepository
 
     public async Task<IEnumerable<Comment>> GetAllAsync()
     {
-        var query = @"MATCH (c:Comment) RETURN c.id, c.content, c.createdAt";
+        var query = @"MATCH (c:Comment) RETURN c";
 
         var resultCursor = await _graphDatabaseContext.RunAsync(query);
 
-        return await resultCursor.ToListAsync(record => new Comment(
-            Guid.Parse(record["c.id"].As<string>()),
-            record["c.content"].As<string>(),
-            record["c.createdAt"].As<string>().FromNeo4jDateTime()
-        ));
+        return await resultCursor.ToListAsync(record => _mapper.Map<Comment>(record["c"].As<INode>()));
     }
 
     public async Task<Comment?> GetByIdAsync(Guid commentId)
     {
-        var query = @"MATCH (c:Comment {id: $commentId}) RETURN c.id, c.content, c.createdAt";
+        var query = @"MATCH (c:Comment {id: $commentId}) RETURN c";
 
         var parameters = new Dictionary<string, object> {
             { "commentId", commentId.ToString() }
@@ -74,11 +69,7 @@ public class CommentsRepository : ICommentsRepository
             var resultCursor = await _graphDatabaseContext.RunAsync(query, parameters);
             var result = await resultCursor.SingleAsync();
 
-            return new Comment(
-                Guid.Parse(result["c.id"].As<string>()),
-                result["c.content"].As<string>(),
-                result["c.createdAt"].As<string>().FromNeo4jDateTime()
-            );
+            return _mapper.Map<Comment>(result["c"].As<INode>());
         }
         catch
         {
@@ -113,7 +104,7 @@ public class CommentsRepository : ICommentsRepository
         RETURN 
             originalPoster.id AS originalPosterId, originalPoster.username AS originalPosterUsername, originalPoster.role AS originalPosterRole, originalPoster.email AS originalPosterEmail, 
             p.id AS postId, p.title AS postTitle, p.content AS postContent, p.createdAt AS postCreatedAt, 
-            c.id AS commentId, c.content AS commentContent, c.createdAt AS commentCreatedAt, 
+            c.id AS commentId, c.content AS commentContent, c.createdAt AS commentCreatedAt, c.isDeleted AS commentIsDeleted, 
             u.id AS commenterId, u.username AS commenterUsername, u.role AS commenterRole, u.email AS commenterEmail, 
             upvotes, downvotes";
 
@@ -149,7 +140,8 @@ public class CommentsRepository : ICommentsRepository
                 new Comment(
                     Guid.Parse(r["commentId"].As<string>()),
                     r["commentContent"].As<string>(),
-                    r["commentCreatedAt"].As<string>().FromNeo4jDateTime()
+                    r["commentCreatedAt"].As<string>().FromNeo4jDateTime(),
+                    bool.Parse(r["commentIsDeleted"].As<string>())
                 ),
                 new User(
                     r["commenterId"].As<string>(),
@@ -187,8 +179,8 @@ public class CommentsRepository : ICommentsRepository
     public async Task<IEnumerable<Comment>> GetMyCommentsAsync(User user)
     {
         var query = @"
-            MATCH (u:User {id: $userId})-[:COMMENTED]->(c:Comment)-[:BELONGS_TO]->(p:Post)
-            RETURN c.id, c.content, c.createdAt";
+            MATCH (u:User {id: $userId})-[:COMMENTED]->(c:Comment)
+            RETURN c";
 
         var parameters = new Dictionary<string, object> {
             { "userId", user.Id.ToString() }
@@ -196,10 +188,6 @@ public class CommentsRepository : ICommentsRepository
 
         var resultCursor = await _graphDatabaseContext.RunAsync(query, parameters);
 
-        return await resultCursor.ToListAsync(record => new Comment(
-            Guid.Parse(record["c.id"].As<string>()),
-            record["c.content"].As<string>(),
-            record["c.createdAt"].As<string>().FromNeo4jDateTime()
-        ));
+        return await resultCursor.ToListAsync(record => _mapper.Map<Comment>(record["c"].As<INode>()));
     }
 }

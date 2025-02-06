@@ -1,3 +1,4 @@
+using AutoMapper;
 using forums_backend.src.Forums.BuildingBlocks.Core.Domain;
 using forums_backend.src.Forums.Internal.API.DTOs.Comments;
 using forums_backend.src.Forums.Internal.API.DTOs.Posts;
@@ -12,11 +13,13 @@ public class CommentsService : ICommentsService
 {
     private readonly ICommentsRepository _commentsRepository;
     private readonly IPostsRepository _postsRepository;
+    private readonly IMapper _mapper;
 
-    public CommentsService(ICommentsRepository commentsRepository, IPostsRepository postsRepository)
+    public CommentsService(ICommentsRepository commentsRepository, IPostsRepository postsRepository, IMapper mapper)
     {
         _commentsRepository = commentsRepository;
         _postsRepository = postsRepository;
+        _mapper = mapper;
     }
     public async Task<Result<CommentDTO>> CreateCommentAsync(CreateCommentDTO createCommentDTO, UserDTO userDTO)
     {
@@ -32,7 +35,9 @@ public class CommentsService : ICommentsService
 
         await _commentsRepository.AddAsync(comment, createCommentDTO.PostId, user);
 
-        return Result<CommentDTO>.Success(new CommentDTO(comment.Id, comment.Content, comment.CreatedAt));
+        CommentDTO commentDTO = _mapper.Map<CommentDTO>(comment);
+
+        return Result<CommentDTO>.Success(commentDTO);
     }
 
     public async Task<Result<PostAndCommentsDTO>> GetPostAndItsCommentsAsync(Guid postId)
@@ -44,28 +49,14 @@ public class CommentsService : ICommentsService
             return Result<PostAndCommentsDTO>.Failure("Post not found!").WithCode(404);
         }
 
-        var postDto = new PostDTO(postAndComments.Post.Id, postAndComments.Post.Title, postAndComments.Post.Content, postAndComments.Post.CreatedAt);
+        var postDto = _mapper.Map<PostDTO>(postAndComments.Post);
 
-        var comments = postAndComments.Comments.Select(c => new CommentWithUserAndUpvotesDTO(c.Comment.Id, 
-            c.Comment.Content, 
-            c.Comment.CreatedAt, 
-            new UserDTO(c.Creator.Id, 
-                        c.Creator.Email, 
-                        c.Creator.Role, 
-                        c.Creator.Username), 
-                        c.Upvotes.Select(upvote => 
-                            new UserDTO(upvote.User.Id, 
-                                        upvote.User.Email, 
-                                        upvote.User.Role, 
-                                        upvote.User.Username)).ToList(), 
-                        c.Downvotes.Select(downvote => 
-                            new UserDTO(downvote.User.Id, 
-                                        downvote.User.Email, 
-                                        downvote.User.Role, 
-                                        downvote.User.Username)).ToList()));
+        var comments = postAndComments.Comments.Select(c => _mapper.Map<CommentWithUserAndUpvotesDTO>(c)).ToList();
 
-        return Result<PostAndCommentsDTO>.Success(new PostAndCommentsDTO(postDto, comments));
+        var postAndCommentsDto = new PostAndCommentsDTO(postDto, comments);
+        return Result<PostAndCommentsDTO>.Success(postAndCommentsDto);
     }
+
 
     public async Task<Result<IEnumerable<CommentDTO>>> GetMyCommentsAsync(UserDTO userDTO)
     {
@@ -73,6 +64,8 @@ public class CommentsService : ICommentsService
 
         var comments = await _commentsRepository.GetMyCommentsAsync(user);
 
-        return Result<IEnumerable<CommentDTO>>.Success(comments.Select(c => new CommentDTO(c.Id, c.Content, c.CreatedAt)));
+        var commentDTOs = _mapper.Map<IEnumerable<CommentDTO>>(comments);
+
+        return Result<IEnumerable<CommentDTO>>.Success(commentDTOs);
     }
 }

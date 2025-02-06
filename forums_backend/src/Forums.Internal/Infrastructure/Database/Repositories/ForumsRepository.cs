@@ -1,3 +1,4 @@
+using AutoMapper;
 using forums_backend.src.Forums.BuildingBlocks.Infrastructure;
 using forums_backend.src.Forums.BuildingBlocks.Infrastructure.Database;
 using forums_backend.src.Forums.Internal.Core.Domain;
@@ -9,10 +10,12 @@ namespace forums_backend.src.Forums.Internal.Infrastructure.Database.Repositorie
 public class ForumsRepository : IForumsRepository
 {
     private readonly IGraphDatabaseContext _graphDatabaseContext;
+    private readonly IMapper _mapper;
 
-    public ForumsRepository(IGraphDatabaseContext graphDatabaseContext)
+    public ForumsRepository(IGraphDatabaseContext graphDatabaseContext, IMapper mapper)
     {
         _graphDatabaseContext = graphDatabaseContext;
+        _mapper = mapper;
     }
 
     public async Task<Forum?> AddAsync(Forum entity, User user)
@@ -24,7 +27,9 @@ public class ForumsRepository : IForumsRepository
                 id: $id,
                 name: $name,
                 description: $description,
-                createdAt: $createdAt
+                createdAt: $createdAt,
+                isDeleted: false,
+                isQuarantined: false
             })
             CREATE (u)-[:CREATED]->(forum)
             RETURN forum
@@ -42,22 +47,16 @@ public class ForumsRepository : IForumsRepository
             { "createdAt", entity.CreatedAt.ToNeo4jDateTime() }
         };
 
-        try {
+        try
+        {
             var resultCursor = await _graphDatabaseContext.RunAsync(query, parameters);
             var result = await resultCursor.SingleAsync();
-
-            var forum = result["forum"].As<INode>();
-
-            return new Forum(
-                Guid.Parse(forum["id"].As<string>()),
-                forum["name"].As<string>(),
-                forum["description"].As<string>(),
-                forum["createdAt"].As<string>().FromNeo4jDateTime()
-            );
-        } catch {
+            return _mapper.Map<Forum>(result["forum"].As<INode>());
+        }
+        catch
+        {
             return null;
         }
-
     }
 
     public async Task<IEnumerable<Forum>> GetAllAsync()
@@ -68,17 +67,8 @@ public class ForumsRepository : IForumsRepository
 
         var resultCursor = await _graphDatabaseContext.RunAsync(query);
 
-        return await resultCursor.ToListAsync(record =>
-        {
-            var forum = record["forum"].As<INode>();
-
-            return new Forum(
-                Guid.Parse(forum["id"].As<string>()),
-                forum["name"].As<string>(),
-                forum["description"].As<string>(),
-                forum["createdAt"].As<string>().FromNeo4jDateTime()
-            );
-        });
+        var nodes = await resultCursor.ToListAsync(record => record["forum"].As<INode>());
+        return _mapper.Map<IEnumerable<Forum>>(nodes);
     }
 
     public async Task<Forum?> GetByIdAsync(Guid id)
@@ -87,27 +77,17 @@ public class ForumsRepository : IForumsRepository
             MATCH (forum:Forum { id: $id })
             RETURN forum";
 
-        var parameters = new Dictionary<string, object>
+        var parameters = new Dictionary<string, object> { { "id", id.ToString() } };
+
+        try
         {
-            { "id", id.ToString() }
-        };
-
-        try {
             var resultCursor = await _graphDatabaseContext.RunAsync(query, parameters);
-
             var result = await resultCursor.SingleAsync();
-
-            var forum = result["forum"].As<INode>();
-
-            return new Forum(
-                Guid.Parse(forum["id"].As<string>()),
-                forum["name"].As<string>(),
-                forum["description"].As<string>(),
-                forum["createdAt"].As<string>().FromNeo4jDateTime()
-            );
-        } catch {
+            return _mapper.Map<Forum>(result["forum"].As<INode>());
+        }
+        catch
+        {
             return null;
         }
-
     }
 }

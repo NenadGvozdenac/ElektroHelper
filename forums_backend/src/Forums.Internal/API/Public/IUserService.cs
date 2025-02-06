@@ -4,5 +4,5 @@ using forums_backend.src.Forums.Internal.API.DTOs.Users;
 namespace forums_backend.src.Forums.Internal.API.Public;
 
 public interface IUserService {
-    public Task<Result<UserDTO>> CreateUserAsync(UserDTO user);
+    public Task<Result<UserResponseDTO>> CreateUserAsync(UserDTO user);
 }

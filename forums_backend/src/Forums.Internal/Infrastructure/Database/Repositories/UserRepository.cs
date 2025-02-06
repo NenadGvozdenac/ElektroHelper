@@ -20,7 +20,10 @@ public class UserRepository : IUserRepository
             ON CREATE SET 
                 user.email = $email,
                 user.username = $username,
-                user.role = $role
+                user.role = $role,
+                user.IsBanned = false,
+                user.ReasonForBan = '',
+                user.IsDeleted = false
         ";
 
         var parameters = new Dictionary<string, object>

@@ -1,3 +1,4 @@
+using AutoMapper;
 using forums_backend.src.Forums.BuildingBlocks.Core.Domain;
 using forums_backend.src.Forums.Internal.API.DTOs.Users;
 using forums_backend.src.Forums.Internal.API.Public;
@@ -8,14 +9,16 @@ namespace forums_backend.src.Forums.Internal.Core.UseCases;
 
 public class UserService : IUserService
 {
-    private IUserRepository _userRepository;
+    private readonly IUserRepository _userRepository;
+    private readonly IMapper _mapper;
 
-    public UserService(IUserRepository userRepository)
+    public UserService(IUserRepository userRepository, IMapper mapper)
     {
         _userRepository = userRepository;
+        _mapper = mapper;
     }
 
-    public async Task<Result<UserDTO>> CreateUserAsync(UserDTO userDTO)
+    public async Task<Result<UserResponseDTO>> CreateUserAsync(UserDTO userDTO)
     {
         User user = new(userDTO.Id, userDTO.Email, userDTO.Role, userDTO.Username);
 
@@ -23,9 +26,11 @@ public class UserService : IUserService
 
         if (createdUser == null)
         {
-            return Result<UserDTO>.Failure("Couldn't create user");
+            return Result<UserResponseDTO>.Failure("Couldn't create user");
         }
 
-        return Result<UserDTO>.Success(userDTO);
+        var createrUserDTO = _mapper.Map<UserResponseDTO>(createdUser);
+
+        return Result<UserResponseDTO>.Success(createrUserDTO);
     }
 }

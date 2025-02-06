@@ -1,3 +1,4 @@
+using AutoMapper;
 using forums_backend.src.Forums.BuildingBlocks.Infrastructure;
 using forums_backend.src.Forums.BuildingBlocks.Infrastructure.Database;
 using forums_backend.src.Forums.Internal.Core.Domain;
@@ -9,10 +10,12 @@ namespace forums_backend.src.Forums.Internal.Infrastructure.Database.Repositorie
 public class PostsRepository : IPostsRepository
 {
     private readonly IGraphDatabaseContext _graphDatabaseContext;
+    private readonly IMapper _mapper;
 
-    public PostsRepository(IGraphDatabaseContext graphDatabaseContext)
+    public PostsRepository(IGraphDatabaseContext graphDatabaseContext, IMapper mapper)
     {
         _graphDatabaseContext = graphDatabaseContext;
+        _mapper = mapper;
     }
 
     public async Task<Post?> AddAsync(Post post, Guid forumId, User user)
@@ -23,7 +26,7 @@ public class PostsRepository : IPostsRepository
             WITH u
             MATCH (f:Forum)
             WHERE f.id = $forumId
-            CREATE (p:Post {id: $id, title: $title, content: $content, createdAt: $createdAt})
+            CREATE (p:Post {id: $id, title: $title, content: $content, createdAt: $createdAt, isDeleted: false, isLocked: false})
             CREATE (f)-[:HAS_POST]->(p)
             CREATE (u)-[:POSTED]->(p)
             RETURN p";
@@ -45,15 +48,7 @@ public class PostsRepository : IPostsRepository
         {
             var resultCursor = await _graphDatabaseContext.RunAsync(query, parameters);
             var result = await resultCursor.SingleAsync();
-
-            var postNode = result["p"].As<INode>();
-
-            return new Post(
-                Guid.Parse(postNode["id"].As<string>()),
-                postNode["title"].As<string>(),
-                postNode["content"].As<string>(),
-                postNode["createdAt"].As<string>().FromNeo4jDateTime()
-            );
+            return _mapper.Map<Post>(result["p"].As<INode>());
         }
         catch
         {
@@ -64,22 +59,9 @@ public class PostsRepository : IPostsRepository
     public async Task<IEnumerable<Post>> GetAllAsync()
     {
         var query = "MATCH (p:Post) RETURN p";
-
         var resultCursor = await _graphDatabaseContext.RunAsync(query);
         var result = await resultCursor.ToListAsync();
-
-        var posts = result.Select(record =>
-        {
-            var postNode = record["p"].As<INode>();
-            return new Post(
-                Guid.Parse(postNode["id"].As<string>()),
-                postNode["title"].As<string>(),
-                postNode["content"].As<string>(),
-                postNode["createdAt"].As<string>().FromNeo4jDateTime()
-            );
-        });
-
-        return posts;
+        return result.Select(record => _mapper.Map<Post>(record["p"].As<INode>()));
     }
 
     public async Task<Post?> GetByIdAsync(Guid postId)
@@ -89,24 +71,16 @@ public class PostsRepository : IPostsRepository
             WHERE p.id = $postId
             RETURN p";
 
-        var parameters = new Dictionary<string, object>
-        {
-            { "postId", postId.ToString() }
-        };
+        var parameters = new Dictionary<string, object> { { "postId", postId.ToString() } };
 
-        try {
+        try
+        {
             var resultCursor = await _graphDatabaseContext.RunAsync(query, parameters);
             var result = await resultCursor.SingleAsync();
-
-            var postNode = result["p"].As<INode>();
-
-            return new Post(
-                Guid.Parse(postNode["id"].As<string>()),
-                postNode["title"].As<string>(),
-                postNode["content"].As<string>(),
-                postNode["createdAt"].As<string>().FromNeo4jDateTime()
-            );
-        } catch {
+            return _mapper.Map<Post>(result["p"].As<INode>());
+        }
+        catch
+        {
             return null;
         }
     }
@@ -118,40 +92,20 @@ public class PostsRepository : IPostsRepository
             WHERE u.id = $userId
             RETURN f, collect(p) AS posts";
 
-        var parameters = new Dictionary<string, object>
-        {
-            { "userId", user.Id }
-        };
+        var parameters = new Dictionary<string, object> { { "userId", user.Id } };
 
         var resultCursor = await _graphDatabaseContext.RunAsync(query, parameters);
         var result = await resultCursor.ToListAsync();
 
-        var forumsAndPosts = result.Select(record =>
+        return result.Select(record =>
         {
-            var forumNode = record["f"].As<INode>();
-            var postsNodes = record["posts"].As<IEnumerable<INode>>();
-
-            var forum = new Forum(
-                Guid.Parse(forumNode["id"].As<string>()),
-                forumNode["name"].As<string>(),
-                forumNode["description"].As<string>(),
-                forumNode["createdAt"].As<string>().FromNeo4jDateTime()
-            );
-
-            var posts = postsNodes.Select(postNode =>
-            {
-                return new Post(
-                    Guid.Parse(postNode["id"].As<string>()),
-                    postNode["title"].As<string>(),
-                    postNode["content"].As<string>(),
-                    postNode["createdAt"].As<string>().FromNeo4jDateTime()
-                );
-            }).ToList();
+            var forum = _mapper.Map<Forum>(record["f"].As<INode>());
+            var posts = record["posts"].As<IEnumerable<INode>>()
+                          .Select(node => _mapper.Map<Post>(node))
+                          .ToList();
 
             return new ForumAndPosts(forum, posts);
         });
-
-        return forumsAndPosts;
     }
 
     public async Task<IEnumerable<Post>> GetPostsByForumIdAsync(Guid forumId)
@@ -161,25 +115,10 @@ public class PostsRepository : IPostsRepository
                 WHERE f.id = $forumId
                 RETURN p";
 
-        var parameters = new Dictionary<string, object>
-        {
-            { "forumId", forumId.ToString() }
-        };
+        var parameters = new Dictionary<string, object> { { "forumId", forumId.ToString() } };
 
         var resultCursor = await _graphDatabaseContext.RunAsync(query, parameters);
         var result = await resultCursor.ToListAsync();
-
-        var posts = result.Select(record =>
-        {
-            var postNode = record["p"].As<INode>();
-            return new Post(
-                Guid.Parse(postNode["id"].As<string>()),
-                postNode["title"].As<string>(),
-                postNode["content"].As<string>(),
-                postNode["createdAt"].As<string>().FromNeo4jDateTime()
-            );
-        });
-
-        return posts;
+        return result.Select(record => _mapper.Map<Post>(record["p"].As<INode>()));
     }
 }

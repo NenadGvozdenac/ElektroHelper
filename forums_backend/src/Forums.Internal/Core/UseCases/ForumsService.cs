@@ -1,3 +1,4 @@
+using AutoMapper;
 using forums_backend.src.Forums.BuildingBlocks.Core.Domain;
 using forums_backend.src.Forums.Internal.API.DTOs.Forums;
 using forums_backend.src.Forums.Internal.API.DTOs.Users;
@@ -10,26 +11,33 @@ namespace forums_backend.src.Forums.Internal.Core.UseCases;
 public class ForumsService : IForumsService
 {
     private readonly IForumsRepository _forumsRepository;
+    private readonly IMapper _mapper;
 
-    public ForumsService(IForumsRepository forumsRepository)
+    public ForumsService(IForumsRepository forumsRepository, IMapper mapper)
     {
         _forumsRepository = forumsRepository;
+        _mapper = mapper;
     }
 
-    public async Task<Result<ForumDTO>> CreateForumAsync(CreateForumDTO createCategoryDTO, UserDTO userDTO)
+    public async Task<Result<ForumDTO>> CreateForumAsync(CreateForumDTO createForumDTO, UserDTO userDTO)
     {
-        Forum forum = new(createCategoryDTO.Name, createCategoryDTO.Description);
+        Forum forum = new(createForumDTO.Name, createForumDTO.Description);
+
         User user = new(userDTO.Id, userDTO.Email, userDTO.Role, userDTO.Username);
 
         await _forumsRepository.AddAsync(forum, user);
 
-        return Result<ForumDTO>.Success(new ForumDTO(forum.Id, forum.Name, forum.Description, forum.CreatedAt));
+        ForumDTO forumDTO = _mapper.Map<ForumDTO>(forum);
+
+        return Result<ForumDTO>.Success(forumDTO);
     }
 
     public async Task<Result<IEnumerable<ForumDTO>>> GetForumsAsync()
     {
         var forums = await _forumsRepository.GetAllAsync();
 
-        return Result<IEnumerable<ForumDTO>>.Success(forums.Select(forum => new ForumDTO(forum.Id, forum.Name, forum.Description, forum.CreatedAt)));
+        var forumDTOs = _mapper.Map<IEnumerable<ForumDTO>>(forums);
+
+        return Result<IEnumerable<ForumDTO>>.Success(forumDTOs);
     }
 }

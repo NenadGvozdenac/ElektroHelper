@@ -5,6 +5,10 @@ public class Post {
     public string Title { get; private set; } = string.Empty;
     public string Content { get; private set; } = string.Empty;
     public DateTime CreatedAt { get; private set; }
+    public bool IsDeleted { get; private set; } = false;
+    public bool IsLocked { get; private set; } = false;
+
+    public Post() {}
 
     public Post(Guid id, string title, string content, DateTime createdAt) {
         Id = id;
@@ -13,11 +17,13 @@ public class Post {
         CreatedAt = createdAt;
     }
 
-    public Post(Guid id, string title, string content) {
+    public Post(Guid id, string title, string content, DateTime createdAt, bool isDeleted, bool isLocked) {
         Id = id;
         Title = title;
         Content = content;
-        CreatedAt = DateTime.UtcNow;
+        CreatedAt = createdAt;
+        IsDeleted = isDeleted;
+        IsLocked = isLocked;
     }
 
     public Post(string title, string content) {

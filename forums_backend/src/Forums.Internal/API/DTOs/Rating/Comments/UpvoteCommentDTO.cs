@@ -1,3 +1,15 @@
 namespace forums_backend.src.Forums.Internal.API.DTOs.Rating.Comments;
 
-public record UpvoteCommentDTO(Guid CommentId, bool IsUpvoted);
+public class UpvoteCommentDTO
+{
+    public Guid CommentId { get; set; }
+    public bool IsUpvoted { get; set; }
+
+    public UpvoteCommentDTO() { }
+
+    public UpvoteCommentDTO(Guid commentId, bool isUpvoted)
+    {
+        CommentId = commentId;
+        IsUpvoted = isUpvoted;
+    }
+}
