@@ -1,6 +1,7 @@
 using AutoMapper;
 using forums_backend.src.Forums.BuildingBlocks.Infrastructure;
 using forums_backend.src.Forums.BuildingBlocks.Infrastructure.Database;
+using forums_backend.src.Forums.Internal.API.DTOs.Users;
 using forums_backend.src.Forums.Internal.Core.Domain;
 using forums_backend.src.Forums.Internal.Core.Domain.RepositoryInterfaces;
 using Neo4j.Driver;
@@ -58,10 +59,68 @@ public class PostsRepository : IPostsRepository
 
     public async Task<IEnumerable<Post>> GetAllAsync()
     {
-        var query = "MATCH (p:Post) RETURN p";
+        var query = @"
+            MATCH (p:Post)
+            OPTIONAL MATCH (u1:User)-[upvote:UPVOTED_POST]->(p)
+            OPTIONAL MATCH (u2:User)-[downvote:DOWNVOTED_POST]->(p)
+            RETURN p, count(upvote) AS upvotes, count(downvote) AS downvotes";
+
         var resultCursor = await _graphDatabaseContext.RunAsync(query);
         var result = await resultCursor.ToListAsync();
-        return result.Select(record => _mapper.Map<Post>(record["p"].As<INode>()));
+
+        return result.Select(record =>
+        {
+            var post = _mapper.Map<Post>(record["p"].As<INode>());
+            post.SetNumberOfUpvotes(record["upvotes"].As<int>());
+            post.SetNumberOfDownvotes(record["downvotes"].As<int>());
+            return post;
+        });
+    }
+
+    public async Task<IEnumerable<PostVoting>> GetPagedAsync(int page, int pageSize, UserDTO userDTO)
+    {
+        var query = @"
+            MATCH (p:Post)
+            OPTIONAL MATCH (u1:User)-[upvote1:UPVOTED_POST]->(p)
+            OPTIONAL MATCH (u2:User)-[downvote1:DOWNVOTED_POST]->(p)
+            OPTIONAL MATCH (u3:User {id: $userId})-[upvote2:UPVOTED_POST]->(p)
+            OPTIONAL MATCH (u4:User {id: $userId})-[downvote2:DOWNVOTED_POST]->(p)
+            RETURN p, 
+                count(upvote1) AS upvotes, 
+                count(downvote1) AS downvotes, 
+                CASE WHEN u3 IS NOT NULL THEN true ELSE false END AS hasUpvoted,
+                CASE WHEN u4 IS NOT NULL THEN true ELSE false END AS hasDownvoted
+            SKIP $skip
+            LIMIT $limit";
+
+        var parameters = new Dictionary<string, object>
+        {
+            { "skip", (page - 1) * pageSize },
+            { "limit", pageSize },
+            { "userId", userDTO.Id }
+        };
+
+        var resultCursor = await _graphDatabaseContext.RunAsync(query, parameters);
+        var result = await resultCursor.ToListAsync();
+
+        var posts = result.Select(record =>
+        {
+            var post = _mapper.Map<Post>(record["p"].As<INode>());
+            post.SetNumberOfUpvotes(record["upvotes"].As<int>());
+            post.SetNumberOfDownvotes(record["downvotes"].As<int>());
+
+            var hasUpvoted = bool.Parse(record["hasUpvoted"].As<string>());
+            var hasDownvoted = bool.Parse(record["hasDownvoted"].As<string>());
+
+            return new PostVoting
+            {
+                Post = post,
+                IsUpvoted = hasUpvoted,
+                IsDownvoted = hasDownvoted
+            };
+        });
+
+        return posts;
     }
 
     public async Task<Post?> GetByIdAsync(Guid postId)
@@ -69,7 +128,9 @@ public class PostsRepository : IPostsRepository
         var query = @"
             MATCH (p:Post)
             WHERE p.id = $postId
-            RETURN p";
+            OPTIONAL MATCH (u1:User)-[upvote:UPVOTED_POST]->(p)
+            OPTIONAL MATCH (u2:User)-[downvote:DOWNVOTED_POST]->(p)
+            RETURN p, count(upvote) AS upvotes, count(downvote) AS downvotes";
 
         var parameters = new Dictionary<string, object> { { "postId", postId.ToString() } };
 
@@ -77,7 +138,12 @@ public class PostsRepository : IPostsRepository
         {
             var resultCursor = await _graphDatabaseContext.RunAsync(query, parameters);
             var result = await resultCursor.SingleAsync();
-            return _mapper.Map<Post>(result["p"].As<INode>());
+
+            var post = _mapper.Map<Post>(result["p"].As<INode>());
+            post.SetNumberOfUpvotes(result["upvotes"].As<int>());
+            post.SetNumberOfDownvotes(result["downvotes"].As<int>());
+
+            return post;
         }
         catch
         {
@@ -90,7 +156,9 @@ public class PostsRepository : IPostsRepository
         var query = @"
             MATCH (u:User)-[:CREATED]->(f:Forum)-[:HAS_POST]->(p:Post)
             WHERE u.id = $userId
-            RETURN f, collect(p) AS posts";
+            OPTIONAL MATCH (upvoter:User)-[:UPVOTED_POST]->(p)
+            OPTIONAL MATCH (downvoter:User)-[:DOWNVOTED_POST]->(p)
+            RETURN f, collect({ post: p }) AS posts, count(upvoter) AS upvotes, count(downvoter) AS downvotes";
 
         var parameters = new Dictionary<string, object> { { "userId", user.Id } };
 
@@ -100,9 +168,14 @@ public class PostsRepository : IPostsRepository
         return result.Select(record =>
         {
             var forum = _mapper.Map<Forum>(record["f"].As<INode>());
-            var posts = record["posts"].As<IEnumerable<INode>>()
-                          .Select(node => _mapper.Map<Post>(node))
-                          .ToList();
+
+            var posts = record["posts"].As<List<INode>>().Select(postNode =>
+            {
+                var post = _mapper.Map<Post>(postNode["post"].As<INode>());
+                post.SetNumberOfUpvotes(record["upvotes"].As<int>());
+                post.SetNumberOfDownvotes(record["downvotes"].As<int>());
+                return post;
+            });
 
             return new ForumAndPosts(forum, posts);
         });
@@ -113,12 +186,21 @@ public class PostsRepository : IPostsRepository
         var query = @"
                 MATCH (f:Forum)-[:HAS_POST]->(p:Post)
                 WHERE f.id = $forumId
-                RETURN p";
+                OPTIONAL MATCH (u1:User)-[upvote:UPVOTED_POST]->(p)
+                OPTIONAL MATCH (u2:User)-[downvote:DOWNVOTED_POST]->(p)
+                RETURN p, count(upvote) AS upvotes, count(downvote) AS downvotes";
 
         var parameters = new Dictionary<string, object> { { "forumId", forumId.ToString() } };
 
         var resultCursor = await _graphDatabaseContext.RunAsync(query, parameters);
         var result = await resultCursor.ToListAsync();
-        return result.Select(record => _mapper.Map<Post>(record["p"].As<INode>()));
+
+        return result.Select(record =>
+        {
+            var post = _mapper.Map<Post>(record["p"].As<INode>());
+            post.SetNumberOfUpvotes(record["upvotes"].As<int>());
+            post.SetNumberOfDownvotes(record["downvotes"].As<int>());
+            return post;
+        });
     }
 }

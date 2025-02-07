@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import type { UserLogin, UserRegister } from '@/app/models/backend/user'
-import { AuthService } from '@/app/services/backend/auth_service'
+import { AuthService, getAccessToken } from '@/app/services/backend/auth_service'
+import { ForumService } from '@/app/services/forum_backend/forum_service'
 
 const isLogin = ref(true)
 const loading = ref(false)
@@ -48,8 +49,18 @@ const registerUser = (name: string, surname: string, email: string, phone: strin
     }
 
     AuthService.register(data)
-        .then(_ => {
-            window.location.href = '/'
+        .then(async _ => {
+
+            const jwt = await getAccessToken();
+
+            if (jwt) {
+                ForumService.registerUser(jwt).then(_ => {
+                    window.location.href = '/'
+                }).catch(error => {
+                    console.log(error.response.data)
+                    loading.value = false
+                })
+            }
         }).catch(error => {
             console.log(error.response.data)
             loading.value = false

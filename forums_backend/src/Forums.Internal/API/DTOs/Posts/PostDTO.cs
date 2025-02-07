@@ -10,5 +10,9 @@ public class PostDTO
     public DateTime CreatedAt { get; set; }
     public bool IsDeleted { get; set; }
     public bool IsLocked { get; set; }
+    public int NumberOfUpvotes { get; set; }
+    public int NumberOfDownvotes { get; set; }
+    public bool IsUpvoted { get; set; }
+    public bool IsDownvoted { get; set; }
     public PostDTO() { }
 }

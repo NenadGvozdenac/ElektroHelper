@@ -26,16 +26,25 @@
                         <div v-for="post in filteredPosts" :key="post.id"
                             class="bg-white rounded-xl shadow-sm hover:shadow-md transition-all border border-slate-200 group">
                             <div class="flex">
-                                <!-- Vote Controls -->
                                 <div
-                                    class="w-12 py-4 flex flex-col items-center bg-slate-50 rounded-l-xl group-hover:bg-slate-100 transition-colors">
-                                    <button
-                                        class="text-slate-400 hover:text-blue-500 transition-colors transform hover:scale-110">
+                                    class="py-4 flex flex-col items-center justify-center bg-slate-50 rounded-l-xl group-hover:bg-slate-100 transition-colors">
+                                    <button :class="[
+                                        'transition-colors transform',
+                                        post.isUpvoted
+                                            ? 'text-blue-500'
+                                            : 'text-slate-400 hover:text-blue-500'
+                                    ]" @click="!post.isUpvoted ? upvotePost(post.id) : deleteUpvotePost(post.id)">
                                         <ArrowBigUp class="w-6 h-6" />
                                     </button>
-                                    <span class="text-sm font-medium my-1 text-slate-600">0</span>
-                                    <button
-                                        class="text-slate-400 hover:text-red-500 transition-colors transform hover:scale-110">
+                                    <span class="text-sm font-medium my-1 text-slate-600">
+                                        {{ post.numberOfUpvotes - post.numberOfDownvotes }}
+                                    </span>
+                                    <button :class="[
+                                        'transition-colors transform hover:scale-110',
+                                        post.isDownvoted
+                                            ? 'text-red-500'
+                                            : 'text-slate-400 hover:text-red-500'
+                                    ]" @click="!post.isDownvoted ? downvotePost(post.id) : deleteDownvotePost(post.id)">
                                         <ArrowBigDown class="w-6 h-6" />
                                     </button>
                                 </div>
@@ -72,6 +81,16 @@
                                 </div>
                             </div>
                         </div>
+
+                        <!-- Loading indicator -->
+                        <div v-if="loading" class="text-center py-4">
+                            <span class="text-slate-500">Loading more posts...</span>
+                        </div>
+
+                        <!-- No more posts indicator -->
+                        <div v-if="!hasMore" class="text-center py-4">
+                            <span class="text-slate-500">No more posts to load</span>
+                        </div>
                     </div>
                 </div>
 
@@ -84,12 +103,8 @@
                         </div>
                         <div class="p-3">
                             <div v-for="forum in forums" :key="forum.id" @click="navigateToForum(forum.id)"
-                                class="flex flex-col p-2.5 rounded-lg cursor-pointer transition-all" :class="[
-                                    activeForum?.id === forum.id
-                                        ? 'bg-emerald-50 text-emerald-600'
-                                        : 'hover:bg-slate-50 text-slate-700'
-                                ]">
-                                <div class="flex items-center space-x-3 mb-2">
+                                class="flex flex-col p-2 pb-0 rounded-lg cursor-pointer transition-all hover:bg-slate-50 text-slate-700 w-80">
+                                <div class="flex items-center space-x-3">
                                     <div
                                         class="w-8 h-8 rounded-full bg-gradient-to-br from-emerald-500 to-indigo-500 flex items-center justify-center">
                                         <MessageCircle class="w-4 h-4 text-white" />
@@ -107,21 +122,6 @@
                             </div>
                         </div>
                     </div>
-
-                    <!-- Forum Info -->
-                    <div v-if="activeForum" class="bg-white rounded-xl shadow-sm p-5 border border-slate-200">
-                        <h2 class="text-lg font-semibold text-slate-900 mb-3">About {{ activeForum.name }}</h2>
-                        <p class="text-slate-600 text-sm leading-relaxed mb-4">{{ activeForum.description }}</p>
-                        <div class="pt-4 border-t border-slate-200">
-                            <div class="text-sm">
-                                <div class="flex justify-between items-center py-2">
-                                    <span class="text-slate-500">Created</span>
-                                    <span class="font-medium text-slate-700">{{ formatDate(activeForum.createdAt)
-                                        }}</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
                 </div>
             </div>
         </main>
@@ -129,8 +129,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue';
-import { useRouter, useRoute } from 'vue-router';
+import { ref, computed, onMounted, onUnmounted } from 'vue';
+import { useRouter } from 'vue-router';
 import {
     SearchIcon,
     MessageSquare,
@@ -143,39 +143,35 @@ import {
 } from 'lucide-vue-next';
 import { ForumService } from '@/app/services/forum_backend/forum_service';
 import { PostService } from '@/app/services/forum_backend/post_service';
+import { VotingService } from '@/app/services/forum_backend/voting_service';
 import { getAccessToken } from '@/app/services/backend/auth_service';
 import type { Forum } from '@/app/models/forum_backend/Forum';
 import type { Post } from '@/app/models/forum_backend/Post';
-import { goToHome } from '@/app/routes';
+import { goToForums, goToHome } from '@/app/routes';
 
 const router = useRouter();
-const route = useRoute();
 const forums = ref<Forum[]>([]);
 const posts = ref<Post[]>([]);
-const activeForum = ref<Forum | null>(null);
 const searchQuery = ref('');
+const page = ref(1);
+const pageSize = ref(10);
+const loading = ref(false);
+const hasMore = ref(true);
 
 onMounted(async () => {
     const jwt = await getAccessToken();
     if (!jwt) {
-        console.error('No JWT found');
         router.push('/login');
         return;
     }
 
-    try {
-        forums.value = await ForumService.getForums(jwt);
+    await fetchInitialPosts(jwt);
+    forums.value = await ForumService.getForums(jwt);
+    window.addEventListener('scroll', handleScroll);
+});
 
-        const forumId = route.params.id;
-        if (forumId) {
-            posts.value = await PostService.getPosts(jwt, Number(forumId));
-            activeForum.value = forums.value.find(f => f.id === forumId) || null;
-        } else {
-            posts.value = await PostService.getAllPosts(jwt);
-        }
-    } catch (error) {
-        console.error('Error fetching initial data:', error);
-    }
+onUnmounted(() => {
+    window.removeEventListener('scroll', handleScroll);
 });
 
 const filteredPosts = computed(() => {
@@ -186,9 +182,137 @@ const filteredPosts = computed(() => {
     }).filter(post => !post.isDeleted);
 });
 
+async function fetchInitialPosts(jwt: string) {
+    try {
+        const initialPosts = await PostService.getAllPostsPaged(jwt, page.value, pageSize.value);
+        posts.value = initialPosts;
+        page.value++;
+    } catch (error) {
+        console.error('Error fetching initial posts:', error);
+    }
+}
+
+async function fetchMorePosts() {
+    if (loading.value || !hasMore.value) return;
+
+    loading.value = true;
+    try {
+        const jwt = await getAccessToken();
+        if (!jwt) {
+            router.push('/login');
+            return;
+        }
+
+        const morePosts = await PostService.getAllPostsPaged(jwt, page.value, pageSize.value);
+
+        if (morePosts.length === 0) {
+            hasMore.value = false;
+        } else {
+            posts.value = [...posts.value, ...morePosts];
+            page.value++;
+        }
+    } catch (error) {
+        console.error('Error fetching more posts:', error);
+    } finally {
+        loading.value = false;
+    }
+}
+
+function handleScroll() {
+    if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 500) {
+        fetchMorePosts();
+    }
+}
+
+async function upvotePost(postId: string) {
+    const jwt = await getAccessToken();
+    if (!jwt) {
+        router.push('/login');
+        return;
+    }
+
+    await VotingService.upvotePost(jwt, postId);
+
+    var post = posts.value.find(post => post.id === postId);
+
+    if(post == undefined) return;
+
+    post.numberOfUpvotes++;
+    post.isUpvoted = true;
+
+    if(post.isDownvoted) {
+        post.isDownvoted = false;
+        post.numberOfDownvotes--;
+    }
+
+}
+
+async function downvotePost(postId: string) {
+    const jwt = await getAccessToken();
+    if (!jwt) {
+        router.push('/login');
+        return;
+    }
+
+    await VotingService.downvotePost(jwt, postId);
+
+    var post = posts.value.find(post => post.id === postId);
+
+    if(post == undefined) return;
+
+    post.numberOfDownvotes++;
+    post.isDownvoted = true;
+
+    if(post.isUpvoted) {
+        post.isUpvoted = false;
+        post.numberOfUpvotes--;
+    }
+}
+
+async function deleteUpvotePost(postId: string) {
+    const jwt = await getAccessToken();
+    if (!jwt) {
+        router.push('/login');
+        return;
+    }
+
+    await VotingService.deleteUpvotePost(jwt, postId);
+
+    var post = posts.value.find(post => post.id === postId);
+
+    if(post == undefined) return;
+
+    post.numberOfUpvotes--;
+    post.isUpvoted = false;
+
+    post.isDownvoted = false;
+}
+
+async function deleteDownvotePost(postId: string) {
+    const jwt = await getAccessToken();
+    if (!jwt) {
+        router.push('/login');
+        return;
+    }
+
+    await VotingService.deleteDownvotePost(jwt, postId);
+
+    var post = posts.value.find(post => post.id === postId);
+
+    if(post == undefined) return;
+
+    post.numberOfDownvotes--;
+    post.isDownvoted = false;
+
+    post.isUpvoted = false;
+}
+
+function navigateToPost(postId: string) {
+    router.push(`/posts/${postId}`);
+}
+
 function formatDate(dateString: string): string {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', {
+    return new Date(dateString).toLocaleDateString('en-US', {
         month: 'short',
         day: 'numeric',
         year: 'numeric'
@@ -197,9 +321,5 @@ function formatDate(dateString: string): string {
 
 function navigateToForum(forumId: string) {
     router.push(`/forums/${forumId}`);
-}
-
-function navigateToPost(postId: string) {
-    router.push(`/posts/${postId}`);
 }
 </script>

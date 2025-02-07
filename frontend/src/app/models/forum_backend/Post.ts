@@ -5,6 +5,10 @@ export interface Post {
     createdAt: string;
     isDeleted: boolean;
     isLocked: boolean;
+    numberOfUpvotes: number;
+    numberOfDownvotes: number;
+    isUpvoted: boolean;
+    isDownvoted: boolean;
 }
 
 export interface CreatePost {

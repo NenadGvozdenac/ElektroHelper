@@ -14,6 +14,19 @@ public class AutoMapperProfile : Profile
         // Basic mappings
         CreateMap<Comment, CommentDTO>();
         CreateMap<Post, PostDTO>();
+        
+        CreateMap<PostVoting, PostDTO>()
+            .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Post.Id))
+            .ForMember(dest => dest.Title, opt => opt.MapFrom(src => src.Post.Title))
+            .ForMember(dest => dest.Content, opt => opt.MapFrom(src => src.Post.Content))
+            .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => src.Post.CreatedAt))
+            .ForMember(dest => dest.IsDeleted, opt => opt.MapFrom(src => src.Post.IsDeleted))
+            .ForMember(dest => dest.IsLocked, opt => opt.MapFrom(src => src.Post.IsLocked))
+            .ForMember(dest => dest.NumberOfUpvotes, opt => opt.MapFrom(src => src.Post.NumberOfUpvotes))
+            .ForMember(dest => dest.NumberOfDownvotes, opt => opt.MapFrom(src => src.Post.NumberOfDownvotes))
+            .ForMember(dest => dest.IsUpvoted, opt => opt.MapFrom(src => src.IsUpvoted))
+            .ForMember(dest => dest.IsDownvoted, opt => opt.MapFrom(src => src.IsDownvoted));
+            
         CreateMap<User, UserDTO>();
         CreateMap<User, UserResponseDTO>();
         CreateMap<Forum, ForumDTO>();

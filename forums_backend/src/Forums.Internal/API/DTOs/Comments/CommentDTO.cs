@@ -7,6 +7,8 @@ public class CommentDTO
     public string Content { get; set; } = string.Empty;
     public DateTime CreatedAt { get; set; }
     public bool IsDeleted { get; set; }
+    public int NumberOfUpvotes { get; set; }
+    public int NumberOfDownvotes { get; set; }
 
     public CommentDTO() { }
 

@@ -23,7 +23,10 @@ public class CommentsService : ICommentsService
     }
     public async Task<Result<CommentDTO>> CreateCommentAsync(CreateCommentDTO createCommentDTO, UserDTO userDTO)
     {
-        Comment comment = new(createCommentDTO.Content);
+        var comment = new Comment{
+            Content = createCommentDTO.Content,
+        };
+
         User user = new(userDTO.Id, userDTO.Email, userDTO.Role, userDTO.Username);
 
         Post? post = await _postsRepository.GetByIdAsync(createCommentDTO.PostId);

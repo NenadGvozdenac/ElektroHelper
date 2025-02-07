@@ -90,4 +90,24 @@ public class UpvotePostRepository : IUpvotePostRepository
             return false;
         }
     }
+
+    public async Task<bool> RemoveUpvoteFromPostIfExistsAsync(Guid postId, string id)
+    {
+        var query = @"
+            MATCH (u:User {id: $userId})-[r:UPVOTED_POST]->(p:Post {id: $postId})
+            DELETE r";
+
+        var parameters = new Dictionary<string, object>
+        {
+            { "postId", postId.ToString() },
+            { "userId", id }
+        };
+
+        try {
+            var resultCursor = await _graphDatabaseContext.RunAsync(query, parameters);
+            return true;
+        } catch {
+            return false;
+        }
+    }
 }

@@ -25,4 +25,21 @@ export class PostService {
             throw error;
         }
     }
+
+    static async getAllPostsPaged(jwt: string, page: number, pageSize: number): Promise<Post[]> {
+        try {
+            const request = await authenticatedRequest(jwt).get(`${FORUM_URL}/posts`,
+                {
+                    params: {
+                        page: page,
+                        pageSize: pageSize
+                    }
+                });
+            const response = request.data as Response<Post[]>;
+            return response.value;
+        } catch (error) {
+            console.error(error);
+            throw error;
+        }
+    }
 }

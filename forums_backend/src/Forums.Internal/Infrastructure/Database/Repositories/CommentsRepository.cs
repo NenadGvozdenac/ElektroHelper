@@ -137,12 +137,6 @@ public class CommentsRepository : ICommentsRepository
             return null;
 
         var firstRecord = records.First();
-        var post = new Post(
-            Guid.Parse(firstRecord["postId"].As<string>()),
-            firstRecord["postTitle"].As<string>(),
-            firstRecord["postContent"].As<string>(),
-            firstRecord["postCreatedAt"].As<string>().FromNeo4jDateTime()
-        );
 
         var originalPoster = new User(
             firstRecord["originalPosterId"].As<string>(),
@@ -154,12 +148,14 @@ public class CommentsRepository : ICommentsRepository
         var comments = records
             .Where(r => r["commentId"] != null)
             .Select(r => new CommentWithUpvotesAndDownvotes(
-                new Comment(
-                    Guid.Parse(r["commentId"].As<string>()),
-                    r["commentContent"].As<string>(),
-                    r["commentCreatedAt"].As<string>().FromNeo4jDateTime(),
-                    bool.Parse(r["commentIsDeleted"].As<string>())
-                ),
+                new Comment{
+                    Id = Guid.Parse(r["commentId"].As<string>()),
+                    Content = r["commentContent"].As<string>(),
+                    CreatedAt = r["commentCreatedAt"].As<string>().FromNeo4jDateTime(),
+                    IsDeleted = r["commentIsDeleted"].As<bool>(),
+                    NumberOfUpvotes = r["upvotesCount"].As<int>(),
+                    NumberOfDownvotes = r["downvotesCount"].As<int>()
+                },
                 new User(
                     r["commenterId"].As<string>(),
                     r["commenterUsername"].As<string>(),
@@ -213,6 +209,15 @@ public class CommentsRepository : ICommentsRepository
                 ),
                 downvote["createdAt"].As<string>().FromNeo4jDateTime()
             )).ToList() ?? new List<UserDownvote>();
+
+        var post = new Post{
+            Id = Guid.Parse(firstRecord["postId"].As<string>()),
+            Title = firstRecord["postTitle"].As<string>(),
+            Content = firstRecord["postContent"].As<string>(),
+            CreatedAt = firstRecord["postCreatedAt"].As<string>().FromNeo4jDateTime(),
+            NumberOfUpvotes = postUpvotes.Count,
+            NumberOfDownvotes = postDownvotes.Count
+        };
 
         return new PostAndCommentsWithUpvotesAndDownvotes(post, originalPoster, comments, postUpvotes, postDownvotes);
     }

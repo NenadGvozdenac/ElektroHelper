@@ -13,12 +13,14 @@ public class UpvoteService : IUpvoteService
     private readonly IUpvotePostRepository _upvotePostRepository;
     private readonly IUpvoteCommentRepository _upvoteCommentRepository;
     private readonly IDownvoteCommentRepository _downvoteCommentRepository;
+    private readonly IDownvotePostRepository _downvotePostRepository;
 
-    public UpvoteService(IUpvotePostRepository upvotePostRepository, IUpvoteCommentRepository upvoteCommentRepository, IDownvoteCommentRepository downvoteCommentRepository)
+    public UpvoteService(IUpvotePostRepository upvotePostRepository, IUpvoteCommentRepository upvoteCommentRepository, IDownvoteCommentRepository downvoteCommentRepository, IDownvotePostRepository downvotePostRepository)
     {
         _upvotePostRepository = upvotePostRepository;
         _upvoteCommentRepository = upvoteCommentRepository;
         _downvoteCommentRepository = downvoteCommentRepository;
+        _downvotePostRepository = downvotePostRepository;
     }
 
     public async Task<Result<UpvoteCommentDTO>> UpvoteCommentAsync(Guid commentId, UserDTO userDTO)
@@ -70,6 +72,8 @@ public class UpvoteService : IUpvoteService
         if(userUpvotedPost) {
             return Result<UpvotePostDTO>.Failure("User already upvoted this post").WithCode(400);
         }
+
+        await _downvotePostRepository.RemoveDownvoteFromPostIfExistsAsync(postId, user.Id);
 
         var upvoteAdded = await _upvotePostRepository.AddUpvoteToPostAsync(postId, user);
 

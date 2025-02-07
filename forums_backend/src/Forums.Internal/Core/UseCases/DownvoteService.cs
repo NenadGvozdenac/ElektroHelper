@@ -11,14 +11,16 @@ namespace forums_backend.src.Forums.Internal.Core.UseCases;
 public class DownvoteService : IDownvoteService
 {
     private readonly IDownvotePostRepository _downvotePostRepository;
+    private readonly IUpvotePostRepository _upvotePostRepository;
     private readonly IDownvoteCommentRepository _downvoteCommentRepository;
     private readonly IUpvoteCommentRepository _upvoteCommentRepository;
 
-    public DownvoteService(IDownvoteCommentRepository downvoteCommentRepository, IDownvotePostRepository downvotePostRepository, IUpvoteCommentRepository upvoteCommentRepository)
+    public DownvoteService(IDownvoteCommentRepository downvoteCommentRepository, IDownvotePostRepository downvotePostRepository, IUpvoteCommentRepository upvoteCommentRepository, IUpvotePostRepository upvotePostRepository)
     {
         _downvoteCommentRepository = downvoteCommentRepository;
         _downvotePostRepository = downvotePostRepository;
         _upvoteCommentRepository = upvoteCommentRepository;
+        _upvotePostRepository = upvotePostRepository;
     }
 
     public async Task<Result<DownvoteCommentDTO>> DownvoteCommentAsync(Guid commentId, UserDTO userDTO)
@@ -75,6 +77,8 @@ public class DownvoteService : IDownvoteService
         {
             return Result<DownvotePostDTO>.Failure("User already downvoted this post").WithCode(400);
         }
+
+        await _upvotePostRepository.RemoveUpvoteFromPostIfExistsAsync(postId, user.Id);
 
         var downvoteAdded = await _downvotePostRepository.AddDownvoteToPostAsync(postId, user.Id);
 

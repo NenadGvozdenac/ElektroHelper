@@ -50,8 +50,9 @@ public class UpvoteCommentRepository : IUpvoteCommentRepository
         var query = @"
             MATCH (c:Comment {id: $commentId})
             WITH c
-            MATCH (c)<-[r:UPVOTED]-(user:User)
-            RETURN c, COLLECT({ user: user, upvoteDate: r.upvotedAt }) AS userUpvotes
+            OPTIONAL MATCH (c)<-[r:UPVOTED]-(user:User)
+            OPTIONAL MATCH (c)<-[r2:DOWNVOTES]-(user2:User)
+            RETURN c, COLLECT({ user: user, upvoteDate: r.upvotedAt }) AS userUpvotes, count(r) AS upvotes, count(r2) AS downvotes
         ";
 
         var parameters = new Dictionary<string, object>
@@ -67,11 +68,13 @@ public class UpvoteCommentRepository : IUpvoteCommentRepository
             var commentNode = result["c"].As<INode>();
             var userUpvotesNodes = result["userUpvotes"].As<List<Dictionary<string, object>>>();
 
-            var comment = new Comment(
-                Guid.Parse(commentNode["id"].As<string>()),
-                commentNode["content"].As<string>(),
-                commentNode["createdAt"].As<string>().FromNeo4jDateTime()
-            );
+            var comment = new Comment{
+                Id = Guid.Parse(commentNode["id"].As<string>()),
+                Content = commentNode["content"].As<string>(),
+                CreatedAt = commentNode["createdAt"].As<string>().FromNeo4jDateTime(),
+                NumberOfUpvotes = result["upvotes"].As<int>(),
+                NumberOfDownvotes = result["downvotes"].As<int>()
+            };
 
             var upvotes = userUpvotesNodes.Select(userUpvoteNode =>
             {

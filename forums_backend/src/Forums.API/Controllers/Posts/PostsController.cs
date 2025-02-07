@@ -11,33 +11,42 @@ namespace forums_backend.src.Forums.API.Controllers.Posts;
 [ApiController]
 [Route("api/posts")]
 [Authorize]
-public class PostsController : BaseController {
+public class PostsController : BaseController
+{
     private readonly IPostsService _forumsService;
 
-    public PostsController(IPostsService forumsService) {
+    public PostsController(IPostsService forumsService)
+    {
         _forumsService = forumsService;
     }
 
     [HttpGet]
-    public async Task<ActionResult<Result<List<PostDTO>>>> GetAllPostsAsync() {
-        var posts = await _forumsService.GetPostsAsync();
+    public async Task<ActionResult<Result<List<PostDTO>>>> GetAllPostsAsync([FromQuery] int? page = null, [FromQuery] int? pageSize = null)
+    {
+        var posts = page.HasValue && pageSize.HasValue
+            ? await _forumsService.GetPostsAsync(page.Value, pageSize.Value, this.GetUser())
+            : await _forumsService.GetPostsAsync();
+
         return CreateResponse(posts);
     }
 
     [HttpPost]
-    public async Task<ActionResult<Result<PostDTO>>> CreatePostAsync(CreatePostDTO createPostDTO) {
+    public async Task<ActionResult<Result<PostDTO>>> CreatePostAsync(CreatePostDTO createPostDTO)
+    {
         var post = await _forumsService.CreatePostAsync(createPostDTO, this.GetUser());
         return CreateResponse(post);
     }
 
     [HttpGet("{forumId}")]
-    public async Task<ActionResult<Result<List<PostDTO>>>> GetPostsByForumIdAsync(Guid forumId) {
+    public async Task<ActionResult<Result<List<PostDTO>>>> GetPostsByForumIdAsync(Guid forumId)
+    {
         var posts = await _forumsService.GetPostsByForumIdAsync(forumId);
         return CreateResponse(posts);
     }
 
     [HttpGet("my")]
-    public async Task<ActionResult<Result<List<PostDTO>>>> GetMyPostsAsync() {
+    public async Task<ActionResult<Result<List<PostDTO>>>> GetMyPostsAsync()
+    {
         var posts = await _forumsService.GetMyPostsAsync(this.GetUser());
         return CreateResponse(posts);
     }

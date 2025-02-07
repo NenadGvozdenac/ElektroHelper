@@ -23,7 +23,13 @@ public class PostsService : IPostsService
 
     public async Task<Result<PostDTO>> CreatePostAsync(CreatePostDTO createPostDTO, UserDTO userDTO)
     {
-        Post post = new(createPostDTO.Title, createPostDTO.Content);
+        var post = new Post
+        {
+            Id = Guid.NewGuid(),
+            Title = createPostDTO.Title,
+            Content = createPostDTO.Content,
+            CreatedAt = DateTime.UtcNow
+        };
 
         User user = new(userDTO.Id, userDTO.Email, userDTO.Role, userDTO.Username);
 
@@ -65,6 +71,15 @@ public class PostsService : IPostsService
     public async Task<Result<IEnumerable<PostDTO>>> GetPostsAsync()
     {
         var posts = await _postsRepository.GetAllAsync();
+
+        var postDTOs = _mapper.Map<IEnumerable<PostDTO>>(posts);
+
+        return Result<IEnumerable<PostDTO>>.Success(postDTOs);
+    }
+
+    public async Task<Result<IEnumerable<PostDTO>>> GetPostsAsync(int page, int pageSize, UserDTO userDTO)
+    {
+        var posts = await _postsRepository.GetPagedAsync(page, pageSize, userDTO);
 
         var postDTOs = _mapper.Map<IEnumerable<PostDTO>>(posts);
 
