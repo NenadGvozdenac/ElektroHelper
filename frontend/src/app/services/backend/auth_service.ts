@@ -1,7 +1,7 @@
-import axios from "axios";
+import axios, { type AxiosInstance } from "axios";
 import { API_URL } from "./const_service";
-import type { User, UserData, UserLogin, UserRegister } from "@/app/models/user";
-import type { Tokens } from "@/app/models/token";
+import type { User, UserData, UserLogin, UserRegister } from "@/app/models/backend/user";
+import type { Tokens } from "@/app/models/backend/token";
 import { goToLoginScreen } from "@/app/routes";
 
 const setTokens = (tokens: Tokens) => {
@@ -32,7 +32,14 @@ export const getUserData = async (): Promise<UserData | null> => {
     return null;
 }
 
-// TODO: Implement the AuthService class
+export function authenticatedRequest(jwt: string): AxiosInstance {
+    return axios.create({
+        headers: {
+            Authorization: `Bearer ${jwt}`,
+        },
+    });
+}
+
 export class AuthService {
     static async login(loginData: UserLogin): Promise<Tokens> {
         try {
@@ -51,7 +58,7 @@ export class AuthService {
                 refresh_token: getRefreshToken()
             });
             removeTokens();
-        } catch(error) {
+        } catch (error) {
             console.error(error);
             throw error;
         }

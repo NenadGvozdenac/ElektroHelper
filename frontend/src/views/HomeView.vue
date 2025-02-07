@@ -171,7 +171,7 @@ import Navbar from '@/components/Navbar.vue';
 import WelcomeSection from '@/components/landing_page/WelcomeBack.vue';
 import ForumsAndPayments from '@/components/landing_page/ForumsAndPayments.vue';
 import { ref, onMounted } from 'vue';
-import type { UserData } from '@/app/models/user';
+import type { UserData } from '@/app/models/backend/user';
 
 const userData = ref<UserData | null>(null);
 

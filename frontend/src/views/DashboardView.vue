@@ -187,9 +187,9 @@ import { goToHome } from "@/app/routes";
 import { DashboardService } from "@/app/services/backend/dashboard_service";
 import { getAccessToken } from "@/app/services/backend/auth_service";
 
-import type { CreateLocation, Location } from "@/app/models/location";
-import type { CreateElectricityMeter, CreateLocationWithMeter, ElectricityMeter } from "@/app/models/electricity_meter";
-import type { CreateElectricityReadingWithDate, ElectricityReading } from "@/app/models/electricity_reading";
+import type { CreateLocation, Location } from "@/app/models/backend/location";
+import type { CreateElectricityMeter, CreateLocationWithMeter, ElectricityMeter } from "@/app/models/backend/electricity_meter";
+import type { CreateElectricityReadingWithDate, ElectricityReading } from "@/app/models/backend/electricity_reading";
 
 import AddLocation from "@/components/dashboard/AddLocation.vue";
 import AddReading from "@/components/dashboard/AddReading.vue";

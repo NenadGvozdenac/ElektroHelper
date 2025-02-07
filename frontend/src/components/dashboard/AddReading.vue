@@ -89,9 +89,9 @@
 <script setup lang="ts">
 import { ref, computed } from "vue";
 import { XIcon } from "lucide-vue-next";
-import type { CreateElectricityReading, CreateElectricityReadingWithDate } from "@/app/models/electricity_reading";
-import type { ElectricityMeter } from "@/app/models/electricity_meter";
-import type { Location } from "@/app/models/location";
+import type { CreateElectricityReading, CreateElectricityReadingWithDate } from "@/app/models/backend/electricity_reading";
+import type { ElectricityMeter } from "@/app/models/backend/electricity_meter";
+import type { Location } from "@/app/models/backend/location";
 
 const props = defineProps<{
     modelValue: boolean;

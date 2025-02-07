@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import type { UserLogin, UserRegister } from '@/app/models/user'
+import type { UserLogin, UserRegister } from '@/app/models/backend/user'
 import { AuthService } from '@/app/services/backend/auth_service'
 
 const isLogin = ref(true)

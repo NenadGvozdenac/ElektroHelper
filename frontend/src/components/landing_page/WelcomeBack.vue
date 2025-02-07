@@ -25,7 +25,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
-import type { UserData } from '@/app/models/user';
+import type { UserData } from '@/app/models/backend/user';
 
 defineProps<{
     userData: UserData | null;

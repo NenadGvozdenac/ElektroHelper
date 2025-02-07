@@ -78,8 +78,8 @@
 <script setup lang="ts">
 import { ref, computed } from "vue";
 import { XIcon } from "lucide-vue-next";
-import type { CreateElectricityMeter, ElectricityMeter } from "@/app/models/electricity_meter";
-import type { Location } from "@/app/models/location";
+import type { CreateElectricityMeter, ElectricityMeter } from "@/app/models/backend/electricity_meter";
+import type { Location } from "@/app/models/backend/location";
 
 const filteredLocation = computed(() => {
     return props.locations.filter(location => !props.meters.some(meter => meter.location_id === location.ID));

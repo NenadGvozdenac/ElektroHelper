@@ -7,9 +7,13 @@ export function goToLoginScreen() {
 }
 
 export function goToDashboard() {
-    goToLocation('/dashboard')
+  goToLocation('/dashboard')
 }
 
 export function goToHome() {
-    goToLocation('/')
+  goToLocation('/')
+}
+
+export function goToForums() {
+  goToLocation('/forums')
 }

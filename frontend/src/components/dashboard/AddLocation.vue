@@ -97,7 +97,7 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import { XIcon } from "lucide-vue-next";
-import type { CreateLocationWithMeter } from "@/app/models/electricity_meter";
+import type { CreateLocationWithMeter } from "@/app/models/backend/electricity_meter";
 
 const props = defineProps<{
   modelValue: boolean;

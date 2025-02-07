@@ -43,7 +43,7 @@
 </template>
 
 <script setup lang="ts">
-import type { UserData } from '@/app/models/user';
+import type { UserData } from '@/app/models/backend/user';
 
 defineProps<{
     userData: UserData | null;

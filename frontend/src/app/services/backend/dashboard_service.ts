@@ -1,16 +1,8 @@
-import axios, { type AxiosInstance } from "axios";
 import { API_URL } from "./const_service";
-import type { CreateElectricityMeter, ElectricityMeter } from "@/app/models/electricity_meter";
-import type { CreateElectricityReading, CreateElectricityReadingWithDate, ElectricityReading } from "@/app/models/electricity_reading";
-import type { CreateLocation, Location } from "@/app/models/location";
-
-function authenticatedRequest(jwt: string): AxiosInstance {
-    return axios.create({
-        headers: {
-            Authorization: `Bearer ${jwt}`,
-        },
-    });
-}
+import type { CreateElectricityMeter, ElectricityMeter } from "@/app/models/backend/electricity_meter";
+import type { CreateElectricityReadingWithDate, ElectricityReading } from "@/app/models/backend/electricity_reading";
+import type { CreateLocation, Location } from "@/app/models/backend/location";
+import { authenticatedRequest } from "./auth_service";
 
 export class DashboardService {
     static async getLocationsForUser(jwt: string): Promise<Location[]> {
