@@ -1,12 +1,13 @@
 namespace forums_backend.src.Forums.Internal.Core.Domain;
 
 public class Forum {
-    public Guid Id { get; private set; }
-    public string Name { get; private set; } = string.Empty;
-    public string Description { get; private set; } = string.Empty;
-    public DateTime CreatedAt { get; private set; }
-    public bool IsDeleted { get; private set; } = false;
-    public bool IsQuarantined { get; private set; } = false;
+    public Guid Id { get; set; }
+    public string Name { get; set; } = string.Empty;
+    public string Description { get; set; } = string.Empty;
+    public DateTime CreatedAt { get; set; }
+    public bool IsDeleted { get; set; } = false;
+    public bool IsQuarantined { get; set; } = false;
+    public int NumberOfPosts { get; set; } = 0;
 
     public Forum() {}
 
@@ -15,15 +16,6 @@ public class Forum {
         Name = name;
         Description = description;
         CreatedAt = createdAt;
-    }
-
-    public Forum(Guid id, string name, string description, DateTime createdAt, bool isDeleted, bool isQuarantined) {
-        Id = id;
-        Name = name;
-        Description = description;
-        CreatedAt = createdAt;
-        IsDeleted = isDeleted;
-        IsQuarantined = isQuarantined;
     }
 
     public Forum(string name, string description) {

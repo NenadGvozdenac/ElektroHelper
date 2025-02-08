@@ -24,7 +24,9 @@ public class CommentsService : ICommentsService
     public async Task<Result<CommentDTO>> CreateCommentAsync(CreateCommentDTO createCommentDTO, UserDTO userDTO)
     {
         var comment = new Comment{
+            Id = Guid.NewGuid(),
             Content = createCommentDTO.Content,
+            CreatedAt = DateTime.UtcNow,
         };
 
         User user = new(userDTO.Id, userDTO.Email, userDTO.Role, userDTO.Username);

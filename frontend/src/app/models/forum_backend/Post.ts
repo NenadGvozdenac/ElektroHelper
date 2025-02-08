@@ -9,6 +9,11 @@ export interface Post {
     numberOfDownvotes: number;
     isUpvoted: boolean;
     isDownvoted: boolean;
+    numberOfComments: number;
+    author: {
+        id: string;
+        username: string;
+    }
 }
 
 export interface CreatePost {

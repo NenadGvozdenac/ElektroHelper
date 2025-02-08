@@ -1,7 +1,8 @@
 <template>
     <div class="min-h-screen bg-slate-100">
-        <!-- Enhanced Header -->
+        <!-- Header -->
         <header class="bg-white shadow-sm sticky top-0 z-50">
+            <!-- Main Header Content -->
             <div class="border-b border-slate-200">
                 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20">
                     <div class="flex items-center justify-between h-full">
@@ -14,7 +15,7 @@
 
                             <!-- Primary Navigation -->
                             <nav class="hidden md:flex items-center space-x-6">
-                                <a href="/forums"
+                                <a href="#"
                                     class="text-slate-600 hover:text-emerald-600 font-medium transition-colors">Browse</a>
                                 <a href="#"
                                     class="text-slate-600 hover:text-emerald-600 font-medium transition-colors">Latest</a>
@@ -32,6 +33,14 @@
                                     class="absolute left-4 top-1/2 transform -translate-y-1/2 text-slate-400 w-5 h-5" />
                             </div>
                         </div>
+
+                        <!-- Action Buttons -->
+                        <div class="flex items-center space-x-4">
+                            <button
+                                class="px-4 py-2 bg-emerald-600 text-white rounded-full hover:bg-emerald-700 transition-colors font-medium">
+                                Create Post
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -41,116 +50,6 @@
             <div class="flex gap-20">
                 <!-- Main Content -->
                 <div class="flex-grow max-w-3xl">
-                    <!-- Forum Hero -->
-                    <div class="bg-white rounded-xl shadow-sm border border-slate-200 mb-6 overflow-hidden">
-                        <!-- Gradient Banner -->
-                        <div class="h-24 bg-gradient-to-r from-emerald-500 via-teal-500 to-indigo-500 relative">
-                            <div class="absolute inset-0 bg-grid-white/10"></div>
-                            <div class="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-white"></div>
-                        </div>
-
-                        <!-- Content Section -->
-                        <div class="px-6 pb-6 relative">
-                            <!-- Forum Icon -->
-                            <div class="relative -mt-12 mb-4 flex items-center">
-                                <div
-                                    class="w-20 h-20 rounded-2xl bg-gradient-to-br from-emerald-500 to-indigo-500 p-0.5">
-                                    <div class="w-full h-full bg-white rounded-2xl flex items-center justify-center">
-                                        <MessageCircle class="w-10 h-10 text-emerald-500" />
-                                    </div>
-                                </div>
-                                <div class="ml-4 flex-1">
-                                    <div class="flex items-center justify-between">
-                                        <div>
-                                            <h1 class="text-2xl font-bold text-slate-900">{{ currentForum?.name }}</h1>
-                                            <p class="text-slate-600 mt-1">{{ currentForum?.description }}</p>
-                                        </div>
-                                        <button @click="showModal = true"
-                                            class="px-6 py-2.5 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors font-medium shadow-sm hover:shadow flex items-center space-x-2">
-                                            <PlusCircle class="w-5 h-5" />
-                                            <span>New Post</span>
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Stats Grid -->
-                            <div class="grid grid-cols-4 gap-4 mt-6">
-                                <!-- Posts Count -->
-                                <div class="p-4 rounded-lg bg-slate-50 border border-slate-200">
-                                    <div class="flex items-center space-x-3">
-                                        <div
-                                            class="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center">
-                                            <MessageSquare class="w-5 h-5 text-emerald-600" />
-                                        </div>
-                                        <div>
-                                            <div class="text-2xl font-bold text-slate-900">
-                                                {{ formatNumber(currentForum?.numberOfPosts ?? 0) }}
-                                            </div>
-                                            <div class="text-sm text-slate-600">Total Posts</div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <!-- Members -->
-                                <div class="p-4 rounded-lg bg-slate-50 border border-slate-200">
-                                    <div class="flex items-center space-x-3">
-                                        <div
-                                            class="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center">
-                                            <Users class="w-5 h-5 text-indigo-600" />
-                                        </div>
-                                        <div>
-                                            <div class="text-2xl font-bold text-slate-900">12.4k</div>
-                                            <div class="text-sm text-slate-600">Members</div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <!-- Daily Activity -->
-                                <div class="p-4 rounded-lg bg-slate-50 border border-slate-200">
-                                    <div class="flex items-center space-x-3">
-                                        <div
-                                            class="w-10 h-10 rounded-full bg-violet-100 flex items-center justify-center">
-                                            <TrendingUp class="w-5 h-5 text-violet-600" />
-                                        </div>
-                                        <div>
-                                            <div class="text-2xl font-bold text-slate-900">+24%</div>
-                                            <div class="text-sm text-slate-600">Daily Activity</div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <!-- Online Now -->
-                                <div class="p-4 rounded-lg bg-slate-50 border border-slate-200">
-                                    <div class="flex items-center space-x-3">
-                                        <div
-                                            class="w-10 h-10 rounded-full bg-teal-100 flex items-center justify-center">
-                                            <Activity class="w-5 h-5 text-teal-600" />
-                                        </div>
-                                        <div>
-                                            <div class="text-2xl font-bold text-slate-900">1.2k</div>
-                                            <div class="text-sm text-slate-600">Online Now</div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Status Tags -->
-                            <div class="flex items-center space-x-3 mt-6">
-                                <span v-if="currentForum?.isQuarantined"
-                                    class="px-3 py-1 rounded-full bg-amber-100 text-amber-600 text-sm font-medium flex items-center">
-                                    <ShieldAlert class="w-4 h-4 mr-1.5" />
-                                    Quarantined Forum
-                                </span>
-                                <span
-                                    class="px-3 py-1 rounded-full bg-emerald-100 text-emerald-600 text-sm font-medium flex items-center">
-                                    <Shield class="w-4 h-4 mr-1.5" />
-                                    Safe for Work
-                                </span>
-                            </div>
-                        </div>
-                    </div>
-
                     <!-- Posts Feed -->
                     <div class="space-y-6">
                         <!-- Individual Post -->
@@ -278,8 +177,8 @@
                             <span class="text-lg font-semibold text-slate-900">Forums</span>
                         </div>
                         <div class="p-3">
-                            <div v-for="forum in forums" :key="forum.id" @click="navigateToForum(forum.id)" :class="['flex flex-col p-2 pb-0 rounded-lg cursor-pointer transition-all hover:bg-slate-50 text-slate-700 w-80',
-                                forum.id === forumId ? 'bg-slate-100' : '']">
+                            <div v-for="forum in forums" :key="forum.id" @click="navigateToForum(forum.id)"
+                                class="flex flex-col p-2 pb-0 rounded-lg cursor-pointer transition-all hover:bg-slate-50 text-slate-700 w-80">
                                 <div class="flex items-center space-x-3">
                                     <div
                                         class="w-8 h-8 rounded-full bg-gradient-to-br from-emerald-500 to-indigo-500 flex items-center justify-center">
@@ -303,9 +202,6 @@
         </main>
     </div>
 
-    <CreatePostModal :is-open="showModal" :initial-forum-id="currentForum?.id" :forums="forums"
-        @close="showModal = false" @submit="handleCreatePost" />
-
     <div>
         <ToastNotification ref="toastRef" />
     </div>
@@ -313,7 +209,6 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from 'vue';
-import { useRoute, useRouter } from 'vue-router';
 import {
     SearchIcon,
     MessageSquare,
@@ -323,12 +218,6 @@ import {
     ArrowBigDown,
     LockIcon,
     ShieldAlertIcon,
-    Shield,
-    ShieldAlert,
-    PlusCircle,
-    Users,
-    TrendingUp,
-    Activity,
     MoreVertical,
     Bookmark,
     CheckCircle
@@ -338,15 +227,10 @@ import { PostService } from '@/app/services/forum_backend/post_service';
 import { VotingService } from '@/app/services/forum_backend/voting_service';
 import { getAccessToken } from '@/app/services/backend/auth_service';
 import type { Forum } from '@/app/models/forum_backend/Forum';
-import type { CreatePost, Post } from '@/app/models/forum_backend/Post';
-import { goToForum, goToHome } from '@/app/routes';
-import CreatePostModal from '@/components/forums/CreatePostModal.vue';
+import type { Post } from '@/app/models/forum_backend/Post';
+import { goToForum, goToHome, goToLoginScreen, goToPost } from '@/app/routes';
 import ToastNotification from '@/components/forums/ToastNotification.vue';
 
-const route = useRoute();
-const router = useRouter();
-const forumId = computed(() => route.params.forumId as string);
-const currentForum = ref<Forum | null>(null);
 const forums = ref<Forum[]>([]);
 const posts = ref<Post[]>([]);
 const searchQuery = ref('');
@@ -355,41 +239,23 @@ const pageSize = ref(10);
 const loading = ref(false);
 const hasMore = ref(true);
 
-const showModal = ref(false);
 const toastRef = ref();
 
 onMounted(async () => {
     const jwt = await getAccessToken();
     if (!jwt) {
-        router.push('/login');
+        goToLoginScreen();
         return;
     }
 
-    await Promise.all([
-        fetchCurrentForum(jwt),
-        fetchInitialPosts(jwt),
-        fetchForums(jwt)
-    ]);
-
+    await fetchInitialPosts(jwt);
+    forums.value = await ForumService.getForums(jwt);
     window.addEventListener('scroll', handleScroll);
 });
 
 onUnmounted(() => {
     window.removeEventListener('scroll', handleScroll);
 });
-
-async function fetchCurrentForum(jwt: string) {
-    try {
-        currentForum.value = await ForumService.getForum(jwt, forumId.value);
-    } catch (error) {
-        console.error('Error fetching forum:', error);
-        router.push('/');
-    }
-}
-
-async function fetchForums(jwt: string) {
-    forums.value = await ForumService.getForums(jwt);
-}
 
 const filteredPosts = computed(() => {
     return posts.value.filter(post => {
@@ -401,7 +267,7 @@ const filteredPosts = computed(() => {
 
 async function fetchInitialPosts(jwt: string) {
     try {
-        const initialPosts = await PostService.getForumPostsPaged(jwt, forumId.value, page.value, pageSize.value);
+        const initialPosts = await PostService.getAllPostsPaged(jwt, page.value, pageSize.value);
         posts.value = initialPosts;
         page.value++;
     } catch (error) {
@@ -416,11 +282,11 @@ async function fetchMorePosts() {
     try {
         const jwt = await getAccessToken();
         if (!jwt) {
-            router.push('/login');
+            goToLoginScreen();
             return;
         }
 
-        const morePosts = await PostService.getForumPostsPaged(jwt, forumId.value, page.value, pageSize.value);
+        const morePosts = await PostService.getAllPostsPaged(jwt, page.value, pageSize.value);
 
         if (morePosts.length === 0) {
             hasMore.value = false;
@@ -441,14 +307,10 @@ function handleScroll() {
     }
 }
 
-function formatNumber(num: number): string {
-    return new Intl.NumberFormat('en-US', { notation: 'compact' }).format(num);
-}
-
 async function upvotePost(postId: string) {
     const jwt = await getAccessToken();
     if (!jwt) {
-        router.push('/login');
+        goToLoginScreen();
         return;
     }
 
@@ -465,12 +327,13 @@ async function upvotePost(postId: string) {
         post.isDownvoted = false;
         post.numberOfDownvotes--;
     }
+
 }
 
 async function downvotePost(postId: string) {
     const jwt = await getAccessToken();
     if (!jwt) {
-        router.push('/login');
+        goToLoginScreen();
         return;
     }
 
@@ -492,7 +355,7 @@ async function downvotePost(postId: string) {
 async function deleteUpvotePost(postId: string) {
     const jwt = await getAccessToken();
     if (!jwt) {
-        router.push('/login');
+        goToLoginScreen();
         return;
     }
 
@@ -511,7 +374,7 @@ async function deleteUpvotePost(postId: string) {
 async function deleteDownvotePost(postId: string) {
     const jwt = await getAccessToken();
     if (!jwt) {
-        router.push('/login');
+        goToLoginScreen();
         return;
     }
 
@@ -528,7 +391,7 @@ async function deleteDownvotePost(postId: string) {
 }
 
 function navigateToPost(postId: string) {
-    router.push(`/posts/${postId}`);
+    goToPost(postId);
 }
 
 function formatDate(dateString: string): string {
@@ -542,19 +405,6 @@ function formatDate(dateString: string): string {
 function navigateToForum(forumId: string) {
     goToForum(forumId);
 }
-
-async function handleCreatePost(data: CreatePost) {
-    const jwt = await getAccessToken();
-
-    if (!jwt) {
-        router.push('/login');
-        return;
-    }
-
-    await PostService.createPost(jwt, data);
-    goToForum(forumId.value);
-}
-
 
 async function copyToClipboard(postId: string) {
     try {

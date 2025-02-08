@@ -5,12 +5,23 @@ import { authenticatedRequest } from "../backend/auth_service";
 import type { UserData, UserRegister } from "@/app/models/backend/user";
 
 export class ForumService {
+    static async registerUser(jwt: string): Promise<UserData> {
+        try {
+            const request = await authenticatedRequest(jwt).post(`${FORUM_URL}/users`);
+            const response = request.data as Response<UserData>;
+            return response.value;
+        } catch (error) {
+            console.error(error);
+            throw error;
+        }
+    }
+
     static async getForums(jwt: string): Promise<Forum[]> {
         try {
             const request = await authenticatedRequest(jwt).get(`${FORUM_URL}/forums`);
             const response = request.data as Response<Forum[]>;
             return response.value;
-        } catch(error) {
+        } catch (error) {
             console.error(error);
             throw error;
         }
@@ -21,18 +32,18 @@ export class ForumService {
             const request = await authenticatedRequest(jwt).post(`${FORUM_URL}/forums`, createForum);
             const response = request.data as Response<Forum>;
             return response.value;
-        } catch(error) {
+        } catch (error) {
             console.error(error);
             throw error;
         }
     }
 
-    static async registerUser(jwt: string): Promise<UserData> {
+    static async getForum(jwt: string, forumId: string): Promise<Forum> {
         try {
-            const request = await authenticatedRequest(jwt).post(`${FORUM_URL}/users`);
-            const response = request.data as Response<UserData>;
+            const request = await authenticatedRequest(jwt).get(`${FORUM_URL}/forums/${forumId}`);
+            const response = request.data as Response<Forum>;
             return response.value;
-        } catch(error) {
+        } catch (error) {
             console.error(error);
             throw error;
         }

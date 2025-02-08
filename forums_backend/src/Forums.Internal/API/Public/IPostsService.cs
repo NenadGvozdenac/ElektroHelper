@@ -10,5 +10,7 @@ public interface IPostsService {
     public Task<Result<IEnumerable<ForumAndPostsDTO>>> GetMyPostsAsync(UserDTO userDTO);
     public Task<Result<IEnumerable<PostDTO>>> GetPostsAsync();
     public Task<Result<IEnumerable<PostDTO>>> GetPostsAsync(int page, int pageSize, UserDTO userDTO);
-    public Task<Result<IEnumerable<PostDTO>>> GetPostsByForumIdAsync(Guid forumId);
+    public Task<Result<IEnumerable<PostDTO>>> GetPostsByForumIdAsync(Guid forumId, UserDTO userDTO);
+    public Task<Result<IEnumerable<PostDTO>>> GetPostsByForumIdPagedAsync(int page, int pageSize, Guid forumId, UserDTO userDTO);
+
 }

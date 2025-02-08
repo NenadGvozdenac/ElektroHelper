@@ -10,5 +10,6 @@ public interface IPostsRepository
     public Task<Post?> GetByIdAsync(Guid postId);
     public Task<IEnumerable<ForumAndPosts>> GetMyForumsAndPostsAsync(User user);
     public Task<IEnumerable<PostVoting>> GetPagedAsync(int page, int pageSize, UserDTO userDTO);
-    public Task<IEnumerable<Post>> GetPostsByForumIdAsync(Guid forumId);
+    public Task<IEnumerable<PostVoting>> GetPostsByForumIdAsync(Guid forumId, UserDTO userDTO);
+    public Task<IEnumerable<PostVoting>> GetPostsByForumIdPagedAsync(int page, int pageSize, Guid forumId, UserDTO userDTO);
 }

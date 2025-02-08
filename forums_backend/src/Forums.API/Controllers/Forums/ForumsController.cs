@@ -25,6 +25,13 @@ public class ForumsController : BaseController {
         return CreateResponse(forums);
     }
 
+    [HttpGet]
+    [Route("{forumId}")]
+    public async Task<ActionResult<Result<ForumDTO>>> GetForumAsync(Guid forumId) {
+        var forum = await _forumsService.GetForumAsync(forumId);
+        return CreateResponse(forum);
+    }
+
     [HttpPost]
     public async Task<ActionResult<Result<ForumDTO>>> CreateForumAsync(CreateForumDTO createForumDTO) {
         var forum = await _forumsService.CreateForumAsync(createForumDTO, this.GetUser());

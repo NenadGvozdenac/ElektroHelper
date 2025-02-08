@@ -24,8 +24,10 @@ public class AutoMapperProfile : Profile
             .ForMember(dest => dest.IsLocked, opt => opt.MapFrom(src => src.Post.IsLocked))
             .ForMember(dest => dest.NumberOfUpvotes, opt => opt.MapFrom(src => src.Post.NumberOfUpvotes))
             .ForMember(dest => dest.NumberOfDownvotes, opt => opt.MapFrom(src => src.Post.NumberOfDownvotes))
+            .ForMember(dest => dest.NumberOfComments, opt => opt.MapFrom(src => src.Post.NumberOfComments))
             .ForMember(dest => dest.IsUpvoted, opt => opt.MapFrom(src => src.IsUpvoted))
-            .ForMember(dest => dest.IsDownvoted, opt => opt.MapFrom(src => src.IsDownvoted));
+            .ForMember(dest => dest.IsDownvoted, opt => opt.MapFrom(src => src.IsDownvoted))
+            .ForMember(dest => dest.Author, opt => opt.MapFrom(src => new UserDTO(src.Author.Id, src.Author.Email, src.Author.Role, src.Author.Username)));
             
         CreateMap<User, UserDTO>();
         CreateMap<User, UserResponseDTO>();

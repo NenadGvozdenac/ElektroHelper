@@ -8,16 +8,7 @@ public class ForumDTO
     public DateTime CreatedAt { get; set; }
     public bool IsDeleted { get; set; }
     public bool IsQuarantied { get; set; }
+    public int NumberOfPosts { get; set; }
 
     public ForumDTO() { }
-
-    public ForumDTO(Guid id, string name, string description, DateTime createdAt, bool isDeleted, bool isQuarantied)
-    {
-        Id = id;
-        Name = name;
-        Description = description;
-        CreatedAt = createdAt;
-        IsDeleted = isDeleted;
-        IsQuarantied = isQuarantied;
-    }
 }

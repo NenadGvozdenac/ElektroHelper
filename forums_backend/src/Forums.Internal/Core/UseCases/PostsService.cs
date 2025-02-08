@@ -86,9 +86,18 @@ public class PostsService : IPostsService
         return Result<IEnumerable<PostDTO>>.Success(postDTOs);
     }
 
-    public async Task<Result<IEnumerable<PostDTO>>> GetPostsByForumIdAsync(Guid forumId)
+    public async Task<Result<IEnumerable<PostDTO>>> GetPostsByForumIdAsync(Guid forumId, UserDTO userDTO)
     {
-        var posts = await _postsRepository.GetPostsByForumIdAsync(forumId);
+        var posts = await _postsRepository.GetPostsByForumIdAsync(forumId, userDTO);
+
+        var postDTOs = _mapper.Map<IEnumerable<PostDTO>>(posts);
+
+        return Result<IEnumerable<PostDTO>>.Success(postDTOs);
+    }
+
+    public async Task<Result<IEnumerable<PostDTO>>> GetPostsByForumIdPagedAsync(int page, int pageSize, Guid forumId, UserDTO userDTO)
+    {
+        var posts = await _postsRepository.GetPostsByForumIdPagedAsync(page, pageSize, forumId, userDTO);
 
         var postDTOs = _mapper.Map<IEnumerable<PostDTO>>(posts);
 

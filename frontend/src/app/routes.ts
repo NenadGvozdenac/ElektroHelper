@@ -17,3 +17,11 @@ export function goToHome() {
 export function goToForums() {
   goToLocation('/forums')
 }
+
+export function goToForum(forumId: string) {
+  goToLocation(`/forums/${forumId}`)
+}
+
+export function goToPost(postId: string) {
+  goToLocation(`/posts/${postId}`)
+}

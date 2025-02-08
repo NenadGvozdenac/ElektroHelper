@@ -32,6 +32,20 @@ public class ForumsService : IForumsService
         return Result<ForumDTO>.Success(forumDTO);
     }
 
+    public async Task<Result<ForumDTO>> GetForumAsync(Guid forumId)
+    {
+        var forum = await _forumsRepository.GetByIdAsync(forumId);
+
+        if (forum == null)
+        {
+            return Result<ForumDTO>.Failure("Forum not found");
+        }
+
+        var forumDTO = _mapper.Map<ForumDTO>(forum);
+
+        return Result<ForumDTO>.Success(forumDTO);
+    }
+
     public async Task<Result<IEnumerable<ForumDTO>>> GetForumsAsync()
     {
         var forums = await _forumsRepository.GetAllAsync();

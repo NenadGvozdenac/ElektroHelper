@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # # Stop and remove containers and volumes, but leave the images
-docker-compose down -v
+# docker-compose down -v
 
 # # Delete the previous app image
 docker rmi elektrohelper-app

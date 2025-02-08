@@ -12,7 +12,9 @@ public class PostDTO
     public bool IsLocked { get; set; }
     public int NumberOfUpvotes { get; set; }
     public int NumberOfDownvotes { get; set; }
+    public int NumberOfComments { get; set; }
     public bool IsUpvoted { get; set; }
     public bool IsDownvoted { get; set; }
+    public UserDTO Author { get; set; } = null!;
     public PostDTO() { }
 }

@@ -63,19 +63,27 @@ public class ForumsRepository : IForumsRepository
     {
         var query = @"
             MATCH (forum:Forum)
-            RETURN forum";
+            OPTIONAL MATCH (forum)-[:HAS_POST]->(post:Post)
+            RETURN forum, COUNT(post) as numberOfPosts";
 
         var resultCursor = await _graphDatabaseContext.RunAsync(query);
 
-        var nodes = await resultCursor.ToListAsync(record => record["forum"].As<INode>());
-        return _mapper.Map<IEnumerable<Forum>>(nodes);
+        var nodes = await resultCursor.ToListAsync();
+
+        return nodes.Select(node =>
+        {
+            var forum = _mapper.Map<Forum>(node["forum"].As<INode>());
+            forum.NumberOfPosts = node["numberOfPosts"].As<int>();
+            return forum;
+        });
     }
 
     public async Task<Forum?> GetByIdAsync(Guid id)
     {
         var query = @"
             MATCH (forum:Forum { id: $id })
-            RETURN forum";
+            OPTIONAL MATCH (forum)-[:HAS_POST]->(post:Post)
+            RETURN forum, COUNT(post) as numberOfPosts";
 
         var parameters = new Dictionary<string, object> { { "id", id.ToString() } };
 
@@ -83,7 +91,9 @@ public class ForumsRepository : IForumsRepository
         {
             var resultCursor = await _graphDatabaseContext.RunAsync(query, parameters);
             var result = await resultCursor.SingleAsync();
-            return _mapper.Map<Forum>(result["forum"].As<INode>());
+            var forum = _mapper.Map<Forum>(result["forum"].As<INode>());
+            forum.NumberOfPosts = result["numberOfPosts"].As<int>();
+            return forum;
         }
         catch
         {

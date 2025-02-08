@@ -5,6 +5,7 @@ export interface Forum {
     createdAt: string;
     isDeleted: boolean;
     isQuarantined: boolean;
+    numberOfPosts: number;
 }
 
 export interface CreateForum {

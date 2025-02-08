@@ -10,6 +10,7 @@ public class Post
     public bool IsLocked { get; set; } = false;
     public int NumberOfUpvotes { get; set; } = 0;
     public int NumberOfDownvotes { get; set; } = 0;
+    public int NumberOfComments { get; set; } = 0;
 
     public Post() { }
 
@@ -21,5 +22,10 @@ public class Post
     public void SetNumberOfDownvotes(int numberOfDownvotes)
     {
         NumberOfDownvotes = numberOfDownvotes;
+    }
+
+    public void SetNumberOfComments(int count)
+    {
+        NumberOfComments = count;
     }
 }

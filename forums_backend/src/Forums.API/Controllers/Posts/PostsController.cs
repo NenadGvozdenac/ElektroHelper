@@ -38,9 +38,11 @@ public class PostsController : BaseController
     }
 
     [HttpGet("{forumId}")]
-    public async Task<ActionResult<Result<List<PostDTO>>>> GetPostsByForumIdAsync(Guid forumId)
+    public async Task<ActionResult<Result<List<PostDTO>>>> GetPostsByForumIdAsync(Guid forumId, [FromQuery] int? page = null, [FromQuery] int? pageSize = null)
     {
-        var posts = await _forumsService.GetPostsByForumIdAsync(forumId);
+        var posts = page.HasValue && pageSize.HasValue
+            ? await _forumsService.GetPostsByForumIdPagedAsync(page.Value, pageSize.Value, forumId, this.GetUser())
+            : await _forumsService.GetPostsByForumIdAsync(forumId, this.GetUser());
         return CreateResponse(posts);
     }
 
