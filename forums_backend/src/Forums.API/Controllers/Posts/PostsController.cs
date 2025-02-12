@@ -37,7 +37,7 @@ public class PostsController : BaseController
         return CreateResponse(post);
     }
 
-    [HttpGet("{forumId}")]
+    [HttpGet("forum/{forumId}")]
     public async Task<ActionResult<Result<List<PostDTO>>>> GetPostsByForumIdAsync(Guid forumId, [FromQuery] int? page = null, [FromQuery] int? pageSize = null)
     {
         var posts = page.HasValue && pageSize.HasValue
@@ -51,5 +51,12 @@ public class PostsController : BaseController
     {
         var posts = await _forumsService.GetMyPostsAsync(this.GetUser());
         return CreateResponse(posts);
+    }
+
+    [HttpGet("{postId}")]
+    public async Task<ActionResult<Result<PostDTO>>> GetPostByIdAsync(Guid postId)
+    {
+        var post = await _forumsService.GetPostByIdAsync(postId, this.GetUser());
+        return CreateResponse(post);
     }
 }

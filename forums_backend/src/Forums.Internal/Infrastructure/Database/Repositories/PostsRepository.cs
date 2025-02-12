@@ -19,7 +19,7 @@ public class PostsRepository : IPostsRepository
         _mapper = mapper;
     }
 
-    public async Task<Post?> AddAsync(Post post, Guid forumId, User user)
+    public async Task<Post?> AddAsync(Post post, Guid forumId, UserDTO user)
     {
         var query = @"
             MERGE (u:User {id: $userId})
@@ -63,7 +63,7 @@ public class PostsRepository : IPostsRepository
             MATCH (p:Post)
             OPTIONAL MATCH (u1:User)-[upvote:UPVOTED_POST]->(p)
             OPTIONAL MATCH (u2:User)-[downvote:DOWNVOTED_POST]->(p)
-            RETURN p, count(upvote) AS upvotes, count(downvote) AS downvotes";
+            RETURN p, count(distinct upvote) AS upvotes, count(distinct downvote) AS downvotes";
 
         var resultCursor = await _graphDatabaseContext.RunAsync(query);
         var result = await resultCursor.ToListAsync();
@@ -87,13 +87,15 @@ public class PostsRepository : IPostsRepository
             OPTIONAL MATCH (u4:User {id: $userId})-[upvote2:UPVOTED_POST]->(p)
             OPTIONAL MATCH (u5:User {id: $userId})-[downvote2:DOWNVOTED_POST]->(p)
             OPTIONAL MATCH (u6:User)-[:POSTED]->(p)
+            OPTIONAL MATCH (f:Forum)-[:HAS_POST]->(p)
             RETURN p, 
-                count(upvote1) AS upvotes, 
-                count(downvote1) AS downvotes, 
-                count(comment) AS comments,
+                count(distinct upvote1) AS upvotes, 
+                count(distinct downvote1) AS downvotes, 
+                count(distinct comment) AS comments,
                 u6 AS author,
                 CASE WHEN u4 IS NOT NULL THEN true ELSE false END AS hasUpvoted,
-                CASE WHEN u5 IS NOT NULL THEN true ELSE false END AS hasDownvoted
+                CASE WHEN u5 IS NOT NULL THEN true ELSE false END AS hasDownvoted,
+                f AS forum
             SKIP $skip
             LIMIT $limit";
 
@@ -118,12 +120,15 @@ public class PostsRepository : IPostsRepository
             var hasDownvoted = bool.Parse(record["hasDownvoted"].As<string>());
             var author = _mapper.Map<User>(record["author"].As<INode>());
 
+            var forum = _mapper.Map<Forum>(record["forum"].As<INode>());
+
             return new PostVoting
             {
                 Post = post,
                 IsUpvoted = hasUpvoted,
                 IsDownvoted = hasDownvoted,
-                Author = author
+                Author = author,
+                Forum = forum
             };
         });
 
@@ -141,8 +146,9 @@ public class PostsRepository : IPostsRepository
                 OPTIONAL MATCH (u4:User {id: $userId})-[:UPVOTED_POST]->(p)
                 OPTIONAL MATCH (u5:User {id: $userId})-[:DOWNVOTED_POST]->(p)
                 OPTIONAL MATCH (u6:User)-[:POSTED]->(p)
-                RETURN p, count(upvote) AS upvotes, count(downvote) AS downvotes, count(comment) AS comments,
-                    u6 AS author, 
+                OPTIONAL MATCH (f:Forum)-[:HAS_POST]->(p)
+                RETURN p, count(distinct upvote) AS upvotes, count(distinct downvote) AS downvotes, count(distinct comment) AS comments,
+                    u6 AS author, f AS forum,
                     CASE WHEN u4 IS NOT NULL THEN true ELSE false END AS hasUpvoted,
                     CASE WHEN u5 IS NOT NULL THEN true ELSE false END AS hasDownvoted";
 
@@ -165,6 +171,8 @@ public class PostsRepository : IPostsRepository
             var hasDownvoted = bool.Parse(record["hasDownvoted"].As<string>());
             var author = _mapper.Map<User>(record["author"].As<INode>());
 
+            var forum = _mapper.Map<Forum>(record["forum"].As<INode>());
+
             return new PostVoting
             {
                 Post = post,
@@ -186,10 +194,10 @@ public class PostsRepository : IPostsRepository
             OPTIONAL MATCH (u4:User {id: $userId})-[downvote2:DOWNVOTED_POST]->(p)
             OPTIONAL MATCH (u5:User)-[:POSTED]->(p)
             OPTIONAL MATCH (c:Comment)-[comment:BELONGS_TO]->(p)
-            RETURN p, 
-                count(upvote1) AS upvotes, 
-                count(downvote1) AS downvotes, 
-                count(comment) AS comments,
+            RETURN p, f AS forum,
+                count(distinct upvote1) AS upvotes, 
+                count(distinct downvote1) AS downvotes, 
+                count(distinct comment) AS comments,
                 u5 AS author,
                 CASE WHEN u3 IS NOT NULL THEN true ELSE false END AS hasUpvoted,
                 CASE WHEN u4 IS NOT NULL THEN true ELSE false END AS hasDownvoted
@@ -218,47 +226,72 @@ public class PostsRepository : IPostsRepository
             var hasDownvoted = bool.Parse(record["hasDownvoted"].As<string>());
             var author = _mapper.Map<User>(record["author"].As<INode>());
 
+            var forum = _mapper.Map<Forum>(record["forum"].As<INode>());
+
             return new PostVoting
             {
                 Post = post,
                 IsUpvoted = hasUpvoted,
                 IsDownvoted = hasDownvoted,
-                Author = author
+                Author = author,
+                Forum = forum
             };
         });
 
         return posts;
     }
 
-    public async Task<Post?> GetByIdAsync(Guid postId)
+    public async Task<PostVoting?> GetByIdAsync(Guid postId, UserDTO userDTO)
     {
         var query = @"
             MATCH (p:Post)
             WHERE p.id = $postId
             OPTIONAL MATCH (u1:User)-[upvote:UPVOTED_POST]->(p)
             OPTIONAL MATCH (u2:User)-[downvote:DOWNVOTED_POST]->(p)
-            RETURN p, count(upvote) AS upvotes, count(downvote) AS downvotes";
+            OPTIONAL MATCH (f:Forum)-[:HAS_POST]->(p)
+            OPTIONAL MATCH (u3:User)-[:POSTED]->(p)
+            OPTIONAL MATCH (c:Comment)-[:BELONGS_TO]->(p)
+            OPTIONAL MATCH (u4:User {id: $userId})-[:UPVOTED_POST]->(p)
+            OPTIONAL MATCH (u5:User {id: $userId})-[:DOWNVOTED_POST]->(p)
+            RETURN p, count(distinct upvote) AS upvotes, count(distinct downvote) AS downvotes, count(distinct c) AS comments, f AS forum,
+                u3 AS author,
+                CASE WHEN u4 IS NOT NULL THEN true ELSE false END AS hasUpvoted,
+                CASE WHEN u5 IS NOT NULL THEN true ELSE false END AS hasDownvoted";
 
-        var parameters = new Dictionary<string, object> { { "postId", postId.ToString() } };
-
-        try
+        var parameters = new Dictionary<string, object>
         {
+            { "postId", postId.ToString() },
+            { "userId", userDTO.Id }
+        };
+        
+        try {
             var resultCursor = await _graphDatabaseContext.RunAsync(query, parameters);
             var result = await resultCursor.SingleAsync();
 
             var post = _mapper.Map<Post>(result["p"].As<INode>());
             post.SetNumberOfUpvotes(result["upvotes"].As<int>());
             post.SetNumberOfDownvotes(result["downvotes"].As<int>());
+            post.SetNumberOfComments(result["comments"].As<int>());
 
-            return post;
-        }
-        catch
-        {
+            var hasUpvoted = bool.Parse(result["hasUpvoted"].As<string>());
+            var hasDownvoted = bool.Parse(result["hasDownvoted"].As<string>());
+            var author = _mapper.Map<User>(result["author"].As<INode>());
+            var forum = _mapper.Map<Forum>(result["forum"].As<INode>());
+
+            return new PostVoting
+            {
+                Post = post,
+                IsUpvoted = hasUpvoted,
+                IsDownvoted = hasDownvoted,
+                Author = author,
+                Forum = forum
+            };
+        } catch {
             return null;
         }
     }
 
-    public async Task<IEnumerable<ForumAndPosts>> GetMyForumsAndPostsAsync(User user)
+    public async Task<IEnumerable<ForumAndPosts>> GetMyForumsAndPostsAsync(UserDTO user)
     {
         var query = @"
             MATCH (u:User)-[:CREATED]->(f:Forum)-[:HAS_POST]->(p:Post)

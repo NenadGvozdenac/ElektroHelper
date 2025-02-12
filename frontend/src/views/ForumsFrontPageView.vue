@@ -35,7 +35,7 @@
                         </div>
 
                         <!-- Action Buttons -->
-                        <div class="flex items-center space-x-4">
+                        <div class="flex items-center space-x-4" v-if="user?.userRole == 'admin'">
                             <button
                                 class="px-4 py-2 bg-emerald-600 text-white rounded-full hover:bg-emerald-700 transition-colors font-medium">
                                 Create Post
@@ -52,105 +52,10 @@
                 <div class="flex-grow max-w-3xl">
                     <!-- Posts Feed -->
                     <div class="space-y-6">
-                        <!-- Individual Post -->
-                        <div v-for="post in filteredPosts" :key="post.id"
-                            class="bg-white rounded-xl shadow-sm hover:shadow-md transition-all border border-slate-200 group overflow-hidden">
-
-                            <!-- Post Header -->
-                            <div class="border-b border-slate-100 p-4">
-                                <div class="flex items-center space-x-3">
-                                    <div
-                                        class="w-10 h-10 rounded-full bg-gradient-to-br from-emerald-500 to-indigo-500 flex items-center justify-center text-white font-bold">
-                                        {{ post.author?.username?.[0]?.toUpperCase() ?? 'A' }}
-                                    </div>
-                                    <div class="flex-1">
-                                        <div class="flex items-center space-x-3">
-                                            <span class="font-medium text-slate-900">{{ post.author?.username }}</span>
-                                            <span class="text-sm text-slate-500">{{ formatDate(post.createdAt) }}</span>
-                                            <span v-if="post.isLocked"
-                                                class="px-2 py-0.5 rounded-full bg-amber-100 text-amber-600 text-xs font-medium flex items-center">
-                                                <LockIcon class="w-3 h-3 mr-1" />
-                                                Locked
-                                            </span>
-                                        </div>
-                                    </div>
-
-                                    <!-- Post Actions Dropdown -->
-                                    <button
-                                        class="p-1.5 hover:bg-slate-50 rounded-lg text-slate-400 hover:text-slate-600">
-                                        <MoreVertical class="w-5 h-5" />
-                                    </button>
-                                </div>
-                            </div>
-
-                            <!-- Post Content -->
-                            <div class="flex">
-                                <!-- Voting Section -->
-                                <div
-                                    class="py-4 px-2 flex flex-col items-center justify-start bg-slate-50 group-hover:bg-slate-100 transition-colors min-w-[60px]">
-                                    <button :class="[
-                                        'p-1.5 rounded-lg transition-all transform hover:scale-110',
-                                        post.isUpvoted
-                                            ? 'text-emerald-500 bg-emerald-50'
-                                            : 'text-slate-400 hover:text-emerald-500 hover:bg-emerald-50'
-                                    ]" @click="!post.isUpvoted ? upvotePost(post.id) : deleteUpvotePost(post.id)">
-                                        <ArrowBigUp class="w-6 h-6" />
-                                    </button>
-
-                                    <span class="text-sm font-medium my-1" :class="{
-                                        'text-emerald-500': post.numberOfUpvotes - post.numberOfDownvotes > 0,
-                                        'text-red-500': post.numberOfUpvotes - post.numberOfDownvotes < 0,
-                                        'text-slate-600': post.numberOfUpvotes - post.numberOfDownvotes === 0
-                                    }">
-                                        {{ post.numberOfUpvotes - post.numberOfDownvotes }}
-                                    </span>
-
-                                    <button :class="[
-                                        'p-1.5 rounded-lg transition-all transform hover:scale-110',
-                                        post.isDownvoted
-                                            ? 'text-red-500 bg-red-50'
-                                            : 'text-slate-400 hover:text-red-500 hover:bg-red-50'
-                                    ]"
-                                        @click="!post.isDownvoted ? downvotePost(post.id) : deleteDownvotePost(post.id)">
-                                        <ArrowBigDown class="w-6 h-6" />
-                                    </button>
-                                </div>
-
-                                <!-- Main Content -->
-                                <div class="p-4 flex-grow">
-                                    <h2 @click="navigateToPost(post.id)"
-                                        class="text-xl font-semibold text-slate-900 group-hover:text-emerald-600 transition-colors cursor-pointer">
-                                        {{ post.title }}
-                                    </h2>
-
-                                    <!-- Post Preview -->
-                                    <div class="mt-3 prose-sm text-slate-600 leading-relaxed line-clamp-3">
-                                        {{ post.content }}
-                                    </div>
-
-                                    <!-- Post Footer -->
-                                    <div class="flex items-center space-x-6 mt-4">
-                                        <button @click="navigateToPost(post.id)"
-                                            class="flex items-center space-x-2 text-slate-500 hover:text-emerald-600 hover:bg-emerald-50 rounded-full px-4 py-1.5 transition-colors text-sm">
-                                            <MessageSquare class="w-4 h-4" />
-                                            <span>{{ post.numberOfComments ?? 0 }} Comments</span>
-                                        </button>
-
-                                        <button
-                                            class="flex items-center space-x-2 text-slate-500 hover:text-emerald-600 hover:bg-emerald-50 rounded-full px-4 py-1.5 transition-colors text-sm">
-                                            <Bookmark class="w-4 h-4" />
-                                            <span>Save</span>
-                                        </button>
-
-                                        <button @click="copyToClipboard(post.id)"
-                                            class="flex items-center space-x-2 text-slate-500 hover:text-emerald-600 hover:bg-emerald-50 rounded-full px-4 py-1.5 transition-colors text-sm">
-                                            <Share2 class="w-4 h-4" />
-                                            <span>Share</span>
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+                        <PostItem v-for="post in filteredPosts" :key="post.id" :post="post"
+                            @navigate-to-forum="navigateToForum" @navigate-to-post="navigateToPost" @upvote="upvotePost"
+                            @downvote="downvotePost" @delete-upvote="deleteUpvotePost"
+                            @delete-downvote="deleteDownvotePost" @copy-to-clipboard="copyToClipboard" />
 
                         <!-- Loading State -->
                         <div v-if="loading" class="flex justify-center py-8">
@@ -211,25 +116,20 @@
 import { ref, computed, onMounted, onUnmounted } from 'vue';
 import {
     SearchIcon,
-    MessageSquare,
     MessageCircle,
-    Share2,
-    ArrowBigUp,
-    ArrowBigDown,
-    LockIcon,
     ShieldAlertIcon,
-    MoreVertical,
-    Bookmark,
-    CheckCircle
-} from 'lucide-vue-next';
+    CheckCircle} from 'lucide-vue-next';
 import { ForumService } from '@/app/services/forum_backend/forum_service';
 import { PostService } from '@/app/services/forum_backend/post_service';
 import { VotingService } from '@/app/services/forum_backend/voting_service';
-import { getAccessToken } from '@/app/services/backend/auth_service';
+import { getAccessToken, getUserData } from '@/app/services/backend/auth_service';
 import type { Forum } from '@/app/models/forum_backend/Forum';
 import type { Post } from '@/app/models/forum_backend/Post';
 import { goToForum, goToHome, goToLoginScreen, goToPost } from '@/app/routes';
 import ToastNotification from '@/components/forums/ToastNotification.vue';
+import type { UserData } from '@/app/models/backend/user';
+
+import PostItem from '@/components/forums/PostItem.vue';
 
 const forums = ref<Forum[]>([]);
 const posts = ref<Post[]>([]);
@@ -240,6 +140,7 @@ const loading = ref(false);
 const hasMore = ref(true);
 
 const toastRef = ref();
+const user = ref<UserData | null>();
 
 onMounted(async () => {
     const jwt = await getAccessToken();
@@ -251,6 +152,8 @@ onMounted(async () => {
     await fetchInitialPosts(jwt);
     forums.value = await ForumService.getForums(jwt);
     window.addEventListener('scroll', handleScroll);
+
+    user.value = await getUserData()
 });
 
 onUnmounted(() => {

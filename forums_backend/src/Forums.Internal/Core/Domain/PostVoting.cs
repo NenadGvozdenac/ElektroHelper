@@ -5,6 +5,6 @@ public class PostVoting {
     public bool IsUpvoted { get; set; }
     public bool IsDownvoted { get; set; }
     public User Author { get; set; } = new();
-
+    public Forum Forum { get; set; } = new();
     public PostVoting() {}
 }

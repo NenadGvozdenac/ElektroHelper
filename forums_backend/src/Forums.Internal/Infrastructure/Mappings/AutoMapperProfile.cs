@@ -12,7 +12,10 @@ public class AutoMapperProfile : Profile
     public AutoMapperProfile()
     {
         // Basic mappings
-        CreateMap<Comment, CommentDTO>();
+        CreateMap<Comment, CommentDTO>()
+            .ForMember(dest => dest.NumberOfUpvotes, opt => opt.MapFrom(src => src.NumberOfUpvotes))
+            .ForMember(dest => dest.NumberOfDownvotes, opt => opt.MapFrom(src => src.NumberOfDownvotes));
+            
         CreateMap<Post, PostDTO>();
         
         CreateMap<PostVoting, PostDTO>()
@@ -27,11 +30,21 @@ public class AutoMapperProfile : Profile
             .ForMember(dest => dest.NumberOfComments, opt => opt.MapFrom(src => src.Post.NumberOfComments))
             .ForMember(dest => dest.IsUpvoted, opt => opt.MapFrom(src => src.IsUpvoted))
             .ForMember(dest => dest.IsDownvoted, opt => opt.MapFrom(src => src.IsDownvoted))
-            .ForMember(dest => dest.Author, opt => opt.MapFrom(src => new UserDTO(src.Author.Id, src.Author.Email, src.Author.Role, src.Author.Username)));
+            .ForMember(dest => dest.Author, opt => opt.MapFrom(src => new UserDTO(src.Author.Id, src.Author.Email, src.Author.Role, src.Author.Username)))
+            .ForMember(dest => dest.Forum, opt => opt.MapFrom(src => new ForumDTO {
+                Id = src.Forum.Id,
+                Name = src.Forum.Name,
+                Description = src.Forum.Description
+            }));
             
         CreateMap<User, UserDTO>();
         CreateMap<User, UserResponseDTO>();
         CreateMap<Forum, ForumDTO>();
+
+        CreateMap<CommentAndVoting, CommentAndVotingDTO>()
+            .ForMember(dest => dest.Comment, opt => opt.MapFrom(src => src.Comment))
+            .ForMember(dest => dest.IsUpvoted, opt => opt.MapFrom(src => src.IsUpvoted))
+            .ForMember(dest => dest.IsDownvoted, opt => opt.MapFrom(src => src.IsDownvoted));
 
         // Reusable user DTO mapping
         CreateMap<User, UserDTO>()

@@ -1,3 +1,5 @@
+using forums_backend.src.Forums.Internal.API.DTOs.Comments;
+using forums_backend.src.Forums.Internal.API.DTOs.Forums;
 using forums_backend.src.Forums.Internal.API.DTOs.Users;
 
 namespace forums_backend.src.Forums.Internal.API.DTOs.Posts;
@@ -16,5 +18,6 @@ public class PostDTO
     public bool IsUpvoted { get; set; }
     public bool IsDownvoted { get; set; }
     public UserDTO Author { get; set; } = null!;
+    public ForumDTO Forum { get; set; } = null!;
     public PostDTO() { }
 }

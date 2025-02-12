@@ -25,8 +25,8 @@ public class CommentsController : BaseController {
     }
 
     [HttpGet("{postId}")]
-    public async Task<ActionResult<Result<PostAndCommentsDTO>>> GetPostAndItsCommentsAsync(Guid postId) {
-        var comments = await _commentsService.GetPostAndItsCommentsAsync(postId);
+    public async Task<ActionResult<Result<List<CommentAndVotingDTO>>>> GetPostAndItsCommentsAsync(Guid postId) {
+        var comments = await _commentsService.GetCommentsForPost(postId, this.GetUser());
         return CreateResponse(comments);
     }
 

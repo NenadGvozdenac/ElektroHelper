@@ -31,7 +31,7 @@ public class CommentsService : ICommentsService
 
         User user = new(userDTO.Id, userDTO.Email, userDTO.Role, userDTO.Username);
 
-        Post? post = await _postsRepository.GetByIdAsync(createCommentDTO.PostId);
+        PostVoting? post = await _postsRepository.GetByIdAsync(createCommentDTO.PostId, userDTO);
 
         if (post == null)
         {
@@ -44,26 +44,13 @@ public class CommentsService : ICommentsService
 
         return Result<CommentDTO>.Success(commentDTO);
     }
+    
+    public async Task<Result<IEnumerable<CommentAndVotingDTO>>> GetCommentsForPost(Guid postId, UserDTO userDTO) {
+        var comments = await _commentsRepository.GetCommentsForPost(postId, userDTO);
 
-    public async Task<Result<PostAndCommentsDTO>> GetPostAndItsCommentsAsync(Guid postId)
-    {
-        var postAndComments = await _commentsRepository.GetPostAndItsCommentsAsync(postId);
+        var commentDTOs = _mapper.Map<IEnumerable<CommentAndVotingDTO>>(comments);
 
-        if (postAndComments == null)
-        {
-            return Result<PostAndCommentsDTO>.Failure("Post not found!").WithCode(404);
-        }
-
-        PostDTO postDto = _mapper.Map<PostDTO>(postAndComments.Post);
-
-        List<CommentWithUserAndUpvotesDTO> comments = postAndComments.Comments.Select(c => _mapper.Map<CommentWithUserAndUpvotesDTO>(c)).ToList();
-
-        List<UserDTO> upvoters = postAndComments.Upvoters.Select(u => new UserDTO(u.User.Id, u.User.Email, u.User.Role, u.User.Username)).ToList();
-        List<UserDTO> downvoters = postAndComments.Downvoters.Select(u => new UserDTO(u.User.Id, u.User.Email, u.User.Role, u.User.Username)).ToList();
-        UserDTO originalPoster = new UserDTO(postAndComments.Creator.Id, postAndComments.Creator.Email, postAndComments.Creator.Role, postAndComments.Creator.Username);
-
-        PostAndCommentsDTO postAndCommentsDto = new PostAndCommentsDTO(postDto, comments, upvoters, downvoters, originalPoster);
-        return Result<PostAndCommentsDTO>.Success(postAndCommentsDto);
+        return Result<IEnumerable<CommentAndVotingDTO>>.Success(commentDTOs);
     }
 
     public async Task<Result<IEnumerable<CommentDTO>>> GetMyCommentsAsync(UserDTO userDTO)

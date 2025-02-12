@@ -159,28 +159,35 @@
 
                             <!-- Post Header -->
                             <div class="border-b border-slate-100 p-4">
-                                <div class="flex items-center space-x-3">
-                                    <div
-                                        class="w-10 h-10 rounded-full bg-gradient-to-br from-emerald-500 to-indigo-500 flex items-center justify-center text-white font-bold">
-                                        {{ post.author?.username?.[0]?.toUpperCase() ?? 'A' }}
-                                    </div>
-                                    <div class="flex-1">
-                                        <div class="flex items-center space-x-3">
-                                            <span class="font-medium text-slate-900">{{ post.author?.username }}</span>
-                                            <span class="text-sm text-slate-500">{{ formatDate(post.createdAt) }}</span>
-                                            <span v-if="post.isLocked"
-                                                class="px-2 py-0.5 rounded-full bg-amber-100 text-amber-600 text-xs font-medium flex items-center">
-                                                <LockIcon class="w-3 h-3 mr-1" />
-                                                Locked
-                                            </span>
+                                <div class="flex items-center justify-between">
+                                    <!-- Left side with author info -->
+                                    <div class="flex items-center space-x-3">
+                                        <div
+                                            class="w-10 h-10 rounded-full bg-gradient-to-br from-emerald-500 to-indigo-500 flex items-center justify-center text-white font-bold">
+                                            {{ post.author?.username?.[0]?.toUpperCase() ?? 'A' }}
+                                        </div>
+                                        <div class="flex-1">
+                                            <div class="flex items-center space-x-3">
+                                                <span class="font-medium text-slate-900">{{ post.author?.username
+                                                    }}</span>
+                                                <span class="text-sm text-slate-500">{{ formatDate(post.createdAt)
+                                                    }}</span>
+                                                <span v-if="post.isLocked"
+                                                    class="px-2 py-0.5 rounded-full bg-amber-100 text-amber-600 text-xs font-medium flex items-center">
+                                                    <LockIcon class="w-3 h-3 mr-1" />
+                                                    Locked
+                                                </span>
+                                            </div>
                                         </div>
                                     </div>
 
-                                    <!-- Post Actions Dropdown -->
-                                    <button
-                                        class="p-1.5 hover:bg-slate-50 rounded-lg text-slate-400 hover:text-slate-600">
-                                        <MoreVertical class="w-5 h-5" />
-                                    </button>
+                                    <!-- Right side with forum name and actions -->
+                                    <div class="flex items-center space-x-3">
+                                        <button
+                                            class="p-1.5 hover:bg-slate-50 rounded-lg text-slate-400 hover:text-slate-600">
+                                            <MoreVertical class="w-5 h-5" />
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
 
@@ -465,6 +472,8 @@ async function upvotePost(postId: string) {
         post.isDownvoted = false;
         post.numberOfDownvotes--;
     }
+
+    toastRef.value.showToast('Post upvoted!');
 }
 
 async function downvotePost(postId: string) {
@@ -487,6 +496,8 @@ async function downvotePost(postId: string) {
         post.isUpvoted = false;
         post.numberOfUpvotes--;
     }
+
+    toastRef.value.showToast('Post downvoted!');
 }
 
 async function deleteUpvotePost(postId: string) {
@@ -506,6 +517,8 @@ async function deleteUpvotePost(postId: string) {
     post.isUpvoted = false;
 
     post.isDownvoted = false;
+
+    toastRef.value.showToast('Upvote removed!');
 }
 
 async function deleteDownvotePost(postId: string) {
@@ -525,6 +538,8 @@ async function deleteDownvotePost(postId: string) {
     post.isDownvoted = false;
 
     post.isUpvoted = false;
+
+    toastRef.value.showToast('Downvote removed!');
 }
 
 function navigateToPost(postId: string) {
@@ -553,6 +568,8 @@ async function handleCreatePost(data: CreatePost) {
 
     await PostService.createPost(jwt, data);
     goToForum(forumId.value);
+
+    showNotification('Post created successfully!');
 }
 
 
@@ -565,5 +582,9 @@ async function copyToClipboard(postId: string) {
         console.error('Failed to copy:', err);
         toastRef.value.showToast('Failed to copy link!');
     }
+}
+
+function showNotification(message: string) {
+    toastRef.value.showToast(message);
 }
 </script>

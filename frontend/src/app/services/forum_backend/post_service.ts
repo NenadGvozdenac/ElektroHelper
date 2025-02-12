@@ -33,7 +33,7 @@ export class PostService {
 
     static async getForumPostsPaged(jwt: string, forumId: string, page: number, pageSize: number): Promise<Post[]> {
         try {
-            const request = await authenticatedRequest(jwt).get(`${FORUM_URL}/posts/${forumId}`,
+            const request = await authenticatedRequest(jwt).get(`${FORUM_URL}/posts/forum/${forumId}`,
                 {
                     params: {
                         page: page,
@@ -41,6 +41,17 @@ export class PostService {
                     }
                 });
             const response = request.data as Response<Post[]>;
+            return response.value;
+        } catch (error) {
+            console.error(error);
+            throw error;
+        }
+    }
+
+    static async getPost(jwt: string, postId: string): Promise<Post> {
+        try {
+            const request = await authenticatedRequest(jwt).get(`${FORUM_URL}/posts/${postId}`);
+            const response = request.data as Response<Post>;
             return response.value;
         } catch (error) {
             console.error(error);

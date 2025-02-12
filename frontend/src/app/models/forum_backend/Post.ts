@@ -14,6 +14,10 @@ export interface Post {
         id: string;
         username: string;
     }
+    forum: {
+        id: string;
+        name: string;
+    }
 }
 
 export interface CreatePost {

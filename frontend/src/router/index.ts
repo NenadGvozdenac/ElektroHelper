@@ -4,6 +4,7 @@ import DashboardView from '@/views/DashboardView.vue'
 import LoginView from '@/views/LoginView.vue'
 import ForumsFrontPageView from '@/views/ForumsFrontPageView.vue'
 import ForumView from '@/views/ForumView.vue'
+import PostView from '@/views/PostView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -32,6 +33,11 @@ const router = createRouter({
       path: '/forums/:forumId',
       name: 'forum',
       component: ForumView,
+    },
+    {
+      path: '/posts/:postId',
+      name: 'post',
+      component: PostView
     }
   ],
 })

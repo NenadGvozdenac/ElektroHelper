@@ -31,8 +31,6 @@ public class PostsService : IPostsService
             CreatedAt = DateTime.UtcNow
         };
 
-        User user = new(userDTO.Id, userDTO.Email, userDTO.Role, userDTO.Username);
-
         Forum? forum = await _forumsRepository.GetByIdAsync(createPostDTO.ForumId);
 
         if (forum == null)
@@ -40,7 +38,7 @@ public class PostsService : IPostsService
             return Result<PostDTO>.Failure("Forum not found").WithCode(404);
         }
 
-        Post? addedPost = await _postsRepository.AddAsync(post, createPostDTO.ForumId, user);
+        Post? addedPost = await _postsRepository.AddAsync(post, createPostDTO.ForumId, userDTO);
 
         if (addedPost == null)
         {
@@ -54,9 +52,7 @@ public class PostsService : IPostsService
 
     public async Task<Result<IEnumerable<ForumAndPostsDTO>>> GetMyPostsAsync(UserDTO userDTO)
     {
-        User user = new(userDTO.Id, userDTO.Email, userDTO.Role, userDTO.Username);
-
-        var forumsAndPosts = await _postsRepository.GetMyForumsAndPostsAsync(user);
+        var forumsAndPosts = await _postsRepository.GetMyForumsAndPostsAsync(userDTO);
 
         var forumAndPostsDTOs = forumsAndPosts.Select(forumAndPosts => new ForumAndPostsDTO(
             forumAndPosts.Forum.Id,
@@ -66,6 +62,20 @@ public class PostsService : IPostsService
             forumAndPosts.Posts.Select(post => _mapper.Map<PostDTO>(post))));
 
         return Result<IEnumerable<ForumAndPostsDTO>>.Success(forumAndPostsDTOs);
+    }
+
+    public async Task<Result<PostDTO>> GetPostByIdAsync(Guid postId, UserDTO userDTO)
+    {
+        var post = await _postsRepository.GetByIdAsync(postId, userDTO);
+
+        if (post == null)
+        {
+            return Result<PostDTO>.Failure("Post not found").WithCode(404);
+        }
+
+        var postDTO = _mapper.Map<PostDTO>(post);
+
+        return Result<PostDTO>.Success(postDTO);
     }
 
     public async Task<Result<IEnumerable<PostDTO>>> GetPostsAsync()
