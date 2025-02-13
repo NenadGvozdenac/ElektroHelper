@@ -206,11 +206,11 @@
                                     </button>
 
                                     <span class="text-sm font-medium my-1" :class="{
-                                        'text-emerald-500': post.numberOfUpvotes - post.numberOfDownvotes > 0,
-                                        'text-red-500': post.numberOfUpvotes - post.numberOfDownvotes < 0,
-                                        'text-slate-600': post.numberOfUpvotes - post.numberOfDownvotes === 0
+                                        'text-emerald-500': post.upvotes - post.downvotes > 0,
+                                        'text-red-500': post.upvotes - post.downvotes < 0,
+                                        'text-slate-600': post.upvotes - post.downvotes === 0
                                     }">
-                                        {{ post.numberOfUpvotes - post.numberOfDownvotes }}
+                                        {{ post.upvotes - post.downvotes }}
                                     </span>
 
                                     <button :class="[
@@ -241,7 +241,7 @@
                                         <button @click="navigateToPost(post.id)"
                                             class="flex items-center space-x-2 text-slate-500 hover:text-emerald-600 hover:bg-emerald-50 rounded-full px-4 py-1.5 transition-colors text-sm">
                                             <MessageSquare class="w-4 h-4" />
-                                            <span>{{ post.numberOfComments ?? 0 }} Comments</span>
+                                            <span>{{ post.comments ?? 0 }} Comments</span>
                                         </button>
 
                                         <button
@@ -465,12 +465,12 @@ async function upvotePost(postId: string) {
 
     if (post == undefined) return;
 
-    post.numberOfUpvotes++;
+    post.upvotes++;
     post.isUpvoted = true;
 
     if (post.isDownvoted) {
         post.isDownvoted = false;
-        post.numberOfDownvotes--;
+        post.downvotes--;
     }
 
     toastRef.value.showToast('Post upvoted!');
@@ -489,12 +489,12 @@ async function downvotePost(postId: string) {
 
     if (post == undefined) return;
 
-    post.numberOfDownvotes++;
+    post.downvotes++;
     post.isDownvoted = true;
 
     if (post.isUpvoted) {
         post.isUpvoted = false;
-        post.numberOfUpvotes--;
+        post.upvotes--;
     }
 
     toastRef.value.showToast('Post downvoted!');
@@ -513,7 +513,7 @@ async function deleteUpvotePost(postId: string) {
 
     if (post == undefined) return;
 
-    post.numberOfUpvotes--;
+    post.upvotes--;
     post.isUpvoted = false;
 
     post.isDownvoted = false;
@@ -534,7 +534,7 @@ async function deleteDownvotePost(postId: string) {
 
     if (post == undefined) return;
 
-    post.numberOfDownvotes--;
+    post.downvotes--;
     post.isDownvoted = false;
 
     post.isUpvoted = false;

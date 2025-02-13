@@ -11,11 +11,11 @@
         </button>
 
         <span class="text-sm font-medium my-1" :class="{
-            'text-emerald-500': post.numberOfUpvotes - post.numberOfDownvotes > 0,
-            'text-red-500': post.numberOfUpvotes - post.numberOfDownvotes < 0,
-            'text-slate-600': post.numberOfUpvotes - post.numberOfDownvotes === 0
+            'text-emerald-500': post.upvotes - post.downvotes > 0,
+            'text-red-500': post.upvotes - post.downvotes < 0,
+            'text-slate-600': post.upvotes - post.downvotes === 0
         }">
-            {{ post.numberOfUpvotes - post.numberOfDownvotes }}
+            {{ post.upvotes - post.downvotes }}
         </span>
 
         <button :class="[

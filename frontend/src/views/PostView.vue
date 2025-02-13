@@ -72,11 +72,11 @@
                             </button>
 
                             <span class="text-sm font-medium my-1" :class="{
-                                'text-emerald-500': (post?.numberOfUpvotes ?? 0) - (post?.numberOfDownvotes ?? 0) > 0,
-                                'text-red-500': (post?.numberOfUpvotes ?? 0) - (post?.numberOfDownvotes ?? 0) < 0,
-                                'text-slate-600': (post?.numberOfUpvotes ?? 0) - (post?.numberOfDownvotes ?? 0) === 0
+                                'text-emerald-500': (post?.upvotes ?? 0) - (post?.downvotes ?? 0) > 0,
+                                'text-red-500': (post?.upvotes ?? 0) - (post?.downvotes ?? 0) < 0,
+                                'text-slate-600': (post?.upvotes ?? 0) - (post?.downvotes ?? 0) === 0
                             }">
-                                {{ (post?.numberOfUpvotes ?? 0) - (post?.numberOfDownvotes ?? 0) }}
+                                {{ (post?.upvotes ?? 0) - (post?.downvotes ?? 0) }}
                             </span>
 
                             <button :class="[
@@ -118,7 +118,7 @@
 
                     <!-- Comments List -->
                     <div class="space-y-4">
-                        <div v-for="comment in comments" :key="comment.comment.id"
+                        <div v-for="comment in comments" :key="comment.id"
                             class="bg-white rounded-xl shadow-sm border border-slate-200">
                             <!-- Comment Content -->
                             <div class="flex">
@@ -131,16 +131,16 @@
                                             ? 'text-emerald-500 bg-emerald-50'
                                             : 'text-slate-400 hover:text-emerald-500 hover:bg-emerald-50'
                                     ]"
-                                        @click="!comment.isUpvoted ? upvoteComment(comment.comment.id) : deleteUpvoteComment(comment.comment.id)">
+                                        @click="!comment.isUpvoted ? upvoteComment(comment.id) : deleteUpvoteComment(comment.id)">
                                         <ArrowBigUp class="w-5 h-5" />
                                     </button>
 
                                     <span class="text-sm font-medium my-1" :class="{
-                                        'text-emerald-500': comment.comment.numberOfUpvotes - comment.comment.numberOfDownvotes > 0,
-                                        'text-red-500': comment.comment.numberOfUpvotes - comment.comment.numberOfDownvotes < 0,
-                                        'text-slate-600': comment.comment.numberOfUpvotes - comment.comment.numberOfDownvotes === 0
+                                        'text-emerald-500': comment.upvotes - comment.downvotes > 0,
+                                        'text-red-500': comment.upvotes - comment.downvotes < 0,
+                                        'text-slate-600': comment.upvotes - comment.downvotes === 0
                                     }">
-                                        {{ comment.comment.numberOfUpvotes - comment.comment.numberOfDownvotes }}
+                                        {{ comment.upvotes - comment.downvotes }}
                                     </span>
 
                                     <button :class="[
@@ -149,7 +149,7 @@
                                             ? 'text-red-500 bg-red-50'
                                             : 'text-slate-400 hover:text-red-500 hover:bg-red-50'
                                     ]"
-                                        @click="!comment.isDownvoted ? downvoteComment(comment.comment.id) : deleteDownvoteComment(comment.comment.id)">
+                                        @click="!comment.isDownvoted ? downvoteComment(comment.id) : deleteDownvoteComment(comment.id)">
                                         <ArrowBigDown class="w-5 h-5" />
                                     </button>
                                 </div>
@@ -165,11 +165,11 @@
                                             <span class="font-medium text-slate-900">{{ comment.author.username
                                                 }}</span>
                                             <span class="text-sm text-slate-500 ml-2">{{
-                                                formatDate(comment.comment.createdAt) }}</span>
+                                                formatDate(comment.createdAt) }}</span>
                                         </div>
                                     </div>
                                     <div class="text-slate-700 pl-11">
-                                        {{ comment.comment.content }}
+                                        {{ comment.content }}
                                     </div>
                                 </div>
                             </div>
@@ -242,7 +242,7 @@ async function fetchPost(jwt: string) {
 async function fetchComments(jwt: string) {
     try {
         let postComments = await CommentService.getPostComments(jwt, postId.value);
-        comments.value = postComments.sort((a, b) => b.comment.createdAt.localeCompare(a.comment.createdAt));
+        comments.value = postComments.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
     } catch (error) {
         console.error('Error fetching comments:', error);
     }
@@ -283,12 +283,12 @@ async function upvotePost() {
     if (!jwt || !post.value) return;
 
     await VotingService.upvotePost(jwt, post.value.id);
-    post.value.numberOfUpvotes++;
+    post.value.upvotes++;
     post.value.isUpvoted = true;
 
     if (post.value.isDownvoted) {
         post.value.isDownvoted = false;
-        post.value.numberOfDownvotes--;
+        post.value.downvotes--;
     }
 
     showNotification('Upvoted post!');
@@ -299,12 +299,12 @@ async function downvotePost() {
     if (!jwt || !post.value) return;
 
     await VotingService.downvotePost(jwt, post.value.id);
-    post.value.numberOfDownvotes++;
+    post.value.downvotes++;
     post.value.isDownvoted = true;
 
     if (post.value.isUpvoted) {
         post.value.isUpvoted = false;
-        post.value.numberOfUpvotes--;
+        post.value.upvotes--;
     }
 
     showNotification('Downvoted post!');
@@ -315,7 +315,7 @@ async function deleteUpvotePost() {
     if (!jwt || !post.value) return;
 
     await VotingService.deleteUpvotePost(jwt, post.value.id);
-    post.value.numberOfUpvotes--;
+    post.value.upvotes--;
     post.value.isUpvoted = false;
 
     showNotification('Removed upvote from post!');
@@ -326,7 +326,7 @@ async function deleteDownvotePost() {
     if (!jwt || !post.value) return;
 
     await VotingService.deleteDownvotePost(jwt, post.value.id);
-    post.value.numberOfDownvotes--;
+    post.value.downvotes--;
     post.value.isDownvoted = false;
 
     showNotification('Removed downvote from post!');
@@ -353,15 +353,15 @@ async function upvoteComment(commentId: string) {
 
     await VotingService.upvoteComment(jwt, commentId);
 
-    const comment = comments.value.find(c => c.comment.id === commentId);
+    const comment = comments.value.find(c => c.id === commentId);
     if (!comment) return;
 
-    comment.comment.numberOfUpvotes++;
+    comment.upvotes++;
     comment.isUpvoted = true;
 
     if (comment.isDownvoted) {
         comment.isDownvoted = false;
-        comment.comment.numberOfDownvotes--;
+        comment.downvotes--;
     }
 
     showNotification('Upvoted comment!');
@@ -373,15 +373,15 @@ async function downvoteComment(commentId: string) {
 
     await VotingService.downvoteComment(jwt, commentId);
 
-    const comment = comments.value.find(c => c.comment.id === commentId);
+    const comment = comments.value.find(c => c.id === commentId);
     if (!comment) return;
 
-    comment.comment.numberOfDownvotes++;
+    comment.downvotes++;
     comment.isDownvoted = true;
 
     if (comment.isUpvoted) {
         comment.isUpvoted = false;
-        comment.comment.numberOfUpvotes--;
+        comment.upvotes--;
     }
 
     showNotification('Downvoted comment!');
@@ -393,10 +393,10 @@ async function deleteUpvoteComment(commentId: string) {
 
     await VotingService.deleteUpvoteComment(jwt, commentId);
 
-    const comment = comments.value.find(c => c.comment.id === commentId);
+    const comment = comments.value.find(c => c.id === commentId);
     if (!comment) return;
 
-    comment.comment.numberOfUpvotes--;
+    comment.upvotes--;
     comment.isUpvoted = false;
 
     showNotification('Removed upvote from comment!');
@@ -408,10 +408,10 @@ async function deleteDownvoteComment(commentId: string) {
 
     await VotingService.deleteDownvoteComment(jwt, commentId);
 
-    const comment = comments.value.find(c => c.comment.id === commentId);
+    const comment = comments.value.find(c => c.id === commentId);
     if (!comment) return;
 
-    comment.comment.numberOfDownvotes--;
+    comment.downvotes--;
     comment.isDownvoted = false;
 
     showNotification('Removed downvote from comment!');

@@ -45,9 +45,9 @@ public class GetCommentsForPostHandler(IGraphDatabaseContext context) : IRequest
                     comment["content"].As<string>(),
                     new AuthorDTO(
                         author["id"].As<string>(),
+                        author["username"].As<string>(),
                         author["email"].As<string>(),
-                        author["role"].As<string>(),
-                        author["username"].As<string>()
+                        author["role"].As<string>()
                     ),
                     comment["createdAt"].As<string>().FromNeo4jDateTime(),
                     upvotes,

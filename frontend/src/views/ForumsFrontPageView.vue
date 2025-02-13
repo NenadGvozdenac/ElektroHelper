@@ -223,12 +223,12 @@ async function upvotePost(postId: string) {
 
     if (post == undefined) return;
 
-    post.numberOfUpvotes++;
+    post.upvotes++;
     post.isUpvoted = true;
 
     if (post.isDownvoted) {
         post.isDownvoted = false;
-        post.numberOfDownvotes--;
+        post.downvotes--;
     }
 
 }
@@ -246,12 +246,12 @@ async function downvotePost(postId: string) {
 
     if (post == undefined) return;
 
-    post.numberOfDownvotes++;
+    post.downvotes++;
     post.isDownvoted = true;
 
     if (post.isUpvoted) {
         post.isUpvoted = false;
-        post.numberOfUpvotes--;
+        post.upvotes--;
     }
 }
 
@@ -268,7 +268,7 @@ async function deleteUpvotePost(postId: string) {
 
     if (post == undefined) return;
 
-    post.numberOfUpvotes--;
+    post.upvotes--;
     post.isUpvoted = false;
 
     post.isDownvoted = false;
@@ -287,7 +287,7 @@ async function deleteDownvotePost(postId: string) {
 
     if (post == undefined) return;
 
-    post.numberOfDownvotes--;
+    post.downvotes--;
     post.isDownvoted = false;
 
     post.isUpvoted = false;

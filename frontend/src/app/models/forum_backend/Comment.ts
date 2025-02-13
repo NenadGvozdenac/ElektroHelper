@@ -1,20 +1,18 @@
 export interface Comment {
-    comment: CommentData;
+    id: string;
+    content: string;
     isUpvoted: boolean;
     isDownvoted: boolean;
+    isDeleted: string;
     author: {
         id: string;
         username: string;
+        email: string;
+        role: string;
     }
-}
-
-interface CommentData {
-    id: string;
-    content: string;
     createdAt: string;
-    isDeleted: boolean;
-    numberOfUpvotes: number;
-    numberOfDownvotes: number;
+    upvotes: number;
+    downvotes: number;
 }
 
 export interface CreateComment {

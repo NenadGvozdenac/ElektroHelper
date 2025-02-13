@@ -5,11 +5,11 @@ export interface Post {
     createdAt: string;
     isDeleted: boolean;
     isLocked: boolean;
-    numberOfUpvotes: number;
-    numberOfDownvotes: number;
+    upvotes: number;
+    downvotes: number;
     isUpvoted: boolean;
     isDownvoted: boolean;
-    numberOfComments: number;
+    comments: number;
     author: {
         id: string;
         username: string;
