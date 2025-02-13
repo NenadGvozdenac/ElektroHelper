@@ -1,3 +1,5 @@
 *.exe
 *.env
 .vs
+
+dataProtectionKeys

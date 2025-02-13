@@ -1,8 +1,13 @@
+using forums_backend.src.Forums.Application.Features.Posts.CreatePost;
+using forums_backend.src.Forums.Application.Features.Posts.GetAllPosts;
+using forums_backend.src.Forums.Application.Features.Posts.GetAllPostsPaged;
+using forums_backend.src.Forums.Application.Features.Posts.GetMyPosts;
+using forums_backend.src.Forums.Application.Features.Posts.GetPostById;
+using forums_backend.src.Forums.Application.Features.Posts.GetPostsByForumId;
+using forums_backend.src.Forums.Application.Features.Posts.GetPostsByForumIdPaged;
 using forums_backend.src.Forums.BuildingBlocks.Core.Domain;
 using forums_backend.src.Forums.BuildingBlocks.Infrastructure;
-using forums_backend.src.Forums.Internal.API.DTOs.Forums;
-using forums_backend.src.Forums.Internal.API.DTOs.Posts;
-using forums_backend.src.Forums.Internal.API.Public;
+using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -11,52 +16,57 @@ namespace forums_backend.src.Forums.API.Controllers.Posts;
 [ApiController]
 [Route("api/posts")]
 [Authorize]
-public class PostsController : BaseController
+public class PostsController(IMediator mediator) : BaseController
 {
-    private readonly IPostsService _forumsService;
-
-    public PostsController(IPostsService forumsService)
-    {
-        _forumsService = forumsService;
-    }
 
     [HttpGet]
-    public async Task<ActionResult<Result<List<PostDTO>>>> GetAllPostsAsync([FromQuery] int? page = null, [FromQuery] int? pageSize = null)
+    public async Task<ActionResult<Result>> GetAllPostsAsync([FromQuery] int? page = null, [FromQuery] int? pageSize = null)
     {
-        var posts = page.HasValue && pageSize.HasValue
-            ? await _forumsService.GetPostsAsync(page.Value, pageSize.Value, this.GetUser())
-            : await _forumsService.GetPostsAsync();
-
-        return CreateResponse(posts);
+        if(page.HasValue && pageSize.HasValue)
+        {
+            var posts = await mediator.Send(new GetAllPostsPagedQuery(this.GetUser(), page.Value, pageSize.Value));
+            return CreateResponse(posts);
+        }
+        else
+        {
+            var posts = await mediator.Send(new GetAllPostsQuery(this.GetUser()));
+            return CreateResponse(posts);
+        }
     }
 
     [HttpPost]
-    public async Task<ActionResult<Result<PostDTO>>> CreatePostAsync(CreatePostDTO createPostDTO)
+    public async Task<ActionResult<Result>> CreatePostAsync(CreatePostDTO createPostDTO)
     {
-        var post = await _forumsService.CreatePostAsync(createPostDTO, this.GetUser());
+        var post = await mediator.Send(new CreatePostCommand(createPostDTO, this.GetUser()));
         return CreateResponse(post);
     }
 
     [HttpGet("forum/{forumId}")]
-    public async Task<ActionResult<Result<List<PostDTO>>>> GetPostsByForumIdAsync(Guid forumId, [FromQuery] int? page = null, [FromQuery] int? pageSize = null)
+    public async Task<ActionResult<Result>> GetPostsByForumIdAsync(Guid forumId, [FromQuery] int? page = null, [FromQuery] int? pageSize = null)
     {
-        var posts = page.HasValue && pageSize.HasValue
-            ? await _forumsService.GetPostsByForumIdPagedAsync(page.Value, pageSize.Value, forumId, this.GetUser())
-            : await _forumsService.GetPostsByForumIdAsync(forumId, this.GetUser());
-        return CreateResponse(posts);
+        if(page.HasValue && pageSize.HasValue)
+        {
+            var posts = await mediator.Send(new GetPostsByForumIdPagedQuery(this.GetUser(), forumId, page.Value, pageSize.Value));
+            return CreateResponse(posts);
+        }
+        else
+        {
+            var posts = await mediator.Send(new GetPostsByForumIdQuery(this.GetUser(), forumId));
+            return CreateResponse(posts);
+        }
     }
 
     [HttpGet("my")]
-    public async Task<ActionResult<Result<List<PostDTO>>>> GetMyPostsAsync()
+    public async Task<ActionResult<Result>> GetMyPostsAsync()
     {
-        var posts = await _forumsService.GetMyPostsAsync(this.GetUser());
+        var posts = await mediator.Send(new GetMyPostsQuery(this.GetUser()));
         return CreateResponse(posts);
     }
 
     [HttpGet("{postId}")]
-    public async Task<ActionResult<Result<PostDTO>>> GetPostByIdAsync(Guid postId)
+    public async Task<ActionResult<Result>> GetPostByIdAsync(Guid postId)
     {
-        var post = await _forumsService.GetPostByIdAsync(postId, this.GetUser());
+        var post = await mediator.Send(new GetPostByIdQuery(this.GetUser(), postId));
         return CreateResponse(post);
     }
 }

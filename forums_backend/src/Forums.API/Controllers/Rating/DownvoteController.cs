@@ -1,8 +1,10 @@
+using forums_backend.src.Forums.Application.Features.Comments.DownvoteComment;
+using forums_backend.src.Forums.Application.Features.Comments.RemoveCommentDownvote;
+using forums_backend.src.Forums.Application.Features.Posts.DownvotePost;
+using forums_backend.src.Forums.Application.Features.Posts.RemovePostDownvote;
 using forums_backend.src.Forums.BuildingBlocks.Core.Domain;
 using forums_backend.src.Forums.BuildingBlocks.Infrastructure;
-using forums_backend.src.Forums.Internal.API.DTOs.Rating.Comments;
-using forums_backend.src.Forums.Internal.API.DTOs.Rating.Posts;
-using forums_backend.src.Forums.Internal.API.Public;
+using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -11,39 +13,33 @@ namespace forums_backend.src.Forums.API.Controllers.Rating;
 [ApiController]
 [Route("api/rating/downvote")]
 [Authorize]
-public class DownvoteController : BaseController {
-    private readonly IDownvoteService _downvoteService;
-
-    public DownvoteController(IDownvoteService downvoteService)
-    {
-        _downvoteService = downvoteService;
-    }
+public class DownvoteController(IMediator mediator) : BaseController {
 
     [HttpPost("comment")]
-    public async Task<ActionResult<Result<DownvoteCommentDTO>>> DownvoteComment([FromQuery] Guid commentId)
+    public async Task<ActionResult<Result>> DownvoteComment([FromQuery] Guid commentId)
     {
-        var result = await _downvoteService.DownvoteCommentAsync(commentId, this.GetUser());
+        var result = await mediator.Send(new DownvoteCommentCommand(this.GetUser(), commentId));
         return CreateResponse(result);
     }
 
     [HttpPost("post")]
-    public async Task<ActionResult<Result<DownvotePostDTO>>> DownvotePost([FromQuery] Guid postId)
+    public async Task<ActionResult<Result>> DownvotePost([FromQuery] Guid postId)
     {
-        var result = await _downvoteService.DownvotePostAsync(postId, this.GetUser());
+        var result = await mediator.Send(new DownvotePostCommand(this.GetUser(), postId));
         return CreateResponse(result);
     }
 
     [HttpDelete("comment")]
-    public async Task<ActionResult<Result<DownvoteCommentDTO>>> RemoveDownvoteFromComment([FromQuery] Guid commentId)
+    public async Task<ActionResult<Result>> RemoveDownvoteFromComment([FromQuery] Guid commentId)
     {
-        var result = await _downvoteService.RemoveDownvoteFromCommentAsync(commentId, this.GetUser());
+        var result = await mediator.Send(new RemoveCommentDownvoteCommand(this.GetUser(), commentId));
         return CreateResponse(result);
     }
 
     [HttpDelete("post")]
-    public async Task<ActionResult<Result<DownvotePostDTO>>> RemoveDownvoteFromPost([FromQuery] Guid postId)
+    public async Task<ActionResult<Result>> RemoveDownvoteFromPost([FromQuery] Guid postId)
     {
-        var result = await _downvoteService.RemoveDownvoteFromPostAsync(postId, this.GetUser());
+        var result = await mediator.Send(new RemovePostDownvoteCommand(this.GetUser(), postId));
         return CreateResponse(result);
     }
 }

@@ -1,8 +1,10 @@
+using forums_backend.src.Forums.API.DTOs;
+using forums_backend.src.Forums.Application.Features.Forums.CreateForum;
+using forums_backend.src.Forums.Application.Features.Forums.GetAllForums;
+using forums_backend.src.Forums.Application.Features.Forums.GetForumById;
 using forums_backend.src.Forums.BuildingBlocks.Core.Domain;
 using forums_backend.src.Forums.BuildingBlocks.Infrastructure;
-using forums_backend.src.Forums.Internal.API.DTOs.Forums;
-using forums_backend.src.Forums.Internal.API.Public;
-using forums_backend.src.Forums.Internal.Core.Domain;
+using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -11,30 +13,24 @@ namespace forums_backend.src.Forums.API.Controllers.Forums;
 [ApiController]
 [Route("api/forums")]
 [Authorize]
-public class ForumsController : BaseController {
-
-    private readonly IForumsService _forumsService;
-    public ForumsController(IForumsService forumsService)
-    {
-        _forumsService = forumsService;
-    }
+public class ForumsController(IMediator mediator) : BaseController {
 
     [HttpGet]
-    public async Task<ActionResult<Result<List<ForumDTO>>>> GetAllForumsAsync() {
-        var forums = await _forumsService.GetForumsAsync();
+    public async Task<ActionResult<Result>> GetAllForumsAsync() {
+        var forums = await mediator.Send(new GetAllForumsQuery());
         return CreateResponse(forums);
     }
 
     [HttpGet]
     [Route("{forumId}")]
-    public async Task<ActionResult<Result<ForumDTO>>> GetForumAsync(Guid forumId) {
-        var forum = await _forumsService.GetForumAsync(forumId);
+    public async Task<ActionResult<Result>> GetForumAsync(Guid forumId) {
+        var forum = await mediator.Send(new GetForumByIdQuery(forumId));
         return CreateResponse(forum);
     }
 
     [HttpPost]
-    public async Task<ActionResult<Result<ForumDTO>>> CreateForumAsync(CreateForumDTO createForumDTO) {
-        var forum = await _forumsService.CreateForumAsync(createForumDTO, this.GetUser());
+    public async Task<ActionResult<Result>> CreateForumAsync(CreateForumDTO createForumDTO) {
+        var forum = await mediator.Send(new CreateForumCommand(this.GetUser(), createForumDTO.Name, createForumDTO.Description));
         return CreateResponse(forum);
     }
 }

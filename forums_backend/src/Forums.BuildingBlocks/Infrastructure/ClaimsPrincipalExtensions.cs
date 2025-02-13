@@ -1,5 +1,4 @@
 using System.Security.Claims;
-using forums_backend.src.Forums.Internal.API.DTOs.Users;
 using Microsoft.AspNetCore.Mvc;
 
 namespace forums_backend.src.Forums.BuildingBlocks.Infrastructure;

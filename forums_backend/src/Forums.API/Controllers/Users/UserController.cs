@@ -1,7 +1,7 @@
+using forums_backend.src.Forums.Application.Features.Users.CreateUser;
 using forums_backend.src.Forums.BuildingBlocks.Core.Domain;
 using forums_backend.src.Forums.BuildingBlocks.Infrastructure;
-using forums_backend.src.Forums.Internal.API.DTOs.Users;
-using forums_backend.src.Forums.Internal.API.Public;
+using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -10,17 +10,12 @@ namespace forums_backend.src.Forums.API.Controllers.Users;
 [ApiController]
 [Route("api/users")]
 [Authorize]
-public class UserController : BaseController {
-    private readonly IUserService _userService;
-
-    public UserController(IUserService userService)
-    {
-        _userService = userService;
-    }
+public class UserController(IMediator mediator) : BaseController {
 
     [HttpPost]
-    public async Task<ActionResult<UserDTO>> CreateUser() {
-        var response = await _userService.CreateUserAsync(this.GetUser());
+    public async Task<ActionResult> CreateUser() {
+        var user = this.GetUser();
+        var response = await mediator.Send(new CreateUserCommand(new CreateUserDTO(user.Id, user.Username, user.Email, user.Role)));
         return CreateResponse(response);
     }
 }
