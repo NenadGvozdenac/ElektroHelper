@@ -36,9 +36,9 @@
 
                         <!-- Action Buttons -->
                         <div class="flex items-center space-x-4" v-if="user?.userRole == 'admin'">
-                            <button
+                            <button @click="openCreateForumModal()"
                                 class="px-4 py-2 bg-emerald-600 text-white rounded-full hover:bg-emerald-700 transition-colors font-medium">
-                                Create Post
+                                Create Forum
                             </button>
                         </div>
                     </div>
@@ -107,6 +107,8 @@
         </main>
     </div>
 
+    <CreateForumModal :is-open="showForumModal" @close="showForumModal = false" @submit="handleForumCreate" />
+
     <div>
         <ToastNotification ref="toastRef" />
     </div>
@@ -118,13 +120,15 @@ import {
     SearchIcon,
     MessageCircle,
     ShieldAlertIcon,
-    CheckCircle} from 'lucide-vue-next';
+    CheckCircle
+} from 'lucide-vue-next';
 import { ForumService } from '@/app/services/forum_backend/forum_service';
 import { PostService } from '@/app/services/forum_backend/post_service';
 import { VotingService } from '@/app/services/forum_backend/voting_service';
 import { getAccessToken, getUserData } from '@/app/services/backend/auth_service';
-import type { Forum } from '@/app/models/forum_backend/Forum';
+import type { CreateForum, Forum } from '@/app/models/forum_backend/Forum';
 import type { Post } from '@/app/models/forum_backend/Post';
+import CreateForumModal from '@/components/forums/CreateForumModal.vue';
 import { goToForum, goToHome, goToLoginScreen, goToPost } from '@/app/routes';
 import ToastNotification from '@/components/forums/ToastNotification.vue';
 import type { UserData } from '@/app/models/backend/user';
@@ -141,6 +145,7 @@ const hasMore = ref(true);
 
 const toastRef = ref();
 const user = ref<UserData | null>();
+const showForumModal = ref(false);
 
 onMounted(async () => {
     const jwt = await getAccessToken();
@@ -317,6 +322,27 @@ async function copyToClipboard(postId: string) {
     } catch (err) {
         console.error('Failed to copy:', err);
         toastRef.value.showToast('Failed to copy link!');
+    }
+}
+
+function openCreateForumModal() {
+    showForumModal.value = true;
+}
+
+async function handleForumCreate(data: CreateForum) {
+    const jwt = await getAccessToken();
+
+    if(!jwt) {
+        goToLoginScreen();
+        return;
+    }
+
+    try {
+        await ForumService.createForum(jwt, data);
+        forums.value = await ForumService.getForums(jwt);
+        showForumModal.value = false;
+    } catch (error) {
+        console.error('Error creating forum:', error);
     }
 }
 </script>

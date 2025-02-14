@@ -19,7 +19,6 @@ namespace forums_backend.src.Forums.API.Controllers.Posts;
 [Authorize]
 public class PostsController(IMediator mediator) : BaseController
 {
-
     [HttpGet]
     public async Task<ActionResult<Result>> GetAllPostsAsync([FromQuery] int? page = null, [FromQuery] int? pageSize = null)
     {
