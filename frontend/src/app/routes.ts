@@ -25,3 +25,7 @@ export function goToForum(forumId: string) {
 export function goToPost(postId: string) {
   goToLocation(`/posts/${postId}`)
 }
+
+export function goToProfile(userId: string | number) {
+  goToLocation(`/profile/${userId}`)
+}

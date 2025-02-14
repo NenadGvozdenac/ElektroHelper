@@ -6,13 +6,13 @@
             <div class="flex items-center justify-between">
                 <!-- Left side with author info -->
                 <div class="flex items-center space-x-3">
-                    <div
-                        class="w-10 h-10 rounded-full bg-gradient-to-br from-emerald-500 to-indigo-500 flex items-center justify-center text-white font-bold">
+                    <div @click="goToProfile(post.author?.id)"
+                        class="w-10 h-10 rounded-full bg-gradient-to-br from-emerald-500 to-indigo-500 flex items-center justify-center text-white font-bold cursor-pointer">
                         {{ post.author?.username?.[0]?.toUpperCase() ?? 'A' }}
                     </div>
                     <div class="flex-1">
                         <div class="flex items-center space-x-3">
-                            <span class="font-medium text-slate-900">{{ post.author?.username }}</span>
+                            <span class="font-medium text-slate-900 cursor-pointer" @click="goToProfile(post.author?.id)">{{ post.author?.username }}</span>
                             <span class="text-sm text-slate-500">{{ formatDate(post.createdAt) }}</span>
                             <span v-if="post.isLocked"
                                 class="px-2 py-0.5 rounded-full bg-amber-100 text-amber-600 text-xs font-medium flex items-center">
@@ -67,6 +67,7 @@ import { LockIcon, MoreVertical } from 'lucide-vue-next';
 import type { Post } from '@/app/models/forum_backend/Post';
 import VotingSection from '@/components/forums/VotingSection.vue';
 import PostFooter from '@/components/forums/PostFooter.vue';
+import { goToProfile } from '@/app/routes';
 
 defineProps<{
     post: Post

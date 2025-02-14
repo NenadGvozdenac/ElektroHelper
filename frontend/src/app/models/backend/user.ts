@@ -7,7 +7,7 @@ export interface User {
 }
 
 export interface UserData {
-    userId: number;
+    userID: number;
     userName: string;
     userEmail: string;
     userRole: string;

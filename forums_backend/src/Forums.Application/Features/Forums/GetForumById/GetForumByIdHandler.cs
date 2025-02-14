@@ -30,7 +30,8 @@ public class GetForumByIdHandler(IGraphDatabaseContext context) : IRequestHandle
                 Guid.Parse(forum["id"].As<string>()),
                 forum["name"].As<string>(),
                 forum["description"].As<string>(),
-                numberOfPosts
+                numberOfPosts,
+                forum["isQuarantined"].As<bool>()
             ));
         } catch {
             return Result<ForumDTO>.Failure("Failed to get forum");

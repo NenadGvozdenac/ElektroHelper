@@ -4,11 +4,11 @@ using forums_backend.src.Forums.BuildingBlocks.Infrastructure.Database;
 using MediatR;
 using Neo4j.Driver;
 
-namespace forums_backend.src.Forums.Application.Features.Posts.GetPostsByUserId;
+namespace forums_backend.src.Forums.Application.Features.Posts.GetPostsByUserIdPaged;
 
-public class GetPostsByUserIdHandler(IGraphDatabaseContext context) : IRequestHandler<GetPostsByUserIdQuery, Result<List<PostDTO>>>
+public class GetPostsByUserIdPagedHandler(IGraphDatabaseContext context) : IRequestHandler<GetPostsByUserIdPagedQuery, Result<List<PostDTO>>>
 {
-    public async Task<Result<List<PostDTO>>> Handle(GetPostsByUserIdQuery request, CancellationToken cancellationToken)
+    public async Task<Result<List<PostDTO>>> Handle(GetPostsByUserIdPagedQuery request, CancellationToken cancellationToken)
     {
         var query = @"
             MATCH (p:Post)<-[:POSTED]-(u:User {id: $userId})
@@ -27,11 +27,15 @@ public class GetPostsByUserIdHandler(IGraphDatabaseContext context) : IRequestHa
                 CASE WHEN u4 IS NOT NULL THEN true ELSE false END AS hasUpvoted,
                 CASE WHEN u5 IS NOT NULL THEN true ELSE false END AS hasDownvoted,
                 f AS forum
-            ORDER BY p.createdAt DESC";
+            ORDER BY p.createdAt DESC
+            SKIP $skip
+            LIMIT $limit";
 
         var parameters = new Dictionary<string, object>
         {
             {"userId", request.UserId},
+            {"skip", (request.Page - 1) * request.PageSize},
+            {"limit", request.PageSize},
         };
 
         try

@@ -27,6 +27,7 @@ public class GetAllPostsPagedHandler(IGraphDatabaseContext context) : IRequestHa
                 CASE WHEN u4 IS NOT NULL THEN true ELSE false END AS hasUpvoted,
                 CASE WHEN u5 IS NOT NULL THEN true ELSE false END AS hasDownvoted,
                 f AS forum
+            ORDER BY p.createdAt DESC
             SKIP $skip
             LIMIT $limit";
 

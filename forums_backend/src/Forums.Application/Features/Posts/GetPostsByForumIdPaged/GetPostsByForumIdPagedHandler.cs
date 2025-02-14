@@ -23,6 +23,7 @@ public class GetPostsByForumIdPagedHandler(IGraphDatabaseContext context) : IReq
                     u6 AS author, f AS forum,
                     CASE WHEN u4 IS NOT NULL THEN true ELSE false END AS hasUpvoted,
                     CASE WHEN u5 IS NOT NULL THEN true ELSE false END AS hasDownvoted
+                ORDER BY p.createdAt DESC
                 SKIP $skip
                 LIMIT $limit";
 

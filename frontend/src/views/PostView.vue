@@ -1,28 +1,7 @@
 <template>
     <div class="min-h-screen bg-slate-100">
         <!-- Reusing the same header from ForumView -->
-        <header class="bg-white shadow-sm sticky top-0 z-50">
-            <div class="border-b border-slate-200">
-                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20">
-                    <div class="flex items-center justify-between h-full">
-                        <div class="flex items-center space-x-8">
-                            <span @click="goToHome()"
-                                class="text-2xl font-bold bg-gradient-to-r from-emerald-600 to-indigo-600 bg-clip-text text-transparent cursor-pointer hover:opacity-90 transition-opacity">
-                                ElektroHelper Forums
-                            </span>
-                            <nav class="hidden md:flex items-center space-x-6">
-                                <a href="/forums"
-                                    class="text-slate-600 hover:text-emerald-600 font-medium transition-colors">Browse</a>
-                                <a href="#"
-                                    class="text-slate-600 hover:text-emerald-600 font-medium transition-colors">Latest</a>
-                                <a href="#"
-                                    class="text-slate-600 hover:text-emerald-600 font-medium transition-colors">Popular</a>
-                            </nav>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </header>
+         <UniversalNavbar />
 
         <main class="container mx-auto px-4 py-6">
             <div class="max-w-4xl mx-auto">
@@ -206,6 +185,7 @@ import type { Post } from '@/app/models/forum_backend/Post';
 import type { Comment, CreateComment } from '@/app/models/forum_backend/Comment';
 import { goToForum, goToHome } from '@/app/routes';
 import ToastNotification from '@/components/forums/ToastNotification.vue';
+import UniversalNavbar from '@/components/forums/UniversalNavbar.vue';
 
 const route = useRoute();
 const router = useRouter();

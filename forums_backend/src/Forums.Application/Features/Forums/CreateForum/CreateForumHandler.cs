@@ -12,7 +12,7 @@ public class CreateForumHandler(IGraphDatabaseContext context) : IRequestHandler
     {
         var query = @"
             MERGE (u:User { id: $userId })
-            ON CREATE SET u.email = $userEmail, u.username = $username, u.role = $userRole
+            ON CREATE SET u.email = $userEmail, u.username = $username, u.role = $userRole, u.isBanned = false, u.reasonForBan = '', u.isDeleted = false
             CREATE (forum:Forum {
                 id: $id,
                 name: $name,

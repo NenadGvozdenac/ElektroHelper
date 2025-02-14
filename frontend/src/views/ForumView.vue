@@ -1,41 +1,7 @@
 <template>
     <div class="min-h-screen bg-slate-100">
         <!-- Enhanced Header -->
-        <header class="bg-white shadow-sm sticky top-0 z-50">
-            <div class="border-b border-slate-200">
-                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20">
-                    <div class="flex items-center justify-between h-full">
-                        <!-- Logo and Brand -->
-                        <div class="flex items-center space-x-8">
-                            <span @click="goToHome()"
-                                class="text-2xl font-bold bg-gradient-to-r from-emerald-600 to-indigo-600 bg-clip-text text-transparent cursor-pointer hover:opacity-90 transition-opacity">
-                                ElektroHelper Forums
-                            </span>
-
-                            <!-- Primary Navigation -->
-                            <nav class="hidden md:flex items-center space-x-6">
-                                <a href="/forums"
-                                    class="text-slate-600 hover:text-emerald-600 font-medium transition-colors">Browse</a>
-                                <a href="#"
-                                    class="text-slate-600 hover:text-emerald-600 font-medium transition-colors">Latest</a>
-                                <a href="#"
-                                    class="text-slate-600 hover:text-emerald-600 font-medium transition-colors">Popular</a>
-                            </nav>
-                        </div>
-
-                        <!-- Search Bar -->
-                        <div class="flex-1 max-w-2xl px-8">
-                            <div class="relative">
-                                <input type="text" v-model="searchQuery" placeholder="Search forums..."
-                                    class="w-full pl-12 pr-4 py-2.5 rounded-full border border-slate-200 focus:ring-2 focus:ring-emerald-500 focus:border-transparent bg-slate-50 hover:bg-white transition-colors" />
-                                <SearchIcon
-                                    class="absolute left-4 top-1/2 transform -translate-y-1/2 text-slate-400 w-5 h-5" />
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </header>
+        <UniversalNavbar/>
 
         <main class="container mx-auto px-4 py-6 flex justify-center">
             <div class="flex gap-20">
@@ -65,7 +31,7 @@
                                             <h1 class="text-2xl font-bold text-slate-900">{{ currentForum?.name }}</h1>
                                             <p class="text-slate-600 mt-1">{{ currentForum?.description }}</p>
                                         </div>
-                                        <button @click="showModal = true"
+                                        <button v-if="!currentForum?.isQuarantined || (currentForum.isQuarantined && currentUser?.userRole == 'admin')" @click="showModal = true"
                                             class="px-6 py-2.5 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors font-medium shadow-sm hover:shadow flex items-center space-x-2">
                                             <PlusCircle class="w-5 h-5" />
                                             <span>New Post</span>
@@ -162,13 +128,13 @@
                                 <div class="flex items-center justify-between">
                                     <!-- Left side with author info -->
                                     <div class="flex items-center space-x-3">
-                                        <div
-                                            class="w-10 h-10 rounded-full bg-gradient-to-br from-emerald-500 to-indigo-500 flex items-center justify-center text-white font-bold">
+                                        <div @click="goToProfile(post.author?.id)"
+                                            class="w-10 h-10 rounded-full bg-gradient-to-br cursor-pointer from-emerald-500 to-indigo-500 flex items-center justify-center text-white font-bold">
                                             {{ post.author?.username?.[0]?.toUpperCase() ?? 'A' }}
                                         </div>
                                         <div class="flex-1">
                                             <div class="flex items-center space-x-3">
-                                                <span class="font-medium text-slate-900">{{ post.author?.username
+                                                <span class="font-medium text-slate-900 cursor-pointer" @click="goToProfile(post.author?.id)">{{ post.author?.username
                                                     }}</span>
                                                 <span class="text-sm text-slate-500">{{ formatDate(post.createdAt)
                                                     }}</span>
@@ -343,12 +309,14 @@ import {
 import { ForumService } from '@/app/services/forum_backend/forum_service';
 import { PostService } from '@/app/services/forum_backend/post_service';
 import { VotingService } from '@/app/services/forum_backend/voting_service';
-import { getAccessToken } from '@/app/services/backend/auth_service';
+import { getAccessToken, getUserData } from '@/app/services/backend/auth_service';
 import type { Forum } from '@/app/models/forum_backend/Forum';
 import type { CreatePost, Post } from '@/app/models/forum_backend/Post';
-import { goToForum, goToHome } from '@/app/routes';
+import { goToForum, goToHome, goToProfile } from '@/app/routes';
 import CreatePostModal from '@/components/forums/CreatePostModal.vue';
 import ToastNotification from '@/components/forums/ToastNotification.vue';
+import UniversalNavbar from '@/components/forums/UniversalNavbar.vue';
+import type { UserData } from '@/app/models/backend/user';
 
 const route = useRoute();
 const router = useRouter();
@@ -361,6 +329,7 @@ const page = ref(1);
 const pageSize = ref(10);
 const loading = ref(false);
 const hasMore = ref(true);
+const currentUser = ref<UserData | null>(null);
 
 const showModal = ref(false);
 const toastRef = ref();
@@ -379,6 +348,8 @@ onMounted(async () => {
     ]);
 
     window.addEventListener('scroll', handleScroll);
+
+    currentUser.value = await getUserData();
 });
 
 onUnmounted(() => {

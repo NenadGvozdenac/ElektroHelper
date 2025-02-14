@@ -6,6 +6,7 @@ using forums_backend.src.Forums.Application.Features.Posts.GetPostById;
 using forums_backend.src.Forums.Application.Features.Posts.GetPostsByForumId;
 using forums_backend.src.Forums.Application.Features.Posts.GetPostsByForumIdPaged;
 using forums_backend.src.Forums.Application.Features.Posts.GetPostsByUserId;
+using forums_backend.src.Forums.Application.Features.Posts.GetPostsByUserIdPaged;
 using forums_backend.src.Forums.BuildingBlocks.Core.Domain;
 using forums_backend.src.Forums.BuildingBlocks.Infrastructure;
 using MediatR;
@@ -57,10 +58,18 @@ public class PostsController(IMediator mediator) : BaseController
     }
 
     [HttpGet("user/{userId}")]
-    public async Task<ActionResult<Result>> GetPostsByUserIdAsync(string userId)
+    public async Task<ActionResult<Result>> GetPostsByUserIdAsync(string userId, [FromQuery] int? page = null, [FromQuery] int? pageSize = null)
     {
-        var posts = await mediator.Send(new GetPostsByUserIdQuery(this.GetUser(), userId));
-        return CreateResponse(posts);
+        if(page.HasValue && pageSize.HasValue)
+        {
+            var posts = await mediator.Send(new GetPostsByUserIdPagedQuery(this.GetUser(), userId, page.Value, pageSize.Value));
+            return CreateResponse(posts);
+        }
+        else
+        {
+            var posts = await mediator.Send(new GetPostsByUserIdQuery(this.GetUser(), userId));
+            return CreateResponse(posts);
+        }
     }
 
     [HttpGet("my")]

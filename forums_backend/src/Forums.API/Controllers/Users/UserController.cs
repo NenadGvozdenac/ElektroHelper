@@ -25,4 +25,10 @@ public class UserController(IMediator mediator) : BaseController {
         var response = await mediator.Send(new GetUserByIdQuery(this.GetUser(), id));
         return CreateResponse(response);
     }
+
+    [HttpGet("my")]
+    public async Task<ActionResult<Result>> GetMyUser() {
+        var response = await mediator.Send(new GetUserByIdQuery(this.GetUser(), this.GetUser().Id));
+        return CreateResponse(response);
+    }
 }

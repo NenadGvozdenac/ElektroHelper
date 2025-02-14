@@ -26,7 +26,8 @@ public class GetMyPostsHandler(IGraphDatabaseContext context) : IRequestHandler<
                 u6 AS author,
                 CASE WHEN u4 IS NOT NULL THEN true ELSE false END AS hasUpvoted,
                 CASE WHEN u5 IS NOT NULL THEN true ELSE false END AS hasDownvoted,
-                f AS forum";
+                f AS forum
+            ORDER BY p.createdAt DESC";
 
         var parameters = new Dictionary<string, object>
         {

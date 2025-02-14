@@ -1,50 +1,7 @@
 <template>
     <div class="min-h-screen bg-slate-100">
         <!-- Header -->
-        <header class="bg-white shadow-sm sticky top-0 z-50">
-            <!-- Main Header Content -->
-            <div class="border-b border-slate-200">
-                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20">
-                    <div class="flex items-center justify-between h-full">
-                        <!-- Logo and Brand -->
-                        <div class="flex items-center space-x-8">
-                            <span @click="goToHome()"
-                                class="text-2xl font-bold bg-gradient-to-r from-emerald-600 to-indigo-600 bg-clip-text text-transparent cursor-pointer hover:opacity-90 transition-opacity">
-                                ElektroHelper Forums
-                            </span>
-
-                            <!-- Primary Navigation -->
-                            <nav class="hidden md:flex items-center space-x-6">
-                                <a href="#"
-                                    class="text-slate-600 hover:text-emerald-600 font-medium transition-colors">Browse</a>
-                                <a href="#"
-                                    class="text-slate-600 hover:text-emerald-600 font-medium transition-colors">Latest</a>
-                                <a href="#"
-                                    class="text-slate-600 hover:text-emerald-600 font-medium transition-colors">Popular</a>
-                            </nav>
-                        </div>
-
-                        <!-- Search Bar -->
-                        <div class="flex-1 max-w-2xl px-8">
-                            <div class="relative">
-                                <input type="text" v-model="searchQuery" placeholder="Search forums..."
-                                    class="w-full pl-12 pr-4 py-2.5 rounded-full border border-slate-200 focus:ring-2 focus:ring-emerald-500 focus:border-transparent bg-slate-50 hover:bg-white transition-colors" />
-                                <SearchIcon
-                                    class="absolute left-4 top-1/2 transform -translate-y-1/2 text-slate-400 w-5 h-5" />
-                            </div>
-                        </div>
-
-                        <!-- Action Buttons -->
-                        <div class="flex items-center space-x-4" v-if="user?.userRole == 'admin'">
-                            <button @click="openCreateForumModal()"
-                                class="px-4 py-2 bg-emerald-600 text-white rounded-full hover:bg-emerald-700 transition-colors font-medium">
-                                Create Forum
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </header>
+        <UniversalNavbar />
 
         <main class="container mx-auto px-4 py-6 flex justify-center">
             <div class="flex gap-20">
@@ -107,8 +64,6 @@
         </main>
     </div>
 
-    <CreateForumModal :is-open="showForumModal" @close="showForumModal = false" @submit="handleForumCreate" />
-
     <div>
         <ToastNotification ref="toastRef" />
     </div>
@@ -128,12 +83,12 @@ import { VotingService } from '@/app/services/forum_backend/voting_service';
 import { getAccessToken, getUserData } from '@/app/services/backend/auth_service';
 import type { CreateForum, Forum } from '@/app/models/forum_backend/Forum';
 import type { Post } from '@/app/models/forum_backend/Post';
-import CreateForumModal from '@/components/forums/CreateForumModal.vue';
 import { goToForum, goToHome, goToLoginScreen, goToPost } from '@/app/routes';
 import ToastNotification from '@/components/forums/ToastNotification.vue';
 import type { UserData } from '@/app/models/backend/user';
 
 import PostItem from '@/components/forums/PostItem.vue';
+import UniversalNavbar from '@/components/forums/UniversalNavbar.vue';
 
 const forums = ref<Forum[]>([]);
 const posts = ref<Post[]>([]);
@@ -327,22 +282,5 @@ async function copyToClipboard(postId: string) {
 
 function openCreateForumModal() {
     showForumModal.value = true;
-}
-
-async function handleForumCreate(data: CreateForum) {
-    const jwt = await getAccessToken();
-
-    if(!jwt) {
-        goToLoginScreen();
-        return;
-    }
-
-    try {
-        await ForumService.createForum(jwt, data);
-        forums.value = await ForumService.getForums(jwt);
-        showForumModal.value = false;
-    } catch (error) {
-        console.error('Error creating forum:', error);
-    }
 }
 </script>

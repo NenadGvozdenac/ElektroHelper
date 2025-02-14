@@ -22,7 +22,8 @@ public class GetPostsByForumIdHandler(IGraphDatabaseContext context) : IRequestH
                 RETURN p, count(distinct upvote) AS upvotes, count(distinct downvote) AS downvotes, count(distinct comment) AS comments,
                     u6 AS author, f AS forum,
                     CASE WHEN u4 IS NOT NULL THEN true ELSE false END AS hasUpvoted,
-                    CASE WHEN u5 IS NOT NULL THEN true ELSE false END AS hasDownvoted";
+                    CASE WHEN u5 IS NOT NULL THEN true ELSE false END AS hasDownvoted
+                ORDER BY p.createdAt DESC";
 
         var parameters = new Dictionary<string, object> {
             { "forumId", request.ForumId.ToString() } ,
