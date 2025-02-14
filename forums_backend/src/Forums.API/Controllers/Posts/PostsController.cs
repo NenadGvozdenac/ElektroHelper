@@ -5,6 +5,7 @@ using forums_backend.src.Forums.Application.Features.Posts.GetMyPosts;
 using forums_backend.src.Forums.Application.Features.Posts.GetPostById;
 using forums_backend.src.Forums.Application.Features.Posts.GetPostsByForumId;
 using forums_backend.src.Forums.Application.Features.Posts.GetPostsByForumIdPaged;
+using forums_backend.src.Forums.Application.Features.Posts.GetPostsByUserId;
 using forums_backend.src.Forums.BuildingBlocks.Core.Domain;
 using forums_backend.src.Forums.BuildingBlocks.Infrastructure;
 using MediatR;
@@ -54,6 +55,13 @@ public class PostsController(IMediator mediator) : BaseController
             var posts = await mediator.Send(new GetPostsByForumIdQuery(this.GetUser(), forumId));
             return CreateResponse(posts);
         }
+    }
+
+    [HttpGet("user/{userId}")]
+    public async Task<ActionResult<Result>> GetPostsByUserIdAsync(string userId)
+    {
+        var posts = await mediator.Send(new GetPostsByUserIdQuery(this.GetUser(), userId));
+        return CreateResponse(posts);
     }
 
     [HttpGet("my")]
