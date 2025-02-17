@@ -6,6 +6,7 @@ import ForumsFrontPageView from '@/views/ForumsFrontPageView.vue'
 import ForumView from '@/views/ForumView.vue'
 import PostView from '@/views/PostView.vue'
 import UserProfileView from '@/views/UserProfileView.vue'
+import RssFeedView from '@/views/RssFeedView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -44,6 +45,11 @@ const router = createRouter({
       path: '/profile/:userId',
       name: 'profile',
       component: UserProfileView
+    },
+    {
+      path: '/rss',
+      name: 'rss',
+      component: RssFeedView
     }
   ],
 })

@@ -28,14 +28,7 @@
                     </div>
 
                     <!-- Search Bar -->
-                    <div class="flex-1 max-w-2xl px-8">
-                        <div class="relative">
-                            <input type="text" placeholder="Search..."
-                                class="w-full pl-12 pr-4 py-2.5 rounded-full border border-slate-200 focus:ring-2 focus:ring-emerald-500 focus:border-transparent bg-slate-50 hover:bg-white transition-colors" />
-                            <SearchIcon
-                                class="absolute left-4 top-1/2 transform -translate-y-1/2 text-slate-400 w-5 h-5" />
-                        </div>
-                    </div>
+                    <SearchBar />
 
                     <!-- Right Section -->
                     <div class="flex items-center space-x-4">
@@ -45,6 +38,15 @@
                             <ShieldCheck class="w-5 h-5" />
                             <span>Admin Panel</span>
                         </button>
+
+                        <!-- RSS Button -->
+                        <div>
+                            <button @click="navigateToRss"
+                                class="inline-flex items-center px-4 py-2 bg-white border border-slate-200 rounded-lg shadow-sm hover:bg-slate-50 transition-colors text-slate-700">
+                                <RssIcon class="w-4 h-4 mr-2" />
+                                RSS
+                            </button>
+                        </div>
 
                         <!-- User Dropdown -->
                         <div class="relative">
@@ -109,18 +111,22 @@ import {
     User,
     PlusCircle,
     ChevronDown,
-    ShieldCheck
+    ShieldCheck,
+    RssIcon
 } from 'lucide-vue-next';
 import { AuthService, getAccessToken, getUserData } from '@/app/services/backend/auth_service';
 import type { UserData } from '@/app/models/backend/user';
-import { goToHome, goToLoginScreen, goToProfile } from '@/app/routes';
+import { goToHome, goToLoginScreen, goToProfile, goToRss } from '@/app/routes';
 import CreateForumModal from './CreateForumModal.vue';
 import type { CreateForum } from '@/app/models/forum_backend/Forum';
 import { ForumService } from '@/app/services/forum_backend/forum_service';
+import { SearchService } from '@/app/services/forum_backend/search_service';
+import SearchBar from './SearchBar.vue';
 
 const router = useRouter();
 const route = useRoute();
 const isDropdownOpen = ref(false);
+const searchQuery = ref('');
 
 const currentUser = ref<UserData | null>(null);
 const showForumModal = ref(false);
@@ -191,5 +197,9 @@ async function handleForumCreate(data: CreateForum) {
     } catch (error) {
         console.error('Error creating forum:', error);
     }
+}
+
+function navigateToRss() {
+    goToRss();
 }
 </script>

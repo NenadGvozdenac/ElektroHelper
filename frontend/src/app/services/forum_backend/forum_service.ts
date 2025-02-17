@@ -2,7 +2,7 @@ import type { CreateForum, Forum } from "@/app/models/forum_backend/Forum";
 import type { Response } from "@/app/models/forum_backend/Response";
 import { FORUM_URL } from "../backend/const_service";
 import { authenticatedRequest } from "../backend/auth_service";
-import type { UserData, UserRegister } from "@/app/models/backend/user";
+import type { UserData } from "@/app/models/backend/user";
 
 export class ForumService {
     static async registerUser(jwt: string): Promise<UserData> {

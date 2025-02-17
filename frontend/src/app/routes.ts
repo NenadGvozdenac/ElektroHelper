@@ -29,3 +29,7 @@ export function goToPost(postId: string) {
 export function goToProfile(userId: string | number) {
   goToLocation(`/profile/${userId}`)
 }
+
+export function goToRss() {
+  goToLocation('/rss')
+}
