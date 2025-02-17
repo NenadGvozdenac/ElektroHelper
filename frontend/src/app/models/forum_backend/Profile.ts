@@ -12,3 +12,10 @@ export interface Profile {
     numberOfFollowers: number;
     numberOfFollowing: number;
 }
+
+export interface SmallProfile {
+    id: string;
+    username: string;
+    role: string;
+    email: string;
+}

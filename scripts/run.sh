@@ -7,7 +7,7 @@
 docker rmi elektrohelper-app
 
 # # Start the databases first to ensure they are ready
-docker-compose up -d db neo4j
+docker-compose up -d db neo4j elasticsearch
 
 # Wait for the PostgreSQL database to initialize
 echo "Waiting for PostgreSQL to start..."

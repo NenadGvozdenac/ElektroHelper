@@ -48,4 +48,21 @@ export class ForumService {
             throw error;
         }
     }
+
+    static async quarantineForum(jwt: string, forumId: string) {
+        try {
+            await authenticatedRequest(jwt).post(`${FORUM_URL}/forums/quarantine/${forumId}`);
+        } catch (error) {
+            console.error(error);
+            throw error;
+        }
+    }
+    static async unquarantineForum(jwt: string, forumId: string) {
+        try {
+            await authenticatedRequest(jwt).post(`${FORUM_URL}/forums/unquarantine/${forumId}`);
+        } catch (error) {
+            console.error(error);
+            throw error;
+        }
+    }
 }

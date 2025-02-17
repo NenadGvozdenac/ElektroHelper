@@ -28,11 +28,13 @@ services:
       - "9090:9090"
     depends_on:
       - neo4j
+      - elasticsearch
     environment:
       NEO4J_URI: ${NEO4J_URI}
       NEO4J_USER: ${NEO4J_USER}
       NEO4J_PASSWORD: ${NEO4J_PASSWORD}
       ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT}
+      ELASTICSEARCH_HOST: "http://elasticsearch:9200"
     volumes:
       - ./dataProtectionKeys:/root/.aspnet/DataProtection-Keys
 
@@ -59,6 +61,20 @@ services:
     volumes:
       - neo4j_data:/data
       - neo4j_logs:/logs
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.17.5
+    container_name: elasticsearch
+    environment:
+      - discovery.type=single-node
+      - ELASTIC_USERNAME=elastic
+      - ELASTIC_PASSWORD=password
+      - xpack.security.enabled=false
+    ports:
+      - "9200:9200"
+    volumes:
+      - elasticsearch_data:/usr/share/elasticsearch/data
+    restart: always
 
   mail:
     image: mailhog/mailhog
@@ -113,3 +129,4 @@ volumes:
   postgres_test_data:
   neo4j_data:
   neo4j_logs:
+  elasticsearch_data:

@@ -34,7 +34,8 @@ public class GetMyFollowersPagedHandler(IGraphDatabaseContext context) : IReques
                 return new FollowerDTO(
                     follower["id"].As<string>(),
                     follower["email"].As<string>(),
-                    follower["username"].As<string>()
+                    follower["username"].As<string>(),
+                    follower["role"].As<string>()
                 );
             }).ToList();
 

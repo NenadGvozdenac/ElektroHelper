@@ -1,7 +1,7 @@
 import type { Response } from "@/app/models/forum_backend/Response";
 import { authenticatedRequest, getAccessToken } from "../backend/auth_service";
 import { FORUM_URL } from "../backend/const_service";
-import type { Profile } from "@/app/models/forum_backend/Profile";
+import type { Profile, SmallProfile } from "@/app/models/forum_backend/Profile";
 import type { Following } from "@/app/models/forum_backend/Following";
 import type { Post } from "@/app/models/forum_backend/Post";
 
@@ -60,6 +60,17 @@ export class ProfileService {
         try {
             const request = await authenticatedRequest(jwt).get(`${FORUM_URL}/users/my`);
             const response = request.data as Response<Profile>;
+            return response.value;
+        } catch (error) {
+            console.error(error);
+            throw error;
+        }
+    }
+
+    static async getMyProfileFollowers(jwt: string): Promise<SmallProfile[]> {
+        try {
+            const request = await authenticatedRequest(jwt).get(`${FORUM_URL}/followers/my`);
+            const response = request.data as Response<SmallProfile[]>;
             return response.value;
         } catch (error) {
             console.error(error);

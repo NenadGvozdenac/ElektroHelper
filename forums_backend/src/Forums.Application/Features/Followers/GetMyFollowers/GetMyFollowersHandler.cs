@@ -22,7 +22,7 @@ public class GetMyFollowersHandler(IGraphDatabaseContext context) : IRequestHand
         try
         {
             var resultCursor = await context.RunAsync(query, parameters);
-            var result = await resultCursor.ToListAsync();
+            var result = await resultCursor.ToListAsync(cancellationToken);
 
             var followers = result.Select(r =>
             {
@@ -30,7 +30,8 @@ public class GetMyFollowersHandler(IGraphDatabaseContext context) : IRequestHand
                 return new FollowerDTO(
                     follower["id"].As<string>(),
                     follower["email"].As<string>(),
-                    follower["username"].As<string>()
+                    follower["username"].As<string>(),
+                    follower["role"].As<string>()
                 );
             }).ToList();
 

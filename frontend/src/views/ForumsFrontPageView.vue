@@ -4,7 +4,9 @@
         <UniversalNavbar />
 
         <main class="container mx-auto px-4 py-6 flex justify-center">
-            <div class="flex gap-20">
+            <div class="flex gap-6">
+                <FollowersSidebar />
+                
                 <!-- Main Content -->
                 <div class="flex-grow max-w-3xl">
                     <!-- Posts Feed -->
@@ -86,6 +88,7 @@ import type { Post } from '@/app/models/forum_backend/Post';
 import { goToForum, goToHome, goToLoginScreen, goToPost } from '@/app/routes';
 import ToastNotification from '@/components/forums/ToastNotification.vue';
 import type { UserData } from '@/app/models/backend/user';
+import FollowersSidebar from '@/components/forums/FollowersSidebar.vue';
 
 import PostItem from '@/components/forums/PostItem.vue';
 import UniversalNavbar from '@/components/forums/UniversalNavbar.vue';

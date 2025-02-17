@@ -1,7 +1,7 @@
 <template>
     <div class="min-h-screen bg-slate-100">
         <!-- Enhanced Header -->
-        <UniversalNavbar/>
+        <UniversalNavbar />
 
         <main class="container mx-auto px-4 py-6 flex justify-center">
             <div class="flex gap-20">
@@ -31,11 +31,21 @@
                                             <h1 class="text-2xl font-bold text-slate-900">{{ currentForum?.name }}</h1>
                                             <p class="text-slate-600 mt-1">{{ currentForum?.description }}</p>
                                         </div>
-                                        <button v-if="!currentForum?.isQuarantined || (currentForum.isQuarantined && currentUser?.userRole == 'admin')" @click="showModal = true"
-                                            class="px-6 py-2.5 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors font-medium shadow-sm hover:shadow flex items-center space-x-2">
-                                            <PlusCircle class="w-5 h-5" />
-                                            <span>New Post</span>
-                                        </button>
+                                        <div class="flex items-center space-x-3">
+                                            <button v-if="currentUser?.userRole === 'admin'" @click="toggleQuarantine"
+                                                class="px-6 py-2.5 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition-colors font-medium shadow-sm hover:shadow flex items-center space-x-2">
+                                                <ShieldAlert class="w-5 h-5" />
+                                                <span>{{ currentForum?.isQuarantined ? 'Unquarantine' : 'Quarantine'
+                                                    }}</span>
+                                            </button>
+                                            <button
+                                                v-if="!currentForum?.isQuarantined || (currentForum.isQuarantined && currentUser?.userRole == 'admin')"
+                                                @click="showModal = true"
+                                                class="px-6 py-2.5 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors font-medium shadow-sm hover:shadow flex items-center space-x-2">
+                                                <PlusCircle class="w-5 h-5" />
+                                                <span>New Post</span>
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -134,7 +144,8 @@
                                         </div>
                                         <div class="flex-1">
                                             <div class="flex items-center space-x-3">
-                                                <span class="font-medium text-slate-900 cursor-pointer" @click="goToProfile(post.author?.id)">{{ post.author?.username
+                                                <span class="font-medium text-slate-900 cursor-pointer"
+                                                    @click="goToProfile(post.author?.id)">{{ post.author?.username
                                                     }}</span>
                                                 <span class="text-sm text-slate-500">{{ formatDate(post.createdAt)
                                                     }}</span>
@@ -557,5 +568,29 @@ async function copyToClipboard(postId: string) {
 
 function showNotification(message: string) {
     toastRef.value.showToast(message);
+}
+
+async function toggleQuarantine() {
+    const jwt = await getAccessToken();
+    if (!jwt) {
+        router.push('/login');
+        return;
+    }
+
+    try {
+        if (currentForum.value?.isQuarantined) {
+            await ForumService.unquarantineForum(jwt, forumId.value);
+            showNotification('Forum unquarantined successfully');
+        } else {
+            await ForumService.quarantineForum(jwt, forumId.value);
+            showNotification('Forum quarantined successfully');
+        }
+
+        // Refresh forum data
+        await fetchCurrentForum(jwt);
+    } catch (error) {
+        console.error('Error toggling quarantine status:', error);
+        showNotification('Failed to update quarantine status');
+    }
 }
 </script>
