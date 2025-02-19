@@ -12,6 +12,7 @@ public class GetForumByIdHandler(IGraphDatabaseContext context) : IRequestHandle
         var query = @"
             MATCH (forum:Forum { id: $id })
             OPTIONAL MATCH (forum)-[:HAS_POST]->(post:Post)
+            WHERE post.isDeleted = false
             RETURN forum, COUNT(post) as numberOfPosts";
 
         var parameters = new Dictionary<string, object>

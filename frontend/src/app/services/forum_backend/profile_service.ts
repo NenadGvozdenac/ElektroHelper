@@ -77,4 +77,15 @@ export class ProfileService {
             throw error;
         }
     }
+
+    static async deletePost(jwt: string, postId: string): Promise<{ postId: string, isDeleted: boolean }> {
+        try {
+            const request = await authenticatedRequest(jwt).delete(`${FORUM_URL}/posts/${postId}`);
+            const response = request.data as Response<{ postId: string, isDeleted: boolean }>;
+            return response.value;
+        } catch (error) {
+            console.error(error);
+            throw error;
+        }
+    }
 }

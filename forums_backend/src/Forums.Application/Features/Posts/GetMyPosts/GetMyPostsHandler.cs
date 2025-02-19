@@ -12,6 +12,7 @@ public class GetMyPostsHandler(IGraphDatabaseContext context) : IRequestHandler<
     {
         var query = @"
             MATCH (p:Post)<-[:POSTED]-(u:User {id: $userId})
+            WHERE p.isDeleted = false
             OPTIONAL MATCH (u1:User)-[upvote1:UPVOTED_POST]->(p)
             OPTIONAL MATCH (u2:User)-[downvote1:DOWNVOTED_POST]->(p)
             OPTIONAL MATCH (c1:Comment)-[comment:BELONGS_TO]->(p)

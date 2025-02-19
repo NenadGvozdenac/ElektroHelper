@@ -11,6 +11,7 @@ public class SyncAllPostsHandler(IGraphDatabaseContext context) : IRequestHandle
     {
         var query = @"
             MATCH (f:Forum)-[:HAS_POST]->(p:Post)
+            WHERE p.isDeleted = false
             RETURN p, f";
 
         var resultCursor = await context.RunAsync(query);

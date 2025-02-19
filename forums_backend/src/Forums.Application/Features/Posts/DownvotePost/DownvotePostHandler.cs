@@ -100,6 +100,7 @@ public class DownvotePostHandler(IGraphDatabaseContext context) : IRequestHandle
     {
         var query = @"
             MATCH (p:Post {id: $postId})
+            WHERE p.isDeleted = false
             RETURN p";
 
         var parameters = new Dictionary<string, object>

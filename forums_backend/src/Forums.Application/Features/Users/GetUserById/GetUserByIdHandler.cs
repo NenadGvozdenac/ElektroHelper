@@ -13,7 +13,8 @@ public class GetUserByIdHandler(IGraphDatabaseContext context) : IRequestHandler
             MATCH (u:User {id: $id})
             OPTIONAL MATCH (:User)-[follows:FOLLOWS]->(u)
             OPTIONAL MATCH (u)-[follows2:FOLLOWS]->(:User)
-            OPTIONAL MATCH (u)-[posted:POSTED]->(:Post)
+            OPTIONAL MATCH (u)-[posted:POSTED]->(post:Post)
+            WHERE post.isDeleted = false
             OPTIONAL MATCH (u)-[commented:COMMENTED]->(:Comment)
             OPTIONAL MATCH (u1: User{ id: $id2 })-[follows3:FOLLOWS]->(u)
             OPTIONAL MATCH (u1: User{ id: $id2 })-[blocked:BLOCKED]->(u)

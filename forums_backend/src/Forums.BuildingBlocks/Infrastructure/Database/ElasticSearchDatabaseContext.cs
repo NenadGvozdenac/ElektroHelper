@@ -15,6 +15,11 @@ public class VectorDatabaseContext : IVectorDatabaseContext
         _elasticClient = new ElasticClient(settings);
     }
 
+    public async Task<DeleteIndexResponse> DeleteIndex(string indexName)
+    {
+        return await _elasticClient.Indices.DeleteAsync(indexName);
+    }
+
     public async Task<BulkResponse> IndexData<T>(List<T> data, string indexName) where T : class
     {
         var response = await _elasticClient.IndexManyAsync(data, indexName);

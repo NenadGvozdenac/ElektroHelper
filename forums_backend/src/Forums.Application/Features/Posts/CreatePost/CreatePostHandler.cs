@@ -1,3 +1,4 @@
+using forums_backend.src.Forums.Application.BackgroundServices;
 using forums_backend.src.Forums.BuildingBlocks.Core.Domain;
 using forums_backend.src.Forums.BuildingBlocks.Infrastructure;
 using forums_backend.src.Forums.BuildingBlocks.Infrastructure.Database;
@@ -7,7 +8,7 @@ using Neo4j.Driver;
 
 namespace forums_backend.src.Forums.Application.Features.Posts.CreatePost;
 
-public class CreatePostHandler(IGraphDatabaseContext context) : IRequestHandler<CreatePostCommand, Result<CreatedPostDTO>>
+public class CreatePostHandler(IGraphDatabaseContext context, PostSyncService postSyncService) : IRequestHandler<CreatePostCommand, Result<CreatedPostDTO>>
 {
     public async Task<Result<CreatedPostDTO>> Handle(CreatePostCommand request, CancellationToken cancellationToken)
     {
@@ -47,6 +48,8 @@ public class CreatePostHandler(IGraphDatabaseContext context) : IRequestHandler<
             var record = await result.SingleAsync();
 
             var post = record["p"].As<INode>();
+
+            await postSyncService.ManuallySyncPostsAsync(cancellationToken);
 
             return Result<CreatedPostDTO>.Success(new CreatedPostDTO(
                 Guid.Parse(post["id"].As<string>()),

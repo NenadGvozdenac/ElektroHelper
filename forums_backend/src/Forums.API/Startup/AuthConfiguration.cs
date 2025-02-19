@@ -54,12 +54,7 @@ public static class AuthConfiguration
         services.AddAuthorization();
     }
 
-    private static void ConfigureAuthorizationPolicies(IServiceCollection services)
-    {
-        services.AddAuthorization(options =>
-        {
-            options.AddPolicy("adminPolicy", policy => policy.RequireRole("admin"));
-            options.AddPolicy("allLoggedPolicy", policy => policy.RequireRole("user", "admin"));
-        });
-    }
+    private static void ConfigureAuthorizationPolicies(IServiceCollection services) => 
+        services.AddAuthorizationBuilder()
+            .AddPolicy("adminPolicy", policy => policy.RequireRole("admin"));
 }

@@ -12,6 +12,7 @@ public class GetAllPostsHandler(IGraphDatabaseContext context) : IRequestHandler
     {
         var query = @"
             MATCH (p:Post)
+            WHERE p.isDeleted = false
             OPTIONAL MATCH (u1:User)-[upvote1:UPVOTED_POST]->(p)
             OPTIONAL MATCH (u2:User)-[downvote1:DOWNVOTED_POST]->(p)
             OPTIONAL MATCH (c1:Comment)-[comment:BELONGS_TO]->(p)
@@ -55,6 +56,7 @@ public class GetAllPostsHandler(IGraphDatabaseContext context) : IRequestHandler
                     post["createdAt"].As<string>().FromNeo4jDateTime(),
                     hasUpvoted,
                     hasDownvoted,
+                    post["isDeleted"].As<bool>(),
                     upvotes,
                     downvotes,
                     comments,

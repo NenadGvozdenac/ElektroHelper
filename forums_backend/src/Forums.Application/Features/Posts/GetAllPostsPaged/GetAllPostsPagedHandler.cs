@@ -12,6 +12,7 @@ public class GetAllPostsPagedHandler(IGraphDatabaseContext context) : IRequestHa
     {
         var query = @"
             MATCH (p:Post)
+            WHERE p.isDeleted = false
             OPTIONAL MATCH (u1:User)-[upvote1:UPVOTED_POST]->(p)
             OPTIONAL MATCH (u2:User)-[downvote1:DOWNVOTED_POST]->(p)
             OPTIONAL MATCH (c1:Comment)-[comment:BELONGS_TO]->(p)
@@ -59,6 +60,7 @@ public class GetAllPostsPagedHandler(IGraphDatabaseContext context) : IRequestHa
                     post["createdAt"].As<string>().FromNeo4jDateTime(),
                     hasUpvoted,
                     hasDownvoted,
+                    post["isDeleted"].As<bool>(),
                     upvotes,
                     downvotes,
                     comments,

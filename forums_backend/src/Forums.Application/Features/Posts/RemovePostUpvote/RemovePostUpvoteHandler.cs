@@ -68,6 +68,7 @@ public class RemovePostUpvoteHandler(IGraphDatabaseContext context) : IRequestHa
     {
         var query = @"
             MATCH (p:Post {id: $postId})
+            WHERE p.isDeleted = false
             RETURN p";
 
         var parameters = new Dictionary<string, object>

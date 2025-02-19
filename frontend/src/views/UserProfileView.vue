@@ -144,9 +144,8 @@
                                     <LockIcon class="w-3 h-3 mr-1" />
                                     Locked
                                 </span>
-                                <button class="p-1.5 hover:bg-slate-50 rounded-lg text-slate-400 hover:text-slate-600">
-                                    <MoreVertical class="w-5 h-5" />
-                                </button>
+                                <PostDropdownMenu :postId="post.id" :onDeletePost="handleDeletePost"
+                                    v-if="isOwnProfile" />
                             </div>
                         </div>
                     </div>
@@ -266,6 +265,7 @@ import type { Profile } from '@/app/models/forum_backend/Profile';
 import type { Post } from '@/app/models/forum_backend/Post';
 import ToastNotification from '@/components/forums/ToastNotification.vue';
 import UniversalNavbar from '@/components/forums/UniversalNavbar.vue';
+import PostDropdownMenu from '@/components/forums/PostDropdownMenu.vue';
 
 const route = useRoute();
 const router = useRouter();
@@ -488,10 +488,26 @@ async function copyToClipboard(postId: string) {
 }
 
 function handleSearch(query: string) {
-    // Filter posts based on search query
     posts.value = posts.value.filter(post =>
         post.title.toLowerCase().includes(query.toLowerCase()) ||
         post.content.toLowerCase().includes(query.toLowerCase())
     );
+}
+
+async function handleDeletePost(postId: string) {
+    const jwt = await getAccessToken();
+    if (!jwt) {
+        router.push('/login');
+        return;
+    }
+
+    try {
+        await ProfileService.deletePost(jwt, postId);
+        posts.value = posts.value.filter(post => post.id !== postId);
+        toastRef.value.showToast('Post deleted successfully!');
+    } catch (error) {
+        console.error('Error deleting post:', error);
+        toastRef.value.showToast('Failed to delete post!');
+    }
 }
 </script>

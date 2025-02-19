@@ -12,6 +12,7 @@ public class GetPostsByForumIdPagedHandler(IGraphDatabaseContext context) : IReq
     {
         var query = @"
                 MATCH (f:Forum {id: $forumId})-[:HAS_POST]->(p:Post)
+                WHERE p.isDeleted = false
                 OPTIONAL MATCH (u1:User)-[upvote:UPVOTED_POST]->(p)
                 OPTIONAL MATCH (u2:User)-[downvote:DOWNVOTED_POST]->(p)
                 OPTIONAL MATCH (c:Comment)-[comment:BELONGS_TO]->(p)

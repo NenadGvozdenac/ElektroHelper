@@ -28,7 +28,7 @@ public class PostSyncService : IPostSyncService
 
     private async Task SyncPosts(List<PostDTO> posts, CancellationToken cancellationToken)
     {
-        var (vectorDatabaseContext, mediator) = GetServices();
+        var (vectorDatabaseContext, _) = GetServices();
 
         if (posts.Count == 0)
         {
@@ -48,15 +48,42 @@ public class PostSyncService : IPostSyncService
         }
     }
 
-    public async Task ManuallySyncPostsAsync(CancellationToken cancellationToken)
+    public Task ManuallySyncPostsAsync(CancellationToken cancellationToken)
     {
-        var posts = await GetPosts(cancellationToken);
-        await SyncPosts(posts, cancellationToken);
+        return Task.Run(async () =>
+        {
+            try
+            {
+                var posts = await GetPosts(cancellationToken);
+                await DeleteAllPosts(cancellationToken);
+                await SyncPosts(posts, cancellationToken);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError("[PostSyncService] Error during manual sync: {Error}", ex.Message);
+            }
+        }, cancellationToken);
+    }
+
+    private async Task DeleteAllPosts(CancellationToken cancellationToken)
+    {
+        var (vectorDatabaseContext, _) = GetServices();
+
+        var deleteResponse = await vectorDatabaseContext.DeleteIndex("forum_posts");
+
+        if (!deleteResponse.IsValid)
+        {
+            _logger.LogError("[PostSyncService] Failed to delete all posts from Elasticsearch: {Error}", deleteResponse.OriginalException?.Message);
+        }
+        else
+        {
+            _logger.LogInformation("[PostSyncService] Successfully deleted all posts from Elasticsearch.");
+        }
     }
 
     private async Task<List<PostDTO>> GetPosts(CancellationToken cancellationToken)
     {
-        var (vectorDatabaseContext, mediator) = GetServices();
+        var (_, mediator) = GetServices();
 
         var postsResult = await mediator.Send(new SyncAllPostsQuery(), cancellationToken);
 

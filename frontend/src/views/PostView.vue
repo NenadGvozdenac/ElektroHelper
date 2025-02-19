@@ -1,7 +1,7 @@
 <template>
     <div class="min-h-screen bg-slate-100">
         <!-- Reusing the same header from ForumView -->
-         <UniversalNavbar />
+        <UniversalNavbar />
 
         <main class="container mx-auto px-4 py-6">
             <div class="max-w-4xl mx-auto">
@@ -18,13 +18,14 @@
                     <div class="border-b border-slate-100 p-4">
                         <div class="flex items-center justify-between">
                             <div class="flex items-center space-x-3">
-                                <div
-                                    class="w-10 h-10 rounded-full bg-gradient-to-br from-emerald-500 to-indigo-500 flex items-center justify-center text-white font-bold">
+                                <div @click="toProfile(post?.author.id!)"
+                                    class="cursor-pointer w-10 h-10 rounded-full bg-gradient-to-br from-emerald-500 to-indigo-500 flex items-center justify-center text-white font-bold">
                                     {{ post?.author?.username?.[0]?.toUpperCase() ?? 'A' }}
                                 </div>
                                 <div>
                                     <div class="flex items-center space-x-3">
-                                        <span class="font-medium text-slate-900">{{ post?.author?.username }}</span>
+                                        <span class="font-medium text-slate-900 cursor-pointer"
+                                            @click="toProfile(post?.author.id!)">{{ post?.author?.username }}</span>
                                         <span class="text-sm text-slate-500">{{ formatDate(post?.createdAt) }}</span>
                                         <span v-if="post?.isLocked"
                                             class="px-2 py-0.5 rounded-full bg-amber-100 text-amber-600 text-xs font-medium flex items-center">
@@ -32,6 +33,23 @@
                                             Locked
                                         </span>
                                     </div>
+                                </div>
+                            </div>
+
+                            <!-- Author Actions Dropdown -->
+                            <div v-if="isAuthor" class="relative dropdown">
+                                <button @click="toggleDropdown()"
+                                    class="p-2 text-slate-500 hover:text-slate-700 rounded-lg hover:bg-slate-100 transition-colors">
+                                    <MoreVertical class="w-5 h-5" />
+                                </button>
+
+                                <div v-if="showDropdown"
+                                    class="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-slate-200 py-1 z-10">
+                                    <button @click="deletePost"
+                                        class="w-full px-4 py-2 text-left text-red-600 hover:bg-slate-50 flex items-center">
+                                        <Trash2 class="w-4 h-4 mr-2" />
+                                        Delete Post
+                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -135,14 +153,13 @@
 
                                 <!-- Comment Content -->
                                 <div class="p-4 flex-grow">
-                                    <div class="flex items-center space-x-3 mb-2">
-                                        <div
+                                    <div class="flex items-center space-x-3 mb-2 cursor-pointer">
+                                        <div @click="toProfile(comment.author.id)"
                                             class="w-8 h-8 rounded-full bg-gradient-to-br from-emerald-500 to-indigo-500 flex items-center justify-center text-white font-bold">
                                             {{ comment.author.username[0].toUpperCase() }}
                                         </div>
                                         <div>
-                                            <span class="font-medium text-slate-900">{{ comment.author.username
-                                                }}</span>
+                                            <span class="font-medium text-slate-900 cursor-pointer" @click="toProfile(comment.author.id)">{{ comment.author.username }}</span>
                                             <span class="text-sm text-slate-500 ml-2">{{
                                                 formatDate(comment.createdAt) }}</span>
                                         </div>
@@ -175,17 +192,20 @@ import {
     ArrowBigUp,
     ArrowBigDown,
     LockIcon,
-    ArrowLeft
+    MoreVertical,
+    ArrowLeft,
+    Trash2
 } from 'lucide-vue-next';
 import { PostService } from '@/app/services/forum_backend/post_service';
 import { CommentService } from '@/app/services/forum_backend/comment_service';
 import { VotingService } from '@/app/services/forum_backend/voting_service';
-import { getAccessToken } from '@/app/services/backend/auth_service';
+import { getAccessToken, getUserData } from '@/app/services/backend/auth_service';
 import type { Post } from '@/app/models/forum_backend/Post';
 import type { Comment, CreateComment } from '@/app/models/forum_backend/Comment';
-import { goToForum, goToHome } from '@/app/routes';
+import { goToForum, goToForums, goToHome, goToProfile } from '@/app/routes';
 import ToastNotification from '@/components/forums/ToastNotification.vue';
 import UniversalNavbar from '@/components/forums/UniversalNavbar.vue';
+import { ProfileService } from '@/app/services/forum_backend/profile_service';
 
 const route = useRoute();
 const router = useRouter();
@@ -195,6 +215,9 @@ const comments = ref<Comment[]>([]);
 const newComment = ref('');
 const loading = ref(false);
 const toastRef = ref();
+
+const showDropdown = ref(false);
+const isAuthor = ref(false);
 
 onMounted(async () => {
     const jwt = await getAccessToken();
@@ -207,12 +230,21 @@ onMounted(async () => {
         fetchPost(jwt),
         fetchComments(jwt)
     ]);
+
+    document.addEventListener('click', (event) => {
+        const target = event.target as HTMLElement;
+        if (!target.closest('.dropdown')) {
+            showDropdown.value = false;
+        }
+    });
+
+    const currentUser = await getUserData();
+    isAuthor.value = currentUser?.userID == post.value?.author?.id;
 });
 
 async function fetchPost(jwt: string) {
     try {
         post.value = await PostService.getPost(jwt, postId.value);
-        debugger
     } catch (error) {
         console.error('Error fetching post:', error);
         router.push('/');
@@ -395,5 +427,28 @@ async function deleteDownvoteComment(commentId: string) {
     comment.isDownvoted = false;
 
     showNotification('Removed downvote from comment!');
+}
+
+async function deletePost() {
+    const jwt = await getAccessToken();
+    if (!jwt || !post.value) return;
+
+    try {
+        await ProfileService.deletePost(jwt, post.value.id);
+        showNotification('Post deleted successfully');
+        goToForum(post.value.forum.id);
+    } catch (error) {
+        console.error('Error deleting post:', error);
+        showNotification('Failed to delete post');
+    }
+    showDropdown.value = false;
+}
+
+function toggleDropdown() {
+    showDropdown.value = !showDropdown.value;
+}
+
+function toProfile(userId: string) {
+    goToProfile(userId);
 }
 </script>

@@ -29,9 +29,6 @@
                         @click="$emit('navigateToForum', post.forum?.id)">
                         {{ post.forum?.name }}
                     </span>
-                    <button class="p-1.5 hover:bg-slate-50 rounded-lg text-slate-400 hover:text-slate-600">
-                        <MoreVertical class="w-5 h-5" />
-                    </button>
                 </div>
             </div>
         </div>

@@ -103,6 +103,7 @@ public class UpvotePostHandler(IGraphDatabaseContext context) : IRequestHandler<
     {
         var query = @"
             MATCH (p:Post {id: $postId})
+            WHERE p.isDeleted = false
             RETURN p";
 
         var parameters = new Dictionary<string, object>

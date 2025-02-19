@@ -77,12 +77,6 @@
                                     <span>Create Forum</span>
                                 </button>
 
-                                <button @click="createNewPost" v-if="isOnForumPage()"
-                                    class="w-full px-4 py-2 text-left text-slate-700 hover:bg-slate-50 flex items-center space-x-2">
-                                    <PlusCircle class="w-4 h-4" />
-                                    <span>Create Post</span>
-                                </button>
-
                                 <div class="border-t border-slate-200 my-1"></div>
 
                                 <button @click="handleLogout"
@@ -160,10 +154,6 @@ function goToProfile1() {
     isDropdownOpen.value = false;
 }
 
-function createNewPost() {
-    isDropdownOpen.value = false;
-}
-
 async function handleLogout() {
     try {
         await AuthService.logout();
@@ -171,10 +161,6 @@ async function handleLogout() {
     } catch (error) {
         console.error('Error logging out:', error);
     }
-}
-
-function isOnForumPage() {
-    return route.path.startsWith('/forums/');
 }
 
 function createNewForum() {

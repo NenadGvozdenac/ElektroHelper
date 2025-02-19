@@ -11,12 +11,13 @@ namespace forums_backend.src.Forums.Application.Features.RSS.GetRssFeed;
 
 public class GetRssFeedHandler(IGraphDatabaseContext context) : IRequestHandler<GetRssFeedQuery, Result<string>>
 {
-    private static string GeneratePostLink(Guid guid) => $"http://localhost:9090/posts/{guid}";
-    private static string GenerateFeedLink() => "http://localhost:9090/rss";
+    private static string GeneratePostLink(Guid guid) => $"http://localhost:5173/posts/{guid}";
+    private static string GenerateFeedLink() => "http://localhost:5173/rss";
     public async Task<Result<string>> Handle(GetRssFeedQuery request, CancellationToken cancellationToken)
     {
         var query = @"
             MATCH (f:Forum)-[:HAS_POST]->(p:Post)<-[:POSTED]-(u:User)
+            WHERE p.isDeleted = false
             ORDER BY p.createdAt DESC
             LIMIT 15
             RETURN f, p, u

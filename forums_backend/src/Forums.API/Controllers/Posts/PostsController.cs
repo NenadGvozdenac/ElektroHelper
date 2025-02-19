@@ -1,4 +1,6 @@
 using forums_backend.src.Forums.Application.Features.Posts.CreatePost;
+using forums_backend.src.Forums.Application.Features.Posts.DeletePost;
+using forums_backend.src.Forums.Application.Features.Posts.DeletePostByAdmin;
 using forums_backend.src.Forums.Application.Features.Posts.GetAllPosts;
 using forums_backend.src.Forums.Application.Features.Posts.GetAllPostsPaged;
 using forums_backend.src.Forums.Application.Features.Posts.GetMyPosts;
@@ -7,7 +9,6 @@ using forums_backend.src.Forums.Application.Features.Posts.GetPostsByForumId;
 using forums_backend.src.Forums.Application.Features.Posts.GetPostsByForumIdPaged;
 using forums_backend.src.Forums.Application.Features.Posts.GetPostsByUserId;
 using forums_backend.src.Forums.Application.Features.Posts.GetPostsByUserIdPaged;
-using forums_backend.src.Forums.Application.Features.Search.SearchPosts;
 using forums_backend.src.Forums.BuildingBlocks.Core.Domain;
 using forums_backend.src.Forums.BuildingBlocks.Infrastructure;
 using MediatR;
@@ -84,6 +85,21 @@ public class PostsController(IMediator mediator) : BaseController
     public async Task<ActionResult<Result>> GetPostByIdAsync(Guid postId)
     {
         var post = await mediator.Send(new GetPostByIdQuery(this.GetUser(), postId));
+        return CreateResponse(post);
+    }
+
+    [HttpDelete("{postId}")]
+    public async Task<ActionResult<Result>> DeletePostAsync(Guid postId)
+    {
+        var post = await mediator.Send(new DeletePostCommand(this.GetUser(), postId));
+        return CreateResponse(post);
+    }
+
+    [HttpDelete("admin/{postId}")]
+    [Authorize(Policy = "adminPolicy")]
+    public async Task<ActionResult<Result>> DeletePostByAdminAsync(Guid postId)
+    {
+        var post = await mediator.Send(new DeletePostByAdminCommand(this.GetUser(), postId));
         return CreateResponse(post);
     }
 }
