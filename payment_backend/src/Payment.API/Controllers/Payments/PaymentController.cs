@@ -20,6 +20,7 @@ public class PaymentController(IMediator mediator) : BaseController
     {
         var result = await mediator.Send(new CreatePaymentCommand(this.GetUser(),
             createInvoiceDto.Amount,
+            createInvoiceDto.Currency,
             createInvoiceDto.PaymentPurpose,
             createInvoiceDto.Payee,
             createInvoiceDto.PayeeAccountNumber,
@@ -29,8 +30,8 @@ public class PaymentController(IMediator mediator) : BaseController
         return CreateResponse(result);
     }
 
-    [HttpGet("all")]
-    public async Task<IActionResult> GetMyPayments([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
+    [HttpGet]
+    public async Task<IActionResult> GetMyPayments([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 3)
     {
         var result = await mediator.Send(new GetPaymentsQuery(this.GetUser(), pageNumber, pageSize));
         return CreateResponse(result);

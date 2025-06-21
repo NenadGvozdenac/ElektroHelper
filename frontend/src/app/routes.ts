@@ -33,3 +33,7 @@ export function goToProfile(userId: string | number) {
 export function goToRss() {
   goToLocation('/rss')
 }
+
+export function goToPayments() {
+  goToLocation('/payments')
+}

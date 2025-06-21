@@ -14,6 +14,7 @@ public class GetPaymentsHandler(IDocumentDatabaseContext documentDatabaseContext
         var paymentDtos = payments.Select(payment => new GetPaymentDTO(
             payment.Id,
             payment.Amount,
+            payment.Currency,
             payment.PaymentPurpose,
             payment.Payee,
             payment.PayeeAccountNumber,

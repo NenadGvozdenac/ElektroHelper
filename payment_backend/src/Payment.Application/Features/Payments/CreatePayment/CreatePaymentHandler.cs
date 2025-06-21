@@ -13,6 +13,7 @@ public class CreatePaymentHandler(IDocumentDatabaseContext context) : IRequestHa
         var payment = new PaymentEntity(
             request.UserDTO.Id,
             request.Amount,
+            request.Currency,
             request.PaymentPurpose,
             request.Payee,
             request.PayeeAccountNumber,
@@ -25,6 +26,7 @@ public class CreatePaymentHandler(IDocumentDatabaseContext context) : IRequestHa
         var createdPaymentDto = new CreatedPaymentDTO(
             payment.Id,
             payment.Amount,
+            payment.Currency,
             payment.PaymentPurpose,
             payment.Payee,
             payment.PayeeAccountNumber,

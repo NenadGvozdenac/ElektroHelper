@@ -3,6 +3,7 @@ namespace payment_backend.src.Payment.Application.Features.Payments.GetPaymentBy
 public class GetPaymentDTO(
     string id,
     decimal amount,
+    string currency,
     string paymentPurpose,
     string payee,
     string payeeAccountNumber,
@@ -12,6 +13,7 @@ public class GetPaymentDTO(
 {
     public string Id { get; set; } = id;
     public decimal Amount { get; set; } = amount;
+    public string Currency { get; set; } = currency;
     public string PaymentPurpose { get; set; } = paymentPurpose;
     public string Payee { get; set; } = payee;
     public string PayeeAccountNumber { get; set; } = payeeAccountNumber;

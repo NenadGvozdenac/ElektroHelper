@@ -35,8 +35,6 @@ services:
       NEO4J_PASSWORD: ${NEO4J_PASSWORD}
       ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT}
       ELASTICSEARCH_HOST: "http://elasticsearch:9200"
-    volumes:
-      - ./dataProtectionKeys:/root/.aspnet/DataProtection-Keys
 
   payment_app:
     build:
@@ -54,8 +52,6 @@ services:
       MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD}
       MONGO_DB_NAME: ${MONGO_DB_NAME}
       ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT}
-    volumes:
-      - ./dataProtectionKeys1:/root/.aspnet/DataProtection-Keys
 
   db:
     container_name: postgres_db

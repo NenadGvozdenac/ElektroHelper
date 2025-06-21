@@ -1,4 +1,5 @@
 using forums_backend.src.Forums.API.Startup;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Rewrite;
 using Microsoft.IdentityModel.Logging;
 
@@ -13,6 +14,8 @@ const string corsPolicy = "_corsPolicy";
 builder.Services.ConfigureCors(corsPolicy);
 builder.Services.ConfigureAuth();
 builder.Services.ConfigureApplication();
+
+builder.Services.AddDataProtection().UseEphemeralDataProtectionProvider();
 
 var app = builder.Build();
 

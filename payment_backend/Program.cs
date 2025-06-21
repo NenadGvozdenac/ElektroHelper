@@ -1,6 +1,7 @@
 using payment_backend.src.Payment.API.Startup;
 using Microsoft.AspNetCore.Rewrite;
 using Microsoft.IdentityModel.Logging;
+using Microsoft.AspNetCore.DataProtection;
 
 IdentityModelEventSource.ShowPII = true;
 
@@ -13,6 +14,8 @@ const string corsPolicy = "_corsPolicy";
 builder.Services.ConfigureCors(corsPolicy);
 builder.Services.ConfigureAuth();
 builder.Services.ConfigureApplication();
+
+builder.Services.AddDataProtection().UseEphemeralDataProtectionProvider();
 
 var app = builder.Build();
 

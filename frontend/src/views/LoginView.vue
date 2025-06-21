@@ -1,107 +1,3 @@
-<script setup lang="ts">
-import { ref, computed } from 'vue'
-import type { UserLogin, UserRegister } from '@/app/models/backend/user'
-import { AuthService, getAccessToken } from '@/app/services/backend/auth_service'
-import { ForumService } from '@/app/services/forum_backend/forum_service'
-
-const isLogin = ref(true)
-const loading = ref(false)
-const error = ref('')
-const isPasswordVisible = ref(false)
-
-const formData = ref({
-    name: '',
-    surname: '',
-    email: '',
-    phone: '',
-    password: '',
-    confirm_password: ''
-})
-
-const passwordMatch = computed(() => {
-    return !formData.value.confirm_password ||
-        formData.value.password === formData.value.confirm_password
-})
-
-const loginUser = (email: string, password: string): void => {
-    const data: UserLogin = {
-        email,
-        password
-    }
-
-    AuthService.login(data)
-        .then(_ => {
-            window.location.href = '/'
-        }).catch(error => {
-            console.log(error.response.data)
-            loading.value = false
-        })
-}
-
-const registerUser = (name: string, surname: string, email: string, phone: string, password: string, confirm_password: string): void => {
-    const data: UserRegister = {
-        name,
-        surname,
-        email,
-        phone,
-        password,
-        confirm_password
-    }
-
-    AuthService.register(data)
-        .then(async _ => {
-
-            const jwt = await getAccessToken();
-
-            if (jwt) {
-                ForumService.registerUser(jwt).then(_ => {
-                    window.location.href = '/'
-                }).catch(error => {
-                    console.log(error.response.data)
-                    loading.value = false
-                })
-            }
-        }).catch(error => {
-            console.log(error.response.data)
-            loading.value = false
-        })
-}
-
-const handleSubmit = async () => {
-    error.value = ''
-    loading.value = true
-
-    if (!isLogin.value && !passwordMatch.value) {
-        error.value = 'Passwords do not match'
-        loading.value = false
-        return
-    }
-
-    if (isLogin.value) {
-        loginUser(formData.value.email, formData.value.password)
-    } else {
-        registerUser(formData.value.name, formData.value.surname, formData.value.email, formData.value.phone, formData.value.password, formData.value.confirm_password)
-    }
-}
-
-const toggleForm = () => {
-    isLogin.value = !isLogin.value
-    error.value = ''
-    formData.value = {
-        name: '',
-        surname: '',
-        email: '',
-        phone: '',
-        password: '',
-        confirm_password: ''
-    }
-}
-
-const togglePasswordVisibility = () => {
-    isPasswordVisible.value = !isPasswordVisible.value
-}
-</script>
-
 <template>
     <div class="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-primary/5 p-4">
         <div class="card w-full max-w-md backdrop-blur-sm bg-surface/95 border border-primary/10"
@@ -197,10 +93,6 @@ const togglePasswordVisibility = () => {
                     </div>
                 </div>
 
-                <div v-if="error" class="text-error text-sm mt-2 bg-error/10 p-3 rounded-lg">
-                    {{ error }}
-                </div>
-
                 <button type="submit"
                     class="btn btn-primary w-full transform hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 shadow-lg hover:shadow-primary/25"
                     :disabled="loading">
@@ -228,6 +120,26 @@ const togglePasswordVisibility = () => {
                 </button>
             </div>
         </div>
+
+        <!-- Error Popup Modal -->
+        <div v-if="showErrorPopup"
+            class="fixed inset-0 z-50 flex items-center justify-center p-8 bg-black/25 backdrop-blur-sm">
+            <div
+                class="bg-surface border border-error/20 rounded-lg shadow-xl max-w-md w-full p-6 transform transition-all duration-300 scale-in">
+                <div class="flex items-center justify-center w-12 h-12 mx-auto mb-4 bg-error/10 rounded-full">
+                    <svg class="w-8 h-8 text-error" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                    </svg>
+                </div>
+                <h3 class="text-lg font-semibold text-center mb-2 text-error">Authentication Error</h3>
+                <p class="text-center text-text-light mb-6">{{ errorMessage }}</p>
+                <button @click="closeErrorPopup"
+                    class="w-full bg-error hover:bg-error/90 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200">
+                    Close
+                </button>
+            </div>
+        </div>
     </div>
 </template>
 
@@ -247,4 +159,177 @@ const togglePasswordVisibility = () => {
         opacity: 1;
     }
 }
+
+.scale-in {
+    animation: scale-in 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
+}
+
+@keyframes scale-in {
+    0% {
+        transform: scale(0.8);
+        opacity: 0;
+    }
+
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
 </style>
+
+<script setup lang="ts">
+import { ref, computed } from 'vue'
+import type { UserLogin, UserRegister } from '@/app/models/backend/user'
+import { AuthService, getAccessToken } from '@/app/services/backend/auth_service'
+import { ForumService } from '@/app/services/forum_backend/forum_service'
+
+const isLogin = ref(true)
+const loading = ref(false)
+const error = ref('')
+const isPasswordVisible = ref(false)
+const showErrorPopup = ref(false)
+const errorMessage = ref('')
+
+const formData = ref({
+    name: '',
+    surname: '',
+    email: '',
+    phone: '',
+    password: '',
+    confirm_password: ''
+})
+
+const passwordMatch = computed(() => {
+    return !formData.value.confirm_password ||
+        formData.value.password === formData.value.confirm_password
+})
+
+const showError = (message: string) => {
+    errorMessage.value = message
+    showErrorPopup.value = true
+}
+
+const closeErrorPopup = () => {
+    showErrorPopup.value = false
+    errorMessage.value = ''
+}
+
+const getErrorMessage = (error: any): string => {
+    // Check if error has response data
+    if (error.response?.data) {
+        // If it's a string, return it directly
+        if (typeof error.response.data === 'string') {
+            return error.response.data
+        }
+
+        // If it's an object, try to extract meaningful message
+        if (typeof error.response.data === 'object') {
+            // Common error message fields
+            if (error.response.data.message) {
+                return error.response.data.message
+            }
+            if (error.response.data.error) {
+                return error.response.data.error
+            }
+            if (error.response.data.detail) {
+                return error.response.data.detail
+            }
+            // If it's an array of errors
+            if (Array.isArray(error.response.data)) {
+                return error.response.data.join(', ')
+            }
+        }
+    }
+
+    // Fallback to status text or generic message
+    if (error.response?.statusText) {
+        return error.response.statusText
+    }
+
+    if (error.message) {
+        return error.message
+    }
+
+    return 'An unexpected error occurred. Please try again.'
+}
+
+const loginUser = (email: string, password: string): void => {
+    const data: UserLogin = {
+        email,
+        password
+    }
+
+    AuthService.login(data)
+        .then(_ => {
+            window.location.href = '/'
+        }).catch(error => {
+            console.log(error.response?.data)
+            loading.value = false
+            showError(getErrorMessage(error))
+        })
+}
+
+const registerUser = (name: string, surname: string, email: string, phone: string, password: string, confirm_password: string): void => {
+    const data: UserRegister = {
+        name,
+        surname,
+        email,
+        phone,
+        password,
+        confirm_password
+    }
+
+    AuthService.register(data)
+        .then(async _ => {
+            const jwt = await getAccessToken();
+
+            if (jwt) {
+                ForumService.registerUser(jwt).then(_ => {
+                    window.location.href = '/'
+                }).catch(error => {
+                    console.log(error.response?.data)
+                    loading.value = false
+                    showError(getErrorMessage(error))
+                })
+            }
+        }).catch(error => {
+            console.log(error.response?.data)
+            loading.value = false
+            showError(getErrorMessage(error))
+        })
+}
+
+const handleSubmit = async () => {
+    error.value = ''
+    loading.value = true
+
+    if (!isLogin.value && !passwordMatch.value) {
+        showError('Passwords do not match.')
+        loading.value = false
+        return
+    }
+
+    if (isLogin.value) {
+        loginUser(formData.value.email, formData.value.password)
+    } else {
+        registerUser(formData.value.name, formData.value.surname, formData.value.email, formData.value.phone, formData.value.password, formData.value.confirm_password)
+    }
+}
+
+const toggleForm = () => {
+    isLogin.value = !isLogin.value
+    error.value = ''
+    formData.value = {
+        name: '',
+        surname: '',
+        email: '',
+        phone: '',
+        password: '',
+        confirm_password: ''
+    }
+}
+
+const togglePasswordVisibility = () => {
+    isPasswordVisible.value = !isPasswordVisible.value
+}
+</script>

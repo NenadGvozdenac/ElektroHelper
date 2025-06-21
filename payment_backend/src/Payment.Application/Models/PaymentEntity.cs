@@ -3,7 +3,7 @@ using payment_backend.src.Payment.BuildingBlocks.Core.Domain;
 
 namespace payment_backend.src.Payment.Application.Models;
 
-public class PaymentEntity(string userId, decimal amount, string paymentPurpose, string payee,
+public class PaymentEntity(string userId, decimal amount, string currency, string paymentPurpose, string payee,
     string payeeAccountNumber, string referenceNumber, string paymentModel) : BaseEntity
 {
     [BsonElement("userId")]
@@ -11,6 +11,9 @@ public class PaymentEntity(string userId, decimal amount, string paymentPurpose,
 
     [BsonElement("amount")]
     public decimal Amount { get; private set; } = amount;
+
+    [BsonElement("currency")]
+    public string Currency { get; private set; } = currency;
 
     [BsonElement("paymentPurpose")]
     public string PaymentPurpose { get; private set; } = paymentPurpose;

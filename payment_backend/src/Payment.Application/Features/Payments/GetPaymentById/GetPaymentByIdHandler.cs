@@ -19,6 +19,7 @@ public class GetPaymentByIdHandler(IDocumentDatabaseContext documentDatabaseCont
         var paymentDto = new GetPaymentDTO(
             payment.Id,
             payment.Amount,
+            payment.Currency,
             payment.PaymentPurpose,
             payment.Payee,
             payment.PayeeAccountNumber,
