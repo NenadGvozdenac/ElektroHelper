@@ -1,5 +1,6 @@
 
 using System.Reflection;
+using payment_backend.src.Payment.BuildingBlocks.Infrastructure.Database;
 
 namespace payment_backend.src.Payment.API.Startup;
 
@@ -15,7 +16,7 @@ public static class ApplicationStartup
 
     private static void SetupDatabases(IServiceCollection services)
     {
-        // TODO: Implement database setup logic
+        services.AddScoped<IDocumentDatabaseContext, MongoDatabaseContext>();
     }
 
     private static void SetupMediatR(IServiceCollection services)
