@@ -38,7 +38,26 @@ services:
     volumes:
       - ./dataProtectionKeys:/root/.aspnet/DataProtection-Keys
 
+  payment_app:
+    build:
+      context: ./payment_backend
+      dockerfile: Dockerfile
+    restart: always
+    ports:
+      - "9091:9091"
+    depends_on:
+      - mongo_db
+    environment:
+      MONGO_HOST: ${MONGO_HOST}
+      MONGO_PORT: ${MONGO_PORT}
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD}
+      MONGO_DB_NAME: ${MONGO_DB_NAME}
+    volumes:
+      - ./dataProtectionKeys1:/root/.aspnet/DataProtection-Keys
+
   db:
+    container_name: postgres_db
     image: postgres:latest
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
@@ -50,7 +69,25 @@ services:
     ports:
       - "5432:5432"
 
+  # TODO: Remove this when not needed
+  # mongodb://root:example@localhost:27017/mydb?authSource=admin
+  mongo_db:
+    container_name: mongo_db
+    image: mongo:latest
+    restart: always
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    environment:
+      MONGO_HOST: ${MONGO_HOST}
+      MONGO_PORT: ${MONGO_PORT}
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD}
+      MONGO_INITDB_DATABASE: ${MONGO_DB_NAME}
+
   neo4j:
+    container_name: neo4j_db
     image: neo4j:latest
     restart: always
     ports:
@@ -63,8 +100,8 @@ services:
       - neo4j_logs:/logs
 
   elasticsearch:
+    container_name: elasticsearch_db
     image: docker.elastic.co/elasticsearch/elasticsearch:7.17.5
-    container_name: elasticsearch
     environment:
       - discovery.type=single-node
       - ELASTIC_USERNAME=elastic
@@ -130,3 +167,4 @@ volumes:
   neo4j_data:
   neo4j_logs:
   elasticsearch_data:
+  mongo_data:

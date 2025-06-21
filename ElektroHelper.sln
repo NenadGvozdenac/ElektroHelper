@@ -2,7 +2,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.5.2.0
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "forums_backend", "forums_backend\forums_backend.csproj", "{13048732-9D29-98DD-128B-9ADB7AEB99A7}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "forums_backend", "forums_backend\forums_backend.csproj", "{13048732-9D29-98DD-128B-9ADB7AEB99A7}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "payment_backend", "payment_backend\payment_backend.csproj", "{27F02D01-19D0-43E3-8A52-7F58019B3EDC}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -14,6 +16,10 @@ Global
 		{13048732-9D29-98DD-128B-9ADB7AEB99A7}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{13048732-9D29-98DD-128B-9ADB7AEB99A7}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{13048732-9D29-98DD-128B-9ADB7AEB99A7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{27F02D01-19D0-43E3-8A52-7F58019B3EDC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{27F02D01-19D0-43E3-8A52-7F58019B3EDC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{27F02D01-19D0-43E3-8A52-7F58019B3EDC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{27F02D01-19D0-43E3-8A52-7F58019B3EDC}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
