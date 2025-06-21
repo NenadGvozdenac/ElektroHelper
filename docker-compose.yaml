@@ -53,6 +53,7 @@ services:
       MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME}
       MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD}
       MONGO_DB_NAME: ${MONGO_DB_NAME}
+      ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT}
     volumes:
       - ./dataProtectionKeys1:/root/.aspnet/DataProtection-Keys
 
@@ -69,8 +70,6 @@ services:
     ports:
       - "5432:5432"
 
-  # TODO: Remove this when not needed
-  # mongodb://root:example@localhost:27017/mydb?authSource=admin
   mongo_db:
     container_name: mongo_db
     image: mongo:latest
