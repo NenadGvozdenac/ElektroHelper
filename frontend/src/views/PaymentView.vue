@@ -63,11 +63,11 @@
                                                     <!-- Dynamic currency icon -->
                                                     <component :is="getCurrencyIcon()"
                                                         class="absolute left-3 top-3 w-5 h-5 text-slate-400" />
-                                                    <input v-model="paymentForm.amount" type="number" step="0.01"
+                                                    <input v-model="paymentForm.amount" type="number" step="0.01" :disabled="buttonClicked"
                                                         required placeholder="0.00" min="0.01"
                                                         class="w-full pl-10 pr-4 py-3 border-0 rounded-l-lg focus:ring-0 focus:border-0 outline-none" />
                                                 </div>
-                                                <select v-model="paymentForm.currency" @change="resetPaypal"
+                                                <select v-model="paymentForm.currency" @change="resetPaypal" :disabled="buttonClicked"
                                                     class="px-4 py-3 border-0 rounded-r-lg focus:ring-0 focus:border-0 bg-white outline-none border-l border-slate-200">
                                                     <option value="USD">USD</option>
                                                     <option value="EUR">EUR</option>
@@ -80,7 +80,7 @@
                                                 Purpose</label>
                                             <div class="relative">
                                                 <FileText class="absolute left-3 top-3 w-5 h-5 text-slate-400" />
-                                                <input v-model="paymentForm.paymentPurpose" type="text" required
+                                                <input v-model="paymentForm.paymentPurpose" type="text" required :disabled="buttonClicked"
                                                     placeholder="Purpose of payment"
                                                     class="w-full pl-10 pr-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500" />
                                             </div>
@@ -93,7 +93,7 @@
                                             <label class="block text-sm font-medium text-slate-700 mb-2">Payee</label>
                                             <div class="relative">
                                                 <Mail class="absolute left-3 top-3 w-5 h-5 text-slate-400" />
-                                                <input v-model="paymentForm.payee" type="text" required
+                                                <input v-model="paymentForm.payee" type="text" required :disabled="buttonClicked"
                                                     placeholder="Recipient name"
                                                     class="w-full pl-10 pr-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500" />
                                             </div>
@@ -104,7 +104,7 @@
                                                 Number</label>
                                             <div class="relative">
                                                 <Hash class="absolute left-3 top-3 w-5 h-5 text-slate-400" />
-                                                <input v-model="paymentForm.payeeAccountNumber" type="text" required
+                                                <input v-model="paymentForm.payeeAccountNumber" type="text" required :disabled="buttonClicked"
                                                     placeholder="Account number"
                                                     class="w-full pl-10 pr-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500" />
                                             </div>
@@ -116,7 +116,7 @@
                                         <div>
                                             <label class="block text-sm font-medium text-slate-700 mb-2">Reference
                                                 Number</label>
-                                            <input v-model="paymentForm.referenceNumber" type="text" required
+                                            <input v-model="paymentForm.referenceNumber" type="text" required :disabled="buttonClicked"
                                                 placeholder="Reference number"
                                                 class="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500" />
                                         </div>
@@ -124,7 +124,7 @@
                                         <div>
                                             <label class="block text-sm font-medium text-slate-700 mb-2">Payment
                                                 Model</label>
-                                            <input v-model="paymentForm.paymentModel" type="text" required
+                                            <input v-model="paymentForm.paymentModel" type="text" required :disabled="buttonClicked"
                                                 placeholder="Payment model"
                                                 class="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500" />
                                         </div>
@@ -265,6 +265,7 @@ const toastMessage = ref('');
 const hasMorePayments = ref(false);
 const paypalSDKLoaded = ref(false);
 const renderedPayPalButtons = ref(false);
+const buttonClicked = ref(false);
 
 // Unified payment form state with currency
 const paymentForm = ref({
@@ -293,11 +294,12 @@ const isFormValid = computed(() => {
 
 watch(isFormValid, async (valid) => {
     if (valid && (!paypalSDKLoaded.value || !document.getElementById('paypal-button-container')?.hasChildNodes()) && !renderedPayPalButtons.value) {
+        renderedPayPalButtons.value = true;
         try {
             const jwt = await getAccessToken();
+
             if (jwt) {
                 await initializePayPal(jwt);
-                renderedPayPalButtons.value = true; // Mark buttons as rendered
             }
         } catch (error) {
             console.error('Error initializing PayPal from watcher:', error);
@@ -431,6 +433,7 @@ async function renderPayPalButton(jwt: string) {
                 tagline: false,
             },
             createOrder: (data: any, actions: any) => {
+                buttonClicked.value = true;
                 return actions.order.create({
                     purchase_units: [{
                         amount: {
@@ -512,9 +515,13 @@ async function renderPayPalButton(jwt: string) {
             },
             onError: (err: any) => {
                 console.error('PayPal error:', err);
+                buttonClicked.value = false;
+
                 showToast('PayPal payment error');
             },
             onCancel: (data: any) => {
+                buttonClicked.value = false;
+
                 console.log('Payment cancelled:', data);
                 showToast('Payment was cancelled');
             }
@@ -530,6 +537,7 @@ async function renderPayPalButton(jwt: string) {
                 tagline: false,
             },
             createOrder: (data: any, actions: any) => {
+                buttonClicked.value = true;
                 return actions.order.create({
                     purchase_units: [{
                         amount: {
@@ -574,6 +582,7 @@ async function renderPayPalButton(jwt: string) {
                     await fetchPayments(); // Refresh payment history
 
                     resetForm();
+                    buttonClicked.value = false;
                 } catch (error) {
                     console.error('Payment capture error:', error);
                     showToast('Payment processing failed');
@@ -581,10 +590,14 @@ async function renderPayPalButton(jwt: string) {
             },
             onError: (err: any) => {
                 console.error('PayPal error:', err);
+                buttonClicked.value = false;
+
                 showToast('PayPal payment error');
             },
             onCancel: (data: any) => {
                 console.log('Payment cancelled:', data);
+                buttonClicked.value = false;
+
                 showToast('Payment was cancelled');
             }
         }).render('#paypal-button-container');

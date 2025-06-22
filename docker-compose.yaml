@@ -27,6 +27,7 @@ services:
     ports:
       - "9090:9090"
     depends_on:
+      - app
       - neo4j
       - elasticsearch
     environment:
@@ -44,6 +45,7 @@ services:
     ports:
       - "9091:9091"
     depends_on:
+      - app
       - mongo_db
     environment:
       MONGO_HOST: ${MONGO_HOST}
@@ -65,6 +67,7 @@ services:
       - ./database/starter.sql:/docker-entrypoint-initdb.d/init.sql
     ports:
       - "5432:5432"
+    attach: false
 
   mongo_db:
     container_name: mongo_db
@@ -80,6 +83,7 @@ services:
       MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME}
       MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD}
       MONGO_INITDB_DATABASE: ${MONGO_DB_NAME}
+    attach: false
 
   neo4j:
     container_name: neo4j_db
@@ -93,6 +97,7 @@ services:
     volumes:
       - neo4j_data:/data
       - neo4j_logs:/logs
+    attach: false
 
   elasticsearch:
     container_name: elasticsearch_db
@@ -107,12 +112,14 @@ services:
     volumes:
       - elasticsearch_data:/usr/share/elasticsearch/data
     restart: always
+    attach: false
 
   mail:
     image: mailhog/mailhog
     ports:
       - "${MAIL_PORT}:${MAIL_PORT}" # SMTP
       - "8025:8025" # Web UI
+    attach: false
 
   frontend-app:
     build:
@@ -131,9 +138,12 @@ services:
     depends_on:
       - app
       - forums_app
+      - payment_app
 
   db_test:
     image: postgres:latest
+    profiles:
+      - testing
     environment:
       POSTGRES_USER: ${POSTGRES_USER_TEST}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD_TEST}
@@ -149,6 +159,8 @@ services:
       context: ./backend
       dockerfile: Dockerfile
       target: tester
+    profiles:
+      - testing
     depends_on:
       - db_test
     environment:

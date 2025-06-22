@@ -10,10 +10,10 @@
         
         <!-- Desktop menu -->
         <div class="hidden md:flex items-center space-x-8">
-          <a href="#features" class="text-gray-600 hover:text-emerald-600 transition-colors">Features</a>
-          <a href="#benefits" class="text-gray-600 hover:text-emerald-600 transition-colors">Benefits</a>
+          <a href="/#features" class="text-gray-600 hover:text-emerald-600 transition-colors">Features</a>
+          <a href="/#benefits" class="text-gray-600 hover:text-emerald-600 transition-colors">Benefits</a>
           <a href="/forums" class="text-gray-600 hover:text-emerald-600 transition-colors">Forums</a>
-          <a href="#contact" class="text-gray-600 hover:text-emerald-600 transition-colors">Contact</a>
+          <a href="/#contact" class="text-gray-600 hover:text-emerald-600 transition-colors">Contact</a>
           <button 
             class="bg-emerald-600 text-white px-4 py-2 rounded-lg hover:bg-emerald-700 transition-colors"
             @click="userLoggedIn ? goToDashboard() : goToLogin()"
