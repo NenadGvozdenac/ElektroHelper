@@ -92,7 +92,7 @@
                                         <div>
                                             <label class="block text-sm font-medium text-slate-700 mb-2">Payee</label>
                                             <div class="relative">
-                                                <User class="absolute left-3 top-3 w-5 h-5 text-slate-400" />
+                                                <Mail class="absolute left-3 top-3 w-5 h-5 text-slate-400" />
                                                 <input v-model="paymentForm.payee" type="text" required
                                                     placeholder="Recipient name"
                                                     class="w-full pl-10 pr-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500" />
@@ -242,25 +242,29 @@ import { ref, computed, onMounted, nextTick, watch } from 'vue';
 import {
     CreditCard,
     DollarSign,
-    User,
     Hash,
     FileText,
     CheckCircle,
     ArrowLeft,
     Euro,
-    Circle
+    Mail
 } from 'lucide-vue-next';
 import type { MakePayment, Payments } from '@/app/models/payments/Payment';
 import { PaymentService } from '@/app/services/payment_backend/payment_service';
 import { goToLoginScreen } from '@/app/routes';
 import { getAccessToken } from '@/app/services/backend/auth_service';
-import { PAYPAL_CLIENT_ID } from '@/app/services/backend/const_service';
+import { COUNTRY_CODES, PAYPAL_CLIENT_ID } from '@/app/services/backend/const_service';
+import { UserService } from '@/app/services/backend/user_service';
+import type { User } from '@/app/models/backend/user';
+import type { Location } from '@/app/models/backend/location';
+import { DashboardService } from '@/app/services/backend/dashboard_service';
 
 // Reactive state
 const loading = ref(false);
 const toastMessage = ref('');
 const hasMorePayments = ref(false);
 const paypalSDKLoaded = ref(false);
+const renderedPayPalButtons = ref(false);
 
 // Unified payment form state with currency
 const paymentForm = ref({
@@ -288,11 +292,12 @@ const isFormValid = computed(() => {
 });
 
 watch(isFormValid, async (valid) => {
-    if (valid && (!paypalSDKLoaded.value || !document.getElementById('paypal-button-container')?.hasChildNodes())) {
+    if (valid && (!paypalSDKLoaded.value || !document.getElementById('paypal-button-container')?.hasChildNodes()) && !renderedPayPalButtons.value) {
         try {
             const jwt = await getAccessToken();
             if (jwt) {
                 await initializePayPal(jwt);
+                renderedPayPalButtons.value = true; // Mark buttons as rendered
             }
         } catch (error) {
             console.error('Error initializing PayPal from watcher:', error);
@@ -325,6 +330,8 @@ async function resetPaypal() {
         container.innerHTML = '';
     }
 
+    renderedPayPalButtons.value = false; // Reset rendered state
+
     const jwt = await getAccessToken();
     if (jwt) {
         await initializePayPal(jwt);
@@ -339,7 +346,6 @@ async function initializePayPal(jwt: string) {
 
     try {
         loading.value = true;
-        debugPayPal();
         await loadPayPalSDK(paymentForm.value.currency);
 
         // Wait for DOM update and ensure container exists
@@ -383,7 +389,7 @@ function loadPayPalSDK(currency: string): Promise<void> {
     });
 }
 
-function renderPayPalButton(jwt: string) {
+async function renderPayPalButton(jwt: string) {
     const container = document.getElementById('paypal-button-container');
     if (!container) {
         console.error('PayPal container not found');
@@ -399,60 +405,190 @@ function renderPayPalButton(jwt: string) {
         return;
     }
 
-    window.paypal.Buttons({
-        style: {
-            layout: 'vertical',
-            color: 'blue',
-            shape: 'rect',
-            label: 'pay',
-            height: 48,
-            tagline: false,
-        },
-        createOrder: (data: any, actions: any) => {
-            return actions.order.create({
-                purchase_units: [{
-                    amount: {
-                        value: paymentForm.value.amount,
-                        currency_code: paymentForm.value.currency
+    const activeUser: User = await UserService.getActiveUser(jwt);
+    const addresses: Location[] = await DashboardService.getLocationsForUser(jwt);
+
+    const match = activeUser.phone.match(/^\+(\d{3})(\d+)$/);
+
+    let country_code = '', national_number = '';
+
+    if (match) {
+        country_code = match[1];
+        national_number = match[2];
+    } else {
+        console.warn('Phone number format is not recognized');
+    }
+
+    if (addresses.length > 0) {
+        let short_address_country_code = getCountryCode(addresses[0]?.country || 'US');
+        window.paypal.Buttons({
+            style: {
+                layout: 'vertical',
+                color: 'blue',
+                shape: 'rect',
+                label: 'pay',
+                height: 48,
+                tagline: false,
+            },
+            createOrder: (data: any, actions: any) => {
+                return actions.order.create({
+                    purchase_units: [{
+                        amount: {
+                            value: paymentForm.value.amount,
+                            currency_code: paymentForm.value.currency
+                        },
+                        description: paymentForm.value.paymentPurpose,
+                        shipping: {
+                            name: {
+                                full_name: activeUser.name + ' ' + activeUser.surname
+                            },
+                            address: {
+                                address_line_1: addresses[0] != null ? addresses[0].street + ' ' + addresses[0].number : '',
+                                admin_area_2: addresses[0]?.city || '',
+                                postal_code: addresses[0]?.postal_code || '',
+                                country_code: short_address_country_code
+                            },
+                            phone: {
+                                phone_type: 'MOBILE',
+                                phone_number: {
+                                    country_code: country_code || '1',
+                                    national_number: national_number || ''
+                                }
+                            },
+                        },
+                    }],
+                    payer: {
+                        name: {
+                            given_name: activeUser.name,
+                            surname: activeUser.surname
+                        },
+                        email_address: activeUser.email,
+                        address: {
+                            address_line_1: addresses[0] != null ? addresses[0].street + ' ' + addresses[0].number : '',
+                            admin_area_2: addresses[0]?.city || '',
+                            postal_code: addresses[0]?.postal_code || '',
+                            country_code: short_address_country_code
+                        },
+                        phone: {
+                            phone_type: 'MOBILE',
+                            phone_number: {
+                                country_code: country_code || '1',
+                                national_number: national_number || ''
+                            }
+                        },
                     },
-                    description: paymentForm.value.paymentPurpose
-                }]
-            });
-        },
-        onApprove: async (data: any, actions: any) => {
-            try {
-                const order = await actions.order.capture();
-                showToast('Payment completed successfully!');
+                    application_context: {
+                        shipping_preference: 'SET_PROVIDED_ADDRESS',
+                        user_action: 'PAY_NOW',
+                        return_url: window.location.href,
+                        cancel_url: window.location.href,
+                    }
+                });
+            },
+            onApprove: async (data: any, actions: any) => {
+                try {
+                    const order = await actions.order.capture();
+                    showToast('Payment completed successfully!');
 
-                let makePayment: MakePayment = {
-                    amount: parseFloat(paymentForm.value.amount),
-                    currency: paymentForm.value.currency,
-                    paymentPurpose: paymentForm.value.paymentPurpose,
-                    payee: paymentForm.value.payee,
-                    payeeAccountNumber: paymentForm.value.payeeAccountNumber,
-                    referenceNumber: paymentForm.value.referenceNumber,
-                    paymentModel: paymentForm.value.paymentModel,
-                };
+                    let makePayment: MakePayment = {
+                        amount: parseFloat(paymentForm.value.amount),
+                        currency: paymentForm.value.currency,
+                        paymentPurpose: paymentForm.value.paymentPurpose,
+                        payee: paymentForm.value.payee,
+                        payeeAccountNumber: paymentForm.value.payeeAccountNumber,
+                        referenceNumber: paymentForm.value.referenceNumber,
+                        paymentModel: paymentForm.value.paymentModel,
+                    };
 
-                await PaymentService.makePayment(jwt, makePayment);
+                    await PaymentService.makePayment(jwt, makePayment);
 
-                await fetchPayments(); // Refresh payment history
+                    await fetchPayments(); // Refresh payment history
 
-                resetForm();
-            } catch (error) {
-                console.error('Payment capture error:', error);
-                showToast('Payment processing failed');
+                    resetForm();
+                } catch (error) {
+                    console.error('Payment capture error:', error);
+                    showToast('Payment processing failed');
+                }
+            },
+            onError: (err: any) => {
+                console.error('PayPal error:', err);
+                showToast('PayPal payment error');
+            },
+            onCancel: (data: any) => {
+                console.log('Payment cancelled:', data);
+                showToast('Payment was cancelled');
             }
-        },
-        onError: (err: any) => {
-            console.error('PayPal error:', err);
-            showToast('PayPal payment error');
-        },
-        onCancel: (data: any) => {
-            console.log('Payment cancelled:', data);
-            showToast('Payment was cancelled');
-        }
-    }).render('#paypal-button-container');
+        }).render('#paypal-button-container');
+    } else {
+        window.paypal.Buttons({
+            style: {
+                layout: 'vertical',
+                color: 'blue',
+                shape: 'rect',
+                label: 'pay',
+                height: 48,
+                tagline: false,
+            },
+            createOrder: (data: any, actions: any) => {
+                return actions.order.create({
+                    purchase_units: [{
+                        amount: {
+                            value: paymentForm.value.amount,
+                            currency_code: paymentForm.value.currency
+                        },
+                        description: paymentForm.value.paymentPurpose,
+                    }],
+                    payer: {
+                        name: {
+                            given_name: activeUser.name,
+                            surname: activeUser.surname
+                        },
+                        email_address: activeUser.email,
+                        phone: {
+                            phone_type: 'MOBILE',
+                            phone_number: {
+                                country_code: country_code || '1',
+                                national_number: national_number || ''
+                            }
+                        },
+                    }
+                });
+            },
+            onApprove: async (data: any, actions: any) => {
+                try {
+                    const order = await actions.order.capture();
+                    showToast('Payment completed successfully!');
+
+                    let makePayment: MakePayment = {
+                        amount: parseFloat(paymentForm.value.amount),
+                        currency: paymentForm.value.currency,
+                        paymentPurpose: paymentForm.value.paymentPurpose,
+                        payee: paymentForm.value.payee,
+                        payeeAccountNumber: paymentForm.value.payeeAccountNumber,
+                        referenceNumber: paymentForm.value.referenceNumber,
+                        paymentModel: paymentForm.value.paymentModel,
+                    };
+
+                    await PaymentService.makePayment(jwt, makePayment);
+
+                    await fetchPayments(); // Refresh payment history
+
+                    resetForm();
+                } catch (error) {
+                    console.error('Payment capture error:', error);
+                    showToast('Payment processing failed');
+                }
+            },
+            onError: (err: any) => {
+                console.error('PayPal error:', err);
+                showToast('PayPal payment error');
+            },
+            onCancel: (data: any) => {
+                console.log('Payment cancelled:', data);
+                showToast('Payment was cancelled');
+            }
+        }).render('#paypal-button-container');
+    }
 }
 
 async function fetchPayments() {
@@ -506,16 +642,6 @@ const goBack = () => {
     window.history.back();
 };
 
-function debugPayPal() {
-    console.log('PayPal Debug Info:');
-    console.log('- paypalSDKLoaded:', paypalSDKLoaded.value);
-    console.log('- window.paypal exists:', !!window.paypal);
-    console.log('- isFormValid:', isFormValid.value);
-    console.log('- container exists:', !!document.getElementById('paypal-button-container'));
-    console.log('- container has children:', document.getElementById('paypal-button-container')?.hasChildNodes());
-    console.log('- form data:', paymentForm.value);
-}
-
 onMounted(async () => {
     try {
         await fetchPayments();
@@ -528,6 +654,11 @@ onMounted(async () => {
         console.error('Error in onMounted:', error);
     }
 });
+
+function getCountryCode(countryName: string): string | undefined {
+    const entry = COUNTRY_CODES.find(([name]) => name.toLowerCase() === countryName.toLowerCase());
+    return entry ? entry[1] : undefined;
+}
 
 function resetForm() {
     paymentForm.value = {

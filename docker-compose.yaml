@@ -124,9 +124,10 @@ services:
       - ./frontend:/app
       - /app/node_modules # Prevent overwriting node_modules
     environment:
-      - SERVER_URL=${SERVER_URL}
-      - API_URL=${API_URL}
-      - PAYPAL_CLIENT_ID=${PAYPAL_CLIENT_ID}
+      VITE_API_URL: ${VITE_API_URL}
+      VITE_FORUM_URL: ${VITE_FORUM_URL}
+      VITE_PAYMENT_URL: ${VITE_PAYMENT_URL}
+      VITE_PAYPAL_CLIENT_ID: ${VITE_PAYPAL_CLIENT_ID}
     depends_on:
       - app
       - forums_app

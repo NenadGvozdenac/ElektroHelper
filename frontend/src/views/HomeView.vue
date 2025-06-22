@@ -4,7 +4,7 @@
 
     <WelcomeSection :userData="userData" />
 
-    <ForumsAndPayments v-if="userData" :userData="userData"/>
+    <ForumsAndPayments v-if="userData" :userData="userData" />
 
     <!-- Hero Section -->
     <section :class="['pt-24', 'pb-16', 'px-4', userData ? 'sm:pt-4' : 'sm:pt-24']">
@@ -17,7 +17,7 @@
             Track payments, manage utilities, and join our community forum. All in one place with ElektroHelper.
           </p>
           <div class="flex space-x-4 opacity-0 animate-fadeInUp stagger-2">
-            <button
+            <button @click="goToLogin()"
               class="bg-emerald-600 text-white px-8 py-3 rounded-lg hover:bg-emerald-700 transition-all hover:scale-105">
               Get Started
             </button>
@@ -178,6 +178,10 @@ const userData = ref<UserData | null>(null);
 const getUser = async () => {
   userData.value = await getUserData();
 };
+
+const goToLogin = () => {
+  window.location.href = '/login'
+}
 
 onMounted(() => {
   getUser();

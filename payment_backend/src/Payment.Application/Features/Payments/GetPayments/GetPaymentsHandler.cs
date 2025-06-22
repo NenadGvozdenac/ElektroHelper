@@ -9,7 +9,12 @@ public class GetPaymentsHandler(IDocumentDatabaseContext documentDatabaseContext
 {
     public async Task<Result<GetPaymentsDTO>> Handle(GetPaymentsQuery request, CancellationToken cancellationToken)
     {
-        var payments = await documentDatabaseContext.GetCollection<PaymentEntity>("payments", request.PageNumber, request.PageSize);
+        var userId = request.UserDTO.Id;
+
+        var payments = (await documentDatabaseContext.GetCollection<PaymentEntity>("payments", request.PageNumber, request.PageSize))
+            .Where(payment => payment.UserId == userId)
+            .OrderByDescending(payment => payment.CreatedAt)
+            .ToList();
 
         var paymentDtos = payments.Select(payment => new GetPaymentDTO(
             payment.Id,

@@ -34,7 +34,9 @@
                         <label class="label transition-colors group-focus-within:text-primary" for="phone">Phone</label>
                         <input id="phone" v-model="formData.phone" type="tel"
                             class="input hover:border-primary-light focus:border-primary-light transition-colors"
-                            required />
+                            required pattern="^\+381\d{6,9}$"
+                            title="Phone number must start with +381 followed by 6 to 9 digits"
+                            placeholder="+38165983626" />
                     </div>
                 </template>
 
@@ -42,6 +44,9 @@
                     <label class="label transition-colors group-focus-within:text-primary" for="email">Email</label>
                     <input id="email" v-model="formData.email" type="email"
                         class="input hover:border-primary-light focus:border-primary-light transition-colors"
+                        pattern="^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
+                        title="Please enter a valid email address"
+                        placeholder="email@gmail.com"
                         required />
                 </div>
 

@@ -71,7 +71,7 @@ VALUES (
     'Admin', 
     'User', 
     'admin@elektrohelper.com', 
-    '1234567890', 
+    '+38100000000', 
     '$2b$12$RRgRi/SXn1LPRQwggm/.9OgWn7oPkoWeky5L1dXK3FQ9.jiMGq.DS', 
     'admin'
 );
