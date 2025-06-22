@@ -142,6 +142,7 @@ services:
 
   db_test:
     image: postgres:latest
+    container_name: db_test
     profiles:
       - testing
     environment:
