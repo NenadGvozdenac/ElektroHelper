@@ -54,7 +54,7 @@ jobs:
 
       - name: Build tester image
         run: |
-            docker-compose -f docker-compose.yaml up --build -d tester
+            docker compose up tester --build
             # Wait for tester container to complete
             sleep 15  # Give it some time to execute; adjust as needed
             tester_exit_code=$(docker inspect --format '{{.State.ExitCode}}' elektrohelper-tester-1)
