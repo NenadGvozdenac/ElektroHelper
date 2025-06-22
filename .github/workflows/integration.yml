@@ -49,12 +49,12 @@ jobs:
 
       - name: Install Docker Compose
         run: |
-          curl -L "https://github.com/docker/compose/releases/download/v2.19.1/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+          curl -L "https://github.com/docker/compose/releases/download/v2.37.1/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
           chmod +x /usr/local/bin/docker-compose
 
       - name: Build tester image
         run: |
-            docker compose up tester --build
+            docker-compose up tester --build
             # Wait for tester container to complete
             sleep 15  # Give it some time to execute; adjust as needed
             tester_exit_code=$(docker inspect --format '{{.State.ExitCode}}' elektrohelper-tester-1)
