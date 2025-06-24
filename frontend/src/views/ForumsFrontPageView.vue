@@ -8,7 +8,7 @@
                 <FollowersSidebar />
 
                 <!-- Main Content -->
-                <div class="flex-grow max-w-3xl">
+                <div class="flex-grow max-w-3xl" v-if="posts.length > 0">
                     <!-- Posts Feed -->
                     <div class="space-y-6">
                         <PostItem v-for="post in filteredPosts" :key="post.id" :post="post"

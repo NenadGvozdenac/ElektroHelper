@@ -6,12 +6,6 @@
             <span>{{ post.comments ?? 0 }} Comments</span>
         </button>
 
-        <button
-            class="flex items-center space-x-2 text-slate-500 hover:text-emerald-600 hover:bg-emerald-50 rounded-full px-4 py-1.5 transition-colors text-sm">
-            <Bookmark class="w-4 h-4" />
-            <span>Save</span>
-        </button>
-
         <button @click="$emit('copyToClipboard')"
             class="flex items-center space-x-2 text-slate-500 hover:text-emerald-600 hover:bg-emerald-50 rounded-full px-4 py-1.5 transition-colors text-sm">
             <Share2 class="w-4 h-4" />

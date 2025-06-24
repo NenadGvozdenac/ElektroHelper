@@ -1,5 +1,5 @@
 <template>
-    <div class="flex-shrink-0 w-64">
+    <div class="flex-shrink-0 w-64" v-if="followers.length > 0">
         <div class="bg-white rounded-xl shadow-sm border border-slate-200">
             <div class="p-4 border-b border-slate-200 flex justify-between items-center">
                 <span class="text-lg font-semibold text-slate-900">Followers</span>

@@ -31,7 +31,7 @@
                                             <h1 class="text-2xl font-bold text-slate-900">{{ currentForum?.name }}</h1>
                                             <p class="text-slate-600 mt-1">{{ currentForum?.description }}</p>
                                         </div>
-                                        <div class="flex items-center space-x-3">
+                                        <div class="flex items-center space-x-4">
                                             <button v-if="currentUser?.userRole === 'admin'" @click="toggleQuarantine"
                                                 class="px-6 py-2.5 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition-colors font-medium shadow-sm hover:shadow flex items-center space-x-2">
                                                 <ShieldAlert class="w-5 h-5" />
@@ -41,9 +41,9 @@
                                             <button
                                                 v-if="!currentForum?.isQuarantined || (currentForum.isQuarantined && currentUser?.userRole == 'admin')"
                                                 @click="showModal = true"
-                                                class="px-6 py-2.5 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors font-medium shadow-sm hover:shadow flex items-center space-x-2">
+                                                class="px-6 py-2.5 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors font-medium shadow-sm hover:shadow flex flex-row items-center gap-2">
                                                 <PlusCircle class="w-5 h-5" />
-                                                <span>New Post</span>
+                                                <span class="whitespace-nowrap">New Post</span>
                                             </button>
                                         </div>
                                     </div>
@@ -148,7 +148,7 @@
                                                     @click="goToProfile(post.author?.id)">{{ post.author?.username
                                                     }}</span>
                                                 <span class="text-sm text-slate-500">{{ formatDate(post.createdAt)
-                                                    }}</span>
+                                                }}</span>
                                                 <span v-if="post.isLocked"
                                                     class="px-2 py-0.5 rounded-full bg-amber-100 text-amber-600 text-xs font-medium flex items-center">
                                                     <LockIcon class="w-3 h-3 mr-1" />
@@ -156,14 +156,6 @@
                                                 </span>
                                             </div>
                                         </div>
-                                    </div>
-
-                                    <!-- Right side with forum name and actions -->
-                                    <div class="flex items-center space-x-3">
-                                        <button
-                                            class="p-1.5 hover:bg-slate-50 rounded-lg text-slate-400 hover:text-slate-600">
-                                            <MoreVertical class="w-5 h-5" />
-                                        </button>
                                     </div>
                                 </div>
                             </div>
@@ -219,12 +211,6 @@
                                             class="flex items-center space-x-2 text-slate-500 hover:text-emerald-600 hover:bg-emerald-50 rounded-full px-4 py-1.5 transition-colors text-sm">
                                             <MessageSquare class="w-4 h-4" />
                                             <span>{{ post.comments ?? 0 }} Comments</span>
-                                        </button>
-
-                                        <button
-                                            class="flex items-center space-x-2 text-slate-500 hover:text-emerald-600 hover:bg-emerald-50 rounded-full px-4 py-1.5 transition-colors text-sm">
-                                            <Bookmark class="w-4 h-4" />
-                                            <span>Save</span>
                                         </button>
 
                                         <button @click="copyToClipboard(post.id)"
