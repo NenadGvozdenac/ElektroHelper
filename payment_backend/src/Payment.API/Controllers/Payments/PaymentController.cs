@@ -8,7 +8,7 @@ using payment_backend.src.Payment.Application.Features.Payments.GetPayments;
 using payment_backend.src.Payment.BuildingBlocks.Core.Domain;
 using payment_backend.src.Payment.BuildingBlocks.Infrastructure;
 
-namespace payment_backend.src.Payment.API.Controllers.Invoices;
+namespace payment_backend.src.Payment.API.Controllers.Payments;
 
 [ApiController]
 [Route("api/payments")]
@@ -31,7 +31,7 @@ public class PaymentController(IMediator mediator) : BaseController
     }
 
     [HttpGet]
-    public async Task<IActionResult> GetMyPayments([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 3)
+    public async Task<IActionResult> GetMyPayments([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
     {
         var result = await mediator.Send(new GetPaymentsQuery(this.GetUser(), pageNumber, pageSize));
         return CreateResponse(result);

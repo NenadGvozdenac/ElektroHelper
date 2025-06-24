@@ -1,0 +1,64 @@
+# Build Folders
+bin/
+obj/
+out/
+
+# User-Specific Files
+*.user
+*.rsuser
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Logs
+*.log
+
+# Visual Studio Code
+.vscode/
+.vscode/settings.json
+.vscode/tasks.json
+.vscode/launch.json
+
+# Visual Studio
+*.ncrunchsolution
+*.ncrunchproject
+.vs/
+.vsconfig
+
+# Dependency Directories
+packages/
+.vscode-test/
+node_modules/
+
+# Configuration Files
+*.config
+*.settings
+*.kuser
+
+# OS Generated Files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# JetBrains Rider
+.idea/
+*.iml
+
+# Rider-specific working files
+.idea/*
+!*.csproj
+
+# DotNet specific
+project.lock.json
+project.fragment.lock.json
+artifacts/
+*.csproj.user
+
+# Resharper files
+_ReSharper*/
+*.DotSettings.user
+
+# IDE Related
+.env
+.env.*
+*.secret

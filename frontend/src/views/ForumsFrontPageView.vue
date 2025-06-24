@@ -34,7 +34,7 @@
                 </div>
 
                 <!-- Sidebar -->
-                <div class="flex-shrink-0 space-y-6">
+                <div class="flex-shrink-0 space-y-6" v-if="forums.length > 0">
                     <!-- Forum Selection -->
                     <div class="bg-white rounded-xl shadow-sm border border-slate-200">
                         <div class="p-4 border-b border-slate-200 flex justify-center">

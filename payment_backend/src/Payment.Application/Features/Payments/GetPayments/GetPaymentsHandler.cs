@@ -1,3 +1,4 @@
+using System.Linq.Expressions;
 using MediatR;
 using payment_backend.src.Payment.Application.Models;
 using payment_backend.src.Payment.BuildingBlocks.Core.Domain;
@@ -11,8 +12,8 @@ public class GetPaymentsHandler(IDocumentDatabaseContext documentDatabaseContext
     {
         var userId = request.UserDTO.Id;
 
-        var payments = (await documentDatabaseContext.GetCollection<PaymentEntity>("payments", request.PageNumber, request.PageSize))
-            .Where(payment => payment.UserId == userId)
+        var payments = (await documentDatabaseContext
+            .GetCollection<PaymentEntity>("payments", request.PageNumber, request.PageSize, payment => payment.UserId == userId))
             .OrderByDescending(payment => payment.CreatedAt)
             .ToList();
 

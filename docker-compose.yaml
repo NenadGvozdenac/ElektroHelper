@@ -171,6 +171,13 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD_TEST}
       POSTGRES_DB: ${POSTGRES_DB_TEST}
 
+  payment_tester:
+    build:
+      context: .
+      dockerfile: ./payment_tests/Dockerfile
+    profiles:
+      - testing
+
 volumes:
   postgres_data:
   postgres_test_data:
