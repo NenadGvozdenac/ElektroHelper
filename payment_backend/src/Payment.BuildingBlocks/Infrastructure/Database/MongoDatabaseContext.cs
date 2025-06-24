@@ -1,3 +1,4 @@
+using System.Linq.Expressions;
 using MongoDB.Driver;
 using payment_backend.src.Payment.BuildingBlocks.Core.Domain;
 
@@ -29,6 +30,13 @@ public class MongoDatabaseContext : IDocumentDatabaseContext
     {
         var collection = _database.GetCollection<T>(collectionName);
         var queryableCollection = collection.AsQueryable();
+        return Task.FromResult(queryableCollection.Skip((pageNumber - 1) * pageSize).Take(pageSize));
+    }
+
+    public Task<IQueryable<T>> GetCollection<T>(string collectionName, int pageNumber, int pageSize, Expression<Func<T, bool>> filter) where T : BaseEntity
+    {
+        var collection = _database.GetCollection<T>(collectionName);
+        var queryableCollection = collection.AsQueryable().Where(filter);
         return Task.FromResult(queryableCollection.Skip((pageNumber - 1) * pageSize).Take(pageSize));
     }
 

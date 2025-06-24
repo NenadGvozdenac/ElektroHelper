@@ -489,6 +489,7 @@ async function renderPayPalButton(jwt: string) {
                 });
             },
             onApprove: async (data: any, actions: any) => {
+                debugger
                 try {
                     const order = await actions.order.capture();
                     showToast('Payment completed successfully!');
@@ -508,6 +509,7 @@ async function renderPayPalButton(jwt: string) {
                     await fetchPayments(); // Refresh payment history
 
                     resetForm();
+                    buttonClicked.value = false;
                 } catch (error) {
                     console.error('Payment capture error:', error);
                     showToast('Payment processing failed');
@@ -612,6 +614,7 @@ async function fetchPayments() {
             goToLoginScreen();
             return;
         }
+        debugger
         payments.value = await PaymentService.getPayments(jwt);
     } catch (error) {
         console.error('Error fetching payments:', error);
