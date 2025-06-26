@@ -1,0 +1,36 @@
+# Traefik static configuration
+api:
+  dashboard: true
+  debug: true
+  insecure: true
+
+entryPoints:
+  web:
+    address: ":80"
+  websecure:
+    address: ":443"
+
+providers:
+  docker:
+    endpoint: "unix:///var/run/docker.sock"
+    exposedByDefault: false
+    network: elektrohelper_network
+  file:
+    filename: /etc/traefik/dynamic.yml
+    watch: true
+
+# ACME is disabled for development
+# certificatesResolvers:
+#   myresolver:
+#     acme:
+#       email: admin@elektrohelper.com
+#       storage: acme.json
+#       httpChallenge:
+#         entryPoint: web
+
+# Enable access logs
+accessLog: {}
+
+# Enable Traefik logs
+log:
+  level: INFO

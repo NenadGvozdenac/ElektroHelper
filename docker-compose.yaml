@@ -1,11 +1,31 @@
 services:
+  # Traefik API Gateway
+  traefik:
+    image: traefik:v3.0
+    container_name: traefik
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+      - "8080:8080" # Traefik dashboard
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./traefik/traefik.yml:/etc/traefik/traefik.yml:ro
+      - ./traefik/dynamic.yml:/etc/traefik/dynamic.yml:ro
+      - ./traefik/acme.json:/acme.json
+    command:
+      - --providers.file.filename=/etc/traefik/dynamic.yml
+      - --providers.file.watch=true
+    networks:
+      - elektrohelper_network
+
   app:
     build:
       context: ./backend
       dockerfile: Dockerfile
     restart: always
-    ports:
-      - "8080:8080"
+    expose:
+      - "8080"
     depends_on:
       - db
       - mail
@@ -18,14 +38,21 @@ services:
       MAIL_HOST: ${MAIL_HOST}
       MAIL_PORT: ${MAIL_PORT}
       MAIL_EMAIL: ${MAIL_EMAIL}
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.main-api.rule=Host(`localhost`) && PathPrefix(`/api`)"
+      - "traefik.http.routers.main-api.service=main-api"
+      - "traefik.http.services.main-api.loadbalancer.server.port=8080"
+    networks:
+      - elektrohelper_network
 
   forums_app:
     build:
       context: ./forums_backend
       dockerfile: Dockerfile
     restart: always
-    ports:
-      - "9090:9090"
+    expose:
+      - "9090"
     depends_on:
       - app
       - neo4j
@@ -36,14 +63,21 @@ services:
       NEO4J_PASSWORD: ${NEO4J_PASSWORD}
       ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT}
       ELASTICSEARCH_HOST: "http://elasticsearch:9200"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.forums-api.rule=Host(`localhost`) && PathPrefix(`/forums-api`)"
+      - "traefik.http.routers.forums-api.service=forums-api"
+      - "traefik.http.services.forums-api.loadbalancer.server.port=9090"
+    networks:
+      - elektrohelper_network
 
   payment_app:
     build:
       context: ./payment_backend
       dockerfile: Dockerfile
     restart: always
-    ports:
-      - "9091:9091"
+    expose:
+      - "9091"
     depends_on:
       - app
       - mongo_db
@@ -54,6 +88,13 @@ services:
       MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD}
       MONGO_DB_NAME: ${MONGO_DB_NAME}
       ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT}
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.payment-api.rule=Host(`localhost`) && PathPrefix(`/payment-api`)"
+      - "traefik.http.routers.payment-api.service=payment-api"
+      - "traefik.http.services.payment-api.loadbalancer.server.port=9091"
+    networks:
+      - elektrohelper_network
 
   db:
     container_name: postgres_db
@@ -65,16 +106,18 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./database/starter.sql:/docker-entrypoint-initdb.d/init.sql
-    ports:
-      - "5432:5432"
+    expose:
+      - "5432"
     attach: false
+    networks:
+      - elektrohelper_network
 
   mongo_db:
     container_name: mongo_db
     image: mongo:latest
     restart: always
-    ports:
-      - "27017:27017"
+    expose:
+      - "27017"
     volumes:
       - mongo_data:/data/db
     environment:
@@ -84,20 +127,24 @@ services:
       MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD}
       MONGO_INITDB_DATABASE: ${MONGO_DB_NAME}
     attach: false
+    networks:
+      - elektrohelper_network
 
   neo4j:
     container_name: neo4j_db
     image: neo4j:latest
     restart: always
-    ports:
-      - "7474:7474" # Web UI
-      - "7687:7687" # Bolt protocol
+    expose:
+      - "7474" # Web UI
+      - "7687" # Bolt protocol
     environment:
       NEO4J_AUTH: "${NEO4J_USER}/${NEO4J_PASSWORD}"
     volumes:
       - neo4j_data:/data
       - neo4j_logs:/logs
     attach: false
+    networks:
+      - elektrohelper_network
 
   elasticsearch:
     container_name: elasticsearch_db
@@ -107,26 +154,30 @@ services:
       - ELASTIC_USERNAME=elastic
       - ELASTIC_PASSWORD=password
       - xpack.security.enabled=false
-    ports:
-      - "9200:9200"
+    expose:
+      - "9200"
     volumes:
       - elasticsearch_data:/usr/share/elasticsearch/data
     restart: always
     attach: false
+    networks:
+      - elektrohelper_network
 
   mail:
     image: mailhog/mailhog
-    ports:
-      - "${MAIL_PORT}:${MAIL_PORT}" # SMTP
-      - "8025:8025" # Web UI
+    expose:
+      - "${MAIL_PORT}" # SMTP
+      - "8025" # Web UI
     attach: false
+    networks:
+      - elektrohelper_network
 
   frontend-app:
     build:
       context: ./frontend
       dockerfile: Dockerfile
-    ports:
-      - "${SERVER_PORT}:${SERVER_PORT}"
+    expose:
+      - "5173"
     volumes:
       - ./frontend:/app
       - /app/node_modules # Prevent overwriting node_modules
@@ -136,9 +187,18 @@ services:
       VITE_PAYMENT_URL: ${VITE_PAYMENT_URL}
       VITE_PAYPAL_CLIENT_ID: ${VITE_PAYPAL_CLIENT_ID}
     depends_on:
+      - traefik
       - app
       - forums_app
       - payment_app
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.frontend.rule=Host(`localhost`) && !PathPrefix(`/api`) && !PathPrefix(`/forums-api`) && !PathPrefix(`/payment-api`)"
+      - "traefik.http.routers.frontend.service=frontend"
+      - "traefik.http.services.frontend.loadbalancer.server.port=5173"
+      - "traefik.http.routers.frontend.priority=1"
+    networks:
+      - elektrohelper_network
 
   db_test:
     image: postgres:latest
@@ -152,8 +212,10 @@ services:
     volumes:
       - postgres_test_data:/var/lib/postgresql/data
       - ./database/testing_starter.sql:/docker-entrypoint-initdb.d/init.sql
-    ports:
-      - "5433:5432"
+    expose:
+      - "5432"
+    networks:
+      - elektrohelper_network
 
   tester:
     build:
@@ -170,6 +232,8 @@ services:
       POSTGRES_USER: ${POSTGRES_USER_TEST}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD_TEST}
       POSTGRES_DB: ${POSTGRES_DB_TEST}
+    networks:
+      - elektrohelper_network
 
   payment_tester:
     build:
@@ -177,6 +241,12 @@ services:
       dockerfile: ./payment_tests/Dockerfile
     profiles:
       - testing
+    networks:
+      - elektrohelper_network
+
+networks:
+  elektrohelper_network:
+    driver: bridge
 
 volumes:
   postgres_data:
