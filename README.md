@@ -274,7 +274,7 @@ services:
 
 1. **Clone the Repository**
    ```bash
-   git clone <repository-url>
+   git clone https://github.com/NenadGvozdenac/ElektroHelper/tree/feat/traefik
    cd ElektroHelper
    ```
 
