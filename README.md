@@ -13,7 +13,6 @@ ElektroHelper is a comprehensive microservices-based application designed to man
 - [Infrastructure](#infrastructure)
 - [Features](#features)
 - [Setup and Installation](#setup-and-installation)
-- [Deployment](#deployment)
 - [API Documentation](#api-documentation)
 - [Contributing](#contributing)
 - [License](#license)
@@ -36,23 +35,23 @@ ElektroHelper is a modern, cloud-ready application built with microservices arch
 ## Architecture
 
 ```
-┌─────────────────────────────────────────────────────────────────┐
-│                        Traefik API Gateway                      │
-│                         (Port 80/443)                          │
-└─────────────────────┬───────────────────────────────────────────┘
-                      │
-      ┌───────────────┼───────────────┬─────────────────────────────┐
-      │               │               │                             │
-┌─────▼────┐   ┌──────▼─────┐   ┌─────▼─────┐              ┌──────▼──────┐
-│Main API  │   │Forums API  │   │Payment    │              │Frontend     │
-│(Go)      │   │(.NET)      │   │API(.NET)  │              │(Vue.js)     │
-│Port 8080 │   │Port 9090   │   │Port 9091  │              │Port 5173    │
-└─────┬────┘   └──────┬─────┘   └─────┬─────┘              └─────────────┘
-      │               │               │
-┌─────▼────┐   ┌──────▼─────┐   ┌─────▼─────┐
-│PostgreSQL│   │Neo4j +     │   │MongoDB    │
-│          │   │Elasticsearch│   │           │
-└──────────┘   └────────────┘   └───────────┘
+┌──────────────────────────────────────────────────────────────────┐
+│                        Traefik API Gateway                       │
+│                         (Port 80/443)                            │
+└──────────────────────┬───────────────────────────────────────────┘
+                       │
+      ┌────────────────┼────────────────┬──────────────────────────┐
+      │                │                │                          │
+┌─────▼─────┐   ┌──────▼──────┐   ┌─────▼─────┐             ┌──────▼──────┐
+│ Main API  │   │  Forums API │   │  Payment  │             │  Frontend   │
+│    (Go)   │   │   (.NET)    │   │ API(.NET) │             │   (Vue.js)  │
+│ Port 8080 │   │  Port 9090  │   │ Port 9091 │             │  Port 5173  │
+└─────┬─────┘   └──────┬──────┘   └─────┬─────┘             └─────────────┘
+      │                │                │
+┌─────▼─────┐   ┌──────▼──────┐   ┌─────▼─────┐
+│PostgreSQL │   │    Neo4j    │   │  MongoDB  │
+│           │   │Elasticsearch│   │           │
+└───────────┘   └─────────────┘   └───────────┘
 ```
 
 ### Routing Rules (Traefik)
@@ -261,54 +260,6 @@ services:
 
 ---
 
-## Database Schema
-
-The application uses PostgreSQL with the following schema:
-
-### Users
-- `id SERIAL PRIMARY KEY`
-- `name VARCHAR(255) NOT NULL`
-- `surname VARCHAR(255) NOT NULL`
-- `email VARCHAR(255) UNIQUE NOT NULL`
-- `phone VARCHAR(15)`
-- `password VARCHAR(255) NOT NULL`
-- `creation_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP`
-- `role VARCHAR(50) NOT NULL`
-
-### Locations
-- `id SERIAL PRIMARY KEY`
-- `street VARCHAR(255) NOT NULL`
-- `number VARCHAR(10) NOT NULL`
-- `city VARCHAR(255) NOT NULL`
-- `country VARCHAR(255) NOT NULL`
-- `postal_code VARCHAR(10) NOT NULL`
-- `user_id SERIAL NOT NULL`
-  - Foreign key referencing `users(id)`
-
-### Electricity Meters
-- `id SERIAL PRIMARY KEY`
-- `location_id INT NOT NULL`
-  - Foreign key referencing `locations(id)`
-- `date_of_registration TIMESTAMP DEFAULT CURRENT_TIMESTAMP`
-
-### Electricity Readings
-- `id SERIAL PRIMARY KEY`
-- `electricity_meter_id INT NOT NULL`
-  - Foreign key referencing `electricity_meters(id)`
-- `reading_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP`
-- `lower_reading VARCHAR(255) NOT NULL`
-- `upper_reading VARCHAR(255) NOT NULL`
-
-### Notifications
-- `id SERIAL PRIMARY KEY`
-- `user_id INT NOT NULL`
-  - Foreign key referencing `users(id)`
-- `notification_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP`
-- `subject VARCHAR(255) NOT NULL`
-- `message TEXT NOT NULL`
-
----
-
 ## Setup and Installation
 
 ### Prerequisites
@@ -413,47 +364,6 @@ docker-compose up tester
 
 ---
 
-## Deployment
-
-### AWS Deployment
-
-ElektroHelper is designed for cloud deployment with comprehensive AWS support:
-
-1. **Quick Deployment**
-   ```bash
-   cd aws
-   chmod +x deploy.sh
-   ./deploy.sh
-   ```
-
-2. **Infrastructure as Code**
-   ```bash
-   # CloudFormation
-   aws cloudformation deploy --template-file aws/cloudformation/main.yaml --stack-name elektrohelper
-
-   # Terraform
-   cd aws/terraform
-   terraform init
-   terraform apply
-   ```
-
-3. **Manual ECS Deployment**
-   - Deploy task definitions from `aws/ecs/`
-   - Configure Application Load Balancer
-   - Set up RDS, DocumentDB, Neptune instances
-   - Configure Route 53 and SSL certificates
-
-### Docker Swarm/Kubernetes
-
-The application is container-ready and can be deployed to:
-- Docker Swarm clusters
-- Kubernetes clusters
-- Any container orchestration platform
-
-See `TRAEFIK_SETUP.md` for detailed deployment configurations.
-
----
-
 ## API Documentation
 
 ### Interactive Documentation
@@ -503,65 +413,6 @@ GET    /payment-api/api/payments/:id  # Payment details
 GET /api/health              # Main API health
 GET /forums-api/api/health   # Forums API health
 GET /payment-api/api/health  # Payment API health
-```
-
----
-
-## File Structure
-
-```
-ElektroHelper/
-├── backend/                    # Main API (Go)
-│   ├── main.go                # Application entry point
-│   ├── config/                # Database configuration
-│   ├── internal/              # Internal application code
-│   │   ├── app/              # Application layer
-│   │   │   ├── handlers/     # HTTP request handlers
-│   │   │   ├── middleware/   # HTTP middleware
-│   │   │   ├── repositories/ # Data access layer
-│   │   │   └── utils/        # Utility functions
-│   │   └── domain/           # Domain models
-│   ├── routes/               # API routes
-│   ├── static/               # Email templates
-│   └── tests/                # Test files
-├── forums_backend/            # Forums API (.NET)
-│   ├── Program.cs            # Application entry point
-│   └── src/                  # Source code
-│       ├── Forums.API/       # API layer
-│       ├── Forums.Application/ # Application layer
-│       └── Forums.BuildingBlocks/ # Shared components
-├── payment_backend/           # Payment API (.NET)
-│   ├── Program.cs            # Application entry point
-│   └── src/                  # Source code
-│       ├── Payment.API/      # API layer
-│       ├── Payment.Application/ # Application layer
-│       └── Payment.BuildingBlocks/ # Shared components
-├── frontend/                  # Vue.js Frontend
-│   ├── src/                  # Source code
-│   │   ├── components/       # Vue components
-│   │   ├── views/           # Page components
-│   │   ├── router/          # Routing configuration
-│   │   ├── app/             # Application logic
-│   │   │   ├── models/      # TypeScript interfaces
-│   │   │   └── services/    # API service classes
-│   │   └── assets/          # Static assets
-│   ├── public/              # Public assets
-│   └── package.json         # Dependencies
-├── traefik/                  # Traefik configuration
-│   ├── traefik.yml          # Static configuration
-│   ├── dynamic.yml          # Dynamic routing
-│   └── acme.json           # SSL certificates
-├── database/                 # Database scripts
-│   ├── starter.sql          # PostgreSQL schema
-│   └── testing_starter.sql  # Test data
-├── aws/                     # AWS deployment
-│   ├── cloudformation/      # CloudFormation templates
-│   ├── terraform/           # Terraform configuration
-│   ├── ecs/                # ECS task definitions
-│   └── deploy.sh           # Deployment script
-├── docker-compose.yaml      # Development orchestration
-├── TRAEFIK_SETUP.md        # Traefik configuration guide
-└── README.md               # This file
 ```
 
 ---
