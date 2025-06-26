@@ -16,7 +16,7 @@ export default defineConfig({
     },
   },
   server: {
-    host: true, // Allows external access to the server
+    host: '0.0.0.0', // Allows external access to the server
     port: 5173, // Sets the port
     watch: {
       usePolling: true, // Enables polling for file changes

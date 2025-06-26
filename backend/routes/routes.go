@@ -19,6 +19,7 @@ func SetupRoutes(router *gin.Engine) {
 }
 
 func setupPublicRoutes(api *gin.RouterGroup) {
+	api.GET("/health", handlers.HealthCheck)
 	api.POST("/register", handlers.Register)
 	api.POST("/login", handlers.Login)
 	api.POST("/logout", handlers.Logout)

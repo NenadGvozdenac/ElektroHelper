@@ -1,6 +1,6 @@
-const API_URL: string = import.meta.env.VITE_API_URL || 'http://localhost:8080/api';
-const FORUM_URL: string = import.meta.env.VITE_FORUM_URL || 'http://localhost:9090/api';
-const PAYMENT_URL: string = import.meta.env.VITE_PAYMENT_URL || 'http://localhost:9091/api';
+const API_URL = 'http://localhost/api'
+const FORUM_URL = 'http://localhost/forums-api/api'
+const PAYMENT_URL = 'http://localhost/payment-api/api'
 const PAYPAL_CLIENT_ID: string = import.meta.env.VITE_PAYPAL_CLIENT_ID || 'your-paypal-client-id';
 
 const COUNTRY_CODES: string[][] = [

@@ -1,0 +1,130 @@
+# Dynamic configuration for Traefik
+http:
+  routers:
+    # Main API Router
+    api-router:
+      rule: "Host(`localhost`) && PathPrefix(`/api`)"
+      service: "main-api"
+      entryPoints:
+        - "web"
+      middlewares:
+        - "cors-headers"
+        - "rate-limit"
+      priority: 100
+
+    # Forums API Router
+    forums-router:
+      rule: "Host(`localhost`) && PathPrefix(`/forums-api`)"
+      service: "forums-api"
+      entryPoints:
+        - "web"
+      middlewares:
+        - "forums-path-strip"
+        - "cors-headers"
+        - "rate-limit"
+      priority: 100
+
+    # Payment API Router
+    payment-router:
+      rule: "Host(`localhost`) && PathPrefix(`/payment-api`)"
+      service: "payment-api"
+      entryPoints:
+        - "web"
+      middlewares:
+        - "payment-path-strip"
+        - "cors-headers"
+        - "rate-limit"
+      priority: 100
+
+    # Frontend Router (lowest priority)
+    frontend-router:
+      rule: "Host(`localhost`)"
+      service: "frontend"
+      entryPoints:
+        - "web"
+      priority: 1
+
+  services:
+    # Main Go API Service
+    main-api:
+      loadBalancer:
+        servers:
+          - url: "http://app:8080"
+        healthCheck:
+          path: "/api/health"
+          interval: "30s"
+          timeout: "5s"
+
+    # Forums .NET API Service
+    forums-api:
+      loadBalancer:
+        servers:
+          - url: "http://forums_app:9090"
+        healthCheck:
+          path: "/api/health"
+          interval: "30s"
+          timeout: "5s"
+
+    # Payment .NET API Service
+    payment-api:
+      loadBalancer:
+        servers:
+          - url: "http://payment_app:9091"
+        healthCheck:
+          path: "/api/health"
+          interval: "30s"
+          timeout: "5s"
+
+    # Frontend Vue.js Service
+    frontend:
+      loadBalancer:
+        servers:
+          - url: "http://frontend-app:5173"
+
+  middlewares:
+    # CORS Headers Middleware
+    cors-headers:
+      headers:
+        accessControlAllowMethods:
+          - "GET"
+          - "POST"
+          - "PUT"
+          - "DELETE"
+          - "OPTIONS"
+        accessControlAllowHeaders:
+          - "Content-Type"
+          - "Authorization"
+          - "X-Requested-With"
+        accessControlAllowOriginList:
+          - "http://localhost"
+          - "http://localhost:80"
+        accessControlAllowCredentials: true
+        accessControlMaxAge: 86400
+
+    # Rate Limiting Middleware
+    rate-limit:
+      rateLimit:
+        burst: 100
+        average: 50
+
+    # Path Strip Middlewares
+    forums-path-strip:
+      stripPrefix:
+        prefixes:
+          - "/forums-api"
+
+    payment-path-strip:
+      stripPrefix:
+        prefixes:
+          - "/payment-api"
+
+    # Security Headers Middleware
+    security-headers:
+      headers:
+        customRequestHeaders:
+          X-Forwarded-Proto: "http"
+        customResponseHeaders:
+          X-Frame-Options: "DENY"
+          X-Content-Type-Options: "nosniff"
+          X-XSS-Protection: "1; mode=block"
+          Referrer-Policy: "strict-origin-when-cross-origin"
