@@ -124,22 +124,6 @@ The dashboard shows:
 - Route mappings
 - Error rates
 
-## Frontend Configuration
-
-Update your frontend service calls to use the new gateway URLs:
-
-```typescript
-// Old direct service calls
-const API_URL = 'http://localhost:8080/api'
-const FORUM_URL = 'http://localhost:9090/api'
-const PAYMENT_URL = 'http://localhost:9091/api'
-
-// New gateway calls
-const API_URL = 'http://localhost/api'
-const FORUM_URL = 'http://localhost/forums-api/api'
-const PAYMENT_URL = 'http://localhost/payment-api/api'
-```
-
 ## Benefits
 
 ### 🎯 **Centralized Entry Point**
