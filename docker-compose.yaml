@@ -165,9 +165,9 @@ services:
 
   mail:
     image: mailhog/mailhog
-    expose:
-      - "${MAIL_PORT}" # SMTP
-      - "8025" # Web UI
+    ports:
+      - "${MAIL_PORT}:1025" # SMTP
+      - "8025:8025" # Web UI
     attach: false
     networks:
       - elektrohelper_network
